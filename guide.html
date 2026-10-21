@@ -57,6 +57,7 @@
 
 <script src="chars.js"></script>
 <script src="builds.js"></script>
+<script src="weapons.js"></script>
 <script src="gear.js"></script>
 <script>
 const $ = s => document.querySelector(s);
@@ -75,12 +76,22 @@ const ids = Object.keys(GP.DB).filter(id => BUILDS[id])
 const setLine = s => s.set ? `${GP.esc(s.set)} <span class="muted">4세트</span>` : `<span class="pick">2세트 조합 —</span> ${s.pick.map(GP.esc).join(' · ')}`;
 const slot = (k, list) => `<div class="slot"><div class="k">${k}</div><div class="v">${GP.esc(list[0] || '—')}</div>${list.length > 1 ? `<div class="alt">대안 ${list.slice(1).map(GP.esc).join(', ')}</div>` : ''}</div>`;
 
+// 추천 무기: 상위 6개, 내 캐릭터가 낀 무기가 목록에 있으면 표시
+function weaponBlock(id) {
+  const rec = (WEAPON_REC[id] && WEAPON_REC[id].list) || [];
+  if (!rec.length) return '';
+  const mine = own[id] && own[id].wn;
+  return `<div><h3>무기 (추천 순)</h3><ol class="sets">${rec.slice(0, 6).map((nm, i) => { const w = WEAPONS[nm];
+    return `<li><span class="no">${i + 1}</span><span>${GP.esc(nm)} <span class="muted">${w.r}★${w.sub ? ' · ' + GP.esc(w.sub) : ''}</span>${nm === mine ? ' <span class="chip own">장착 중</span>' : ''}</span></li>`; }).join('')}</ol>
+    ${rec.length > 6 ? `<p class="muted" style="margin:4px 0 0;font-size:12.5px">그 밖에 ${rec.slice(6).map(GP.esc).join(', ')}</p>` : ''}</div>`;
+}
 function card(id) {
   const d = GP.DB[id], b = BUILDS[id];
   return `<article class="card" id="${id}">
     <div class="chead"><div><div class="cname"><span class="dot" style="--c:var(--${d.el})"></span>${GP.esc(d.name)}</div>
       <div class="cmeta">${'★'.repeat(d.r)} · ${GP.EL[d.el]}${d.wp ? ' · ' + GP.WPN[d.wp] : ''} · ${GP.ROLE[d.roles[0]]}</div></div>
       ${own[id] ? '<span class="chip own">내 캐릭터</span>' : ''}</div>
+    ${weaponBlock(id)}
     <div><h3>세트 (추천 순)</h3><ol class="sets">${b.sets.map((s, i) => `<li><span class="no">${i + 1}</span><span>${setLine(s)}</span></li>`).join('')}</ol></div>
     <div><h3>주옵 ${b.edited ? '<span class="edit">· 직접 보정</span>' : ''}</h3><div class="mains">${slot('시간의 모래', b.main.sands)}${slot('공간의 성배', b.main.goblet)}${slot('이성의 왕관', b.main.circlet)}</div></div>
     <div><h3>부옵 우선순위</h3><div class="subs">${b.subs.map((s, i) => `<span class="s${i < 2 ? ' top' : ''}">${GP.esc(s)}</span>`).join('<span class="gt">›</span>')}</div></div>

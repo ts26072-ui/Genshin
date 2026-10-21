@@ -168,6 +168,9 @@ dialog::backdrop { background: rgb(10 12 24 / 0.5); }
 .dlg { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
 .dlg-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .fgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px 12px; }
+.fgrid .wide2 { grid-column: 1 / -1; }
+.pick-note { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); }
+.pick-note b { color: var(--ink); font-weight: 600; }
 .fgrid.wide { grid-template-columns: 1fr; }
 fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 12px; margin: 0; }
 legend { font-size: 12px; letter-spacing: 0.06em; color: var(--muted); padding: 0 4px; font-weight: 600; }
@@ -258,14 +261,18 @@ textarea { font-family: var(--f-mono); font-size: 12px; min-height: 160px; }
       <label>원소폭발<input id="f-t2" type="number" min="1" max="10"></label>
     </div></fieldset>
     <fieldset><legend>무기</legend><div class="fgrid">
-      <label>무기 등급<select id="f-wt"></select></label>
+      <label class="wide2">무기<select id="f-wn"></select></label>
+      <label id="wt-wrap">무기 등급 (목록에서 안 고를 때)<select id="f-wt"></select></label>
       <label>무기 레벨<input id="f-wl" type="number" min="1" max="90"></label>
       <label>재련<input id="f-wr" type="number" min="1" max="5"></label>
-    </div></fieldset>
-    <fieldset><legend>성유물 · 스탯 (캐릭터 상세 화면 기준)</legend><div class="fgrid">
-      <label>세트 상태<select id="f-set">
-        <option value="full">권장 4세트</option><option value="two">2+2 유효 세트</option><option value="broken">미완성 · 잡세트</option>
-      </select></label>
+    </div><p class="pick-note" id="wn-note"></p></fieldset>
+    <fieldset><legend>성유물 · 스탯 (캐릭터 상세 화면 기준)</legend>
+    <div class="fgrid" style="margin-bottom:10px">
+      <label class="wide2">세트 (4세트, 또는 2+2의 첫째)<select id="f-sa"></select></label>
+      <label class="wide2">2+2의 둘째 세트<select id="f-sb"></select></label>
+    </div>
+    <p class="pick-note" id="set-note"></p>
+    <div class="fgrid">
       <label>치명타 확률 %<input id="f-cr" type="number" min="0" max="150" step="0.1"></label>
       <label>치명타 피해 %<input id="f-cd" type="number" min="0" max="400" step="0.1"></label>
       <label>원소 충전 효율 %<input id="f-er" type="number" min="100" max="400" step="0.1"></label>
@@ -310,6 +317,8 @@ textarea { font-family: var(--f-mono); font-size: 12px; min-height: 160px; }
   </div>
 </dialog>
 
+<script src="builds.js"></script>
+<script src="weapons.js"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -440,24 +449,24 @@ const RAW = [
  ['flins','플린스','electro','polearm',5,'main','atk',150,1,'EQ'],
  ['lauma','라우마','dendro','catalyst',5,'sup/heal','em',160,0,'EQ'],
  ['nefer','네페르','dendro','catalyst',5,'main','em',120,1,'NE'],
- // 최신 캐릭터 — 역할은 나무위키 평가 문서 기준, 핵심 스탯·무기는 확인 못 한 값이 섞여 있음
- ['durin','두린','pyro','',5,'sub','atk',150,1,'Q'],
- ['nicole','니콜','pyro','',5,'sup/shield','atk',160,0,'EQ'],
+ // 최신 캐릭터 — 역할은 나무위키 평가 문서, 무기는 나무위키 '무기 / 원소별 표'(2026년 10월 열람) 기준, 핵심 스탯은 확인 못 한 값이 섞여 있음
+ ['durin','두린','pyro','sword',5,'sub','atk',150,1,'Q'],
+ ['nicole','니콜','pyro','catalyst',5,'sup/shield','atk',160,0,'EQ'],
  ['columbina','콜롬비나','hydro','catalyst',5,'sub/sup','hp',160,1,'EQ'],
  ['vodyanitsa','보댜니차','hydro','catalyst',5,'heal/sup','hp',150,0,'E'],
- ['jahoda','야호다','anemo','',4,'heal/sup','em',160,0,'EQ'],
- ['barca','바르카','anemo','',5,'main','atk',130,1,'EQ'],
- ['prune','프루네','anemo','',4,'sup','em',160,0,'EQ'],
+ ['jahoda','야호다','anemo','bow',4,'heal/sup','em',160,0,'EQ'],
+ ['barca','바르카','anemo','claymore',5,'main','atk',130,1,'EQ'],
+ ['prune','프루네','anemo','catalyst',4,'sup','em',160,0,'EQ'],
  ['vesna','베스나','anemo','sword',5,'main','atk',140,1,'EQ'],
- ['alyosha','알료샤','electro','',4,'sup','atk',160,0,'Q'],
- ['valery','발레리','electro','',4,'sup','atk',150,0,'EQ',1],
- ['mitya','미탸','electro','',5,'main','atk',130,1,'EQ',1],
- ['roen','로엔','cryo','',5,'main','atk',130,1,'EQ'],
- ['sandrone','산드로네','cryo','',5,'main','atk',130,1,'NE'],
- ['odette','오데트','cryo','',5,'sub/sup','atk',150,1,'EQ'],
- ['illuga','일루가','geo','',4,'sup','em',160,0,'EQ'],
- ['zibai','자백','geo','',5,'main','def',130,1,'EQ'],
- ['linnea','린네아','geo','',5,'sup/heal','def',160,1,'EQ'],
+ ['alyosha','알료샤','electro','polearm',4,'sup','atk',160,0,'Q'],
+ ['valery','발레리','electro','sword',4,'sup','atk',150,0,'EQ',1],
+ ['mitya','미탸','electro','catalyst',5,'main','atk',130,1,'EQ',1],
+ ['roen','로엔','cryo','polearm',5,'main','atk',130,1,'EQ'],
+ ['sandrone','산드로네','cryo','claymore',5,'main','atk',130,1,'NE'],
+ ['odette','오데트','cryo','sword',5,'sub/sup','atk',150,1,'EQ'],
+ ['illuga','일루가','geo','polearm',4,'sup','em',160,0,'EQ'],
+ ['zibai','자백','geo','sword',5,'main','def',130,1,'EQ'],
+ ['linnea','린네아','geo','bow',5,'sup/heal','def',160,1,'EQ'],
 ];
 // 캐릭터 성능 점수(0~100)는 두 출처를 섞어서 만든다.
 // 1) PERF_NAMU: 나무위키 각 캐릭터 문서 '평가' 항목(2026년 10월 열람)의 장단점과 총평을 읽고 매긴 값. null = 평가 문서 없음
@@ -506,21 +515,22 @@ function prof(c) {
 
 // ───────── 상태 ─────────
 const KEY = 'genshin-party-appraiser-v1';
-const mk = (id, lv, cons, t, wt, wl, wr, set, mainOk, cr, cd, er, key) => ({ id, lv, cons, t, wt, wl, wr, set, mainOk, cr, cd, er, key });
+// wn: 무기 이름(없으면 wt 등급으로 평가), sa·sb: 성유물 세트(sa만 있으면 4세트, 둘 다 있으면 2+2)
+const mk = (id, lv, cons, t, wt, wl, wr, set, mainOk, cr, cd, er, key, wn = '', sa = '', sb = '') => ({ id, lv, cons, t, wt, wl, wr, set, mainOk, cr, cd, er, key, wn, sa, sb });
 function sampleState() {
   const r = [
-    mk('raiden', 90,0,[6,9,10],'sig',90,1,'full',true,62,128,255,1950),
-    mk('xiangling',80,6,[1,8,9],'fourFit',90,5,'full',true,58,112,190,1700),
-    mk('xingqiu',80,6,[1,8,8],'fourFit',90,5,'full',true,55,105,170,1650),
-    mk('bennett',80,5,[1,5,10],'four',80,5,'full',true,5,50,230,22000),
-    mk('nahida',90,0,[1,9,6],'five',90,1,'full',true,48,102,115,880),
-    mk('kazuha',90,0,[1,6,8],'fourFit',90,5,'full',true,5,50,165,950),
-    mk('zhongli',90,0,[1,8,6],'four',80,5,'two',false,10,60,115,38000),
-    mk('hutao',80,0,[8,6,6],'four',80,1,'two',true,41,165,105,29000),
-    mk('yelan',80,0,[1,6,6],'fourFit',80,3,'broken',false,52,98,140,25000),
-    mk('neuvillette',90,0,[9,6,8],'sig',90,1,'full',true,68,190,110,38000),
-    mk('furina',80,0,[1,8,8],'fourFit',80,1,'full',true,52,108,150,34000),
-    mk('fischl',70,6,[1,6,4],'three',70,5,'broken',false,30,80,120,1500),
+    mk('raiden', 90,0,[6,9,10],'sig',90,1,'full',true,62,128,255,1950,'예초의 번개','절연의 기치'),
+    mk('xiangling',80,6,[1,8,9],'fourFit',90,5,'full',true,58,112,190,1700,'「어획」','절연의 기치'),
+    mk('xingqiu',80,6,[1,8,8],'fourFit',90,5,'full',true,55,105,170,1650,'제례검','절연의 기치'),
+    mk('bennett',80,5,[1,5,10],'four',80,5,'full',true,5,50,230,22000,'페보니우스 검','옛 왕실의 의식'),
+    mk('nahida',90,0,[1,9,6],'five',90,1,'full',true,48,102,115,880,'떠오르는 천일 밤의 꿈','숲의 기억'),
+    mk('kazuha',90,0,[1,6,8],'fourFit',90,5,'full',true,5,50,165,950,'강철 벌침','청록색 그림자'),
+    mk('zhongli',90,0,[1,8,6],'four',80,5,'two',false,10,60,115,38000,'페보니우스 장창','유구한 반암','견고한 천암'),
+    mk('hutao',80,0,[8,6,6],'four',80,1,'two',true,41,165,105,29000,'결투의 창','불타오르는 화염의 마녀','도금된 꿈'),
+    mk('yelan',80,0,[1,6,6],'fourFit',80,3,'broken',false,52,98,140,25000,'페보니우스 활'),
+    mk('neuvillette',90,0,[9,6,8],'sig',90,1,'full',true,68,190,110,38000,'영원히 샘솟는 법전','그림자 사냥꾼'),
+    mk('furina',80,0,[1,8,8],'fourFit',80,1,'full',true,52,108,150,34000,'페보니우스 검','황금 극단'),
+    mk('fischl',70,6,[1,6,4],'three',70,5,'broken',false,30,80,120,1500,'탄궁'),
   ];
   const roster = {}; r.forEach(c => roster[c.id] = c);
   return { sample: true, ar: 60, wl: null, roster, parties: [
@@ -573,6 +583,36 @@ function keyTarget(d) {
   return Math.round(t * (0.55 + 0.45 * artStage(ar())) * (0.5 + 0.5 * baseRatio(lvTarget())));
 }
 
+// ───────── 무기 · 성유물 세트 평가 (weapons.js, builds.js 데이터) ─────────
+const recWeapons = id => (WEAPON_REC[id] && WEAPON_REC[id].list) || [];
+const weaponType = d => d.wp || (WEAPON_REC[d.id] && WEAPON_REC[d.id].type) || '';
+// 무기 계수: 추천 1위 1.0 → 추천 목록 마지막 0.65. 추천 목록 밖이면 성급으로 5성 0.6 · 4성 0.48 · 3성 0.3 · 그 아래 0.15.
+// 무기를 고르지 않은 예전 데이터는 등급 선택값(WT)으로 평가
+function weaponValue(c) {
+  const w = c.wn && WEAPONS[c.wn];
+  if (!w) return { v: WT[c.wt].v, five: c.wt === 'sig' || c.wt === 'five', rank: -1, name: WT[c.wt].n, picked: false };
+  const list = recWeapons(c.id), i = list.indexOf(c.wn);
+  const v = i >= 0 ? 1 - 0.35 * i / Math.max(1, list.length - 1) : [0.15, 0.15, 0.15, 0.3, 0.48, 0.6][w.r];
+  return { v, five: w.r === 5, rank: i, name: c.wn, r: w.r, picked: true };
+}
+// 2세트 효과로 적힌 추천('공격력 +18%')과 세트의 2세트 효과('공격력+18%')를 공백 없이 비교
+const twoKey = s => s && /[+]/.test(s) ? s.replace(/\s/g, '') : null;
+// 세트 계수: 추천 4세트 1위 1.0(순위마다 −0.06), 추천 밖 4세트 0.6, 2+2는 추천 2세트에 맞는 세트 수에 따라 0.55 · 0.68 · 0.8, 세트 효과 없음 0.35
+function setInfo(c) {
+  if (!c.sa) return { v: { full: 1, two: 0.75, broken: 0.35 }[c.set], mode: c.set, picked: false,
+    label: { full: '권장 4세트', two: '2+2 세트', broken: '세트 효과 없음' }[c.set] };
+  const b = BUILDS[c.id];
+  const fours = b ? b.sets.filter(s => s.set).map(s => s.set) : [];
+  if (!c.sb || c.sb === c.sa) {
+    const i = fours.indexOf(c.sa);
+    return { v: i >= 0 ? 1 - 0.06 * i : 0.6, mode: 'full', rank: i, picked: true, label: `${c.sa} 4세트` };
+  }
+  const picks = b ? [...new Set(b.sets.flatMap(s => s.pick || []).concat(fours))] : [];
+  const ok = name => picks.includes(name) || picks.some(p => twoKey(p) && twoKey(p) === twoKey(ART_SET_BY_NAME[name] && ART_SET_BY_NAME[name].two));
+  const hits = [c.sa, c.sb].filter(ok).length;
+  return { v: [0.55, 0.68, 0.8][hits], mode: 'two', hits, picked: true, label: `${c.sa} 2 + ${c.sb} 2` };
+}
+
 function charCalc(c) {
   const d = prof(c);
   // 레벨: 모험 등급이 허용하는 목표 레벨 대비 피해 비율(방어 계수 × 기초 스탯), Lv.60 전에는 두 번째 고유 특성이 잠겨 감점
@@ -583,9 +623,9 @@ function charCalc(c) {
   const tg = talTarget(d);
   const tal = tg <= 1 ? 1 : avg(d.tal.map(i => clamp((Math.min(c.t[i], talCapAt(c.lv)) - 1) / (tg - 1))));
   const wl = clamp((c.wl + 10) / (T + 10));
-  const five = c.wt === 'sig' || c.wt === 'five';
-  const wep = clamp(WT[c.wt].v * wl + (five ? 0.03 : 0.02) * (c.wr - 1));
-  const setS = { full: 1, two: 0.75, broken: 0.35 }[c.set];
+  const wv = weaponValue(c);
+  const wep = clamp(wv.v * wl + (wv.five ? 0.03 : 0.02) * (c.wr - 1));
+  const setS = setInfo(c).v;
   const mainS = c.mainOk ? 1 : 0.4;
   let critS = clamp(cvOf(c) / critTarget(d));
   if (c.cr > 100) critS *= 0.9;
@@ -612,9 +652,14 @@ function charIssues(c) {
     const capped = low.filter(i => c.t[i] >= cap);
     out.push([low.some(i => c.t[i] <= tg - 3) ? 'hi' : 'md', `${low.map(i => TAL[i] + ' ' + c.t[i]).join(', ')} (목표 ${tg})` + (capped.length ? ` · 현재 돌파로는 ${cap}이 상한` : '')]);
   }
-  if (WT[c.wt].v < 0.7) out.push(['md', `무기가 약함 — ${WT[c.wt].n}`]);
+  const wv = weaponValue(c);
+  if (!wv.picked && WT[c.wt].v < 0.7) out.push(['md', `무기가 약함 — ${WT[c.wt].n}`]);
+  else if (wv.picked && wv.rank < 0) out.push([wv.v < 0.45 ? 'hi' : 'md', `무기 ${c.wn} — 추천 목록에 없음`]);
+  else if (wv.picked && wv.rank >= 5) out.push(['lo', `무기 ${c.wn} — 추천 ${wv.rank + 1}위`]);
   if (c.wl < T - 10) out.push(['md', `무기 레벨 ${c.wl} — 목표 ${T}`]);
-  if (c.set === 'broken') out.push(['hi', '성유물 세트 효과 없음']);
+  const si = setInfo(c);
+  if (si.mode === 'broken') out.push(['hi', '성유물 세트 효과 없음']);
+  else if (si.picked && si.v < 0.7) out.push(['md', `성유물 ${si.label} — 추천 세트가 아님`]);
   if (!c.mainOk) out.push(['hi', '시계·잔·왕관 주옵션이 맞지 않음']);
   if (c.er < d.er - 5) out.push([c.er < d.er - 30 ? 'hi' : 'md', `원충 ${c.er}% — 목표 ${d.er}%`]);
   if (d.crit) {
@@ -802,9 +847,19 @@ function actionsFor(id) {
     let cost = 0; for (let l = c.t[i]; l < to; l++) cost += TAL_COST[l];
     add(`${d.name} ${TAL[i]} ${c.t[i]} → ${to}`, to >= 7 ? '특성 책 + 주간 보스 소재' : '특성 비경', cost, n => n.t[i] = to);
   }
-  if (WT[c.wt].v < 0.75) add(`${d.name} 무기 교체`, `${WT[c.wt].n} → 4성 적합 무기 (제작·이벤트·상점)`, 300, n => { n.wt = 'fourFit'; n.wl = Math.max(n.wl, Math.min(80, T)); n.wr = 1; });
+  // 무기: 추천 목록에서 지금보다 확실히 나은 4성(제작·이벤트·상점으로 구하기 쉬움)을 제안, 추천 목록이 없으면 예전 방식
+  const wv = weaponValue(c), recW = recWeapons(id);
+  const better4 = recW.find(nm => WEAPONS[nm].r <= 4 && weaponValue({ ...c, wn: nm }).v > wv.v + 0.05);
+  if (better4) add(`${d.name} 무기 교체 → ${better4}`, `추천 ${recW.indexOf(better4) + 1}위 ${WEAPONS[better4].r}성 (지금 ${wv.name})`, 300, n => { n.wn = better4; n.wl = Math.max(n.wl, Math.min(80, T)); n.wr = 1; });
+  else if (!wv.picked && WT[c.wt].v < 0.75) add(`${d.name} 무기 교체`, `${WT[c.wt].n} → 4성 적합 무기 (제작·이벤트·상점)`, 300, n => { n.wt = 'fourFit'; n.wl = Math.max(n.wl, Math.min(80, T)); n.wr = 1; });
   if (c.wl < T) add(`${d.name} 무기 레벨 ${T}`, `Lv.${c.wl} → ${T}`, T - c.wl > 10 ? 220 : 120, n => n.wl = T);
-  if (c.set !== 'full') add(`${d.name} 권장 4세트 맞추기`, c.set === 'broken' ? '세트 효과 없음 → 4세트' : '2+2 → 4세트', c.set === 'broken' ? 500 : 380, n => n.set = 'full');
+  // 세트: 추천 1순위 4세트가 아니면 그 세트로 맞추기를 제안
+  const si = setInfo(c), topSet = BUILDS[id] && (BUILDS[id].sets.find(s => s.set) || {}).set;
+  if (si.mode !== 'full' || (si.picked && topSet && si.rank !== 0 && si.v < 0.95)) {
+    const goal = topSet ? `${topSet} 4세트` : '권장 4세트';
+    add(`${d.name} ${goal} 맞추기`, si.mode === 'broken' ? `세트 효과 없음 → ${goal}` : `${si.label} → ${goal}`, si.mode === 'broken' ? 500 : 380,
+      n => { n.set = 'full'; if (topSet) { n.sa = topSet; n.sb = ''; } });
+  }
   if (!c.mainOk) add(`${d.name} 주옵션 교정`, '시계·잔·왕관을 캐릭터에 맞는 주옵으로', 400, n => n.mainOk = true);
   if (c.er < d.er - 5) { const to = Math.min(d.er, c.er + 40); add(`${d.name} 원충 보강`, `${c.er}% → ${to}% (원충 시계·부옵·무기)`, 250, n => n.er = to); }
   if (d.crit) {
@@ -902,7 +957,8 @@ function renderRoster() {
     return `<button class="card" type="button" data-act="edit-char" data-id="${id}">
       <div class="head"><div><div class="nm"><span class="dot" style="--c:${elc(d.el)}"></span>${esc(d.name)}</div>
         <div class="tags"><span class="r${d.r}">${'★'.repeat(d.r)}</span> · ${EL[d.el]} · ${ROLE[d.roles[0]]} · C${c.cons}${d.guess ? ' · <span style="color:var(--warn)">역할 추정</span>' : ''}</div>
-        <div class="tags">캐릭터 성능 <b class="tier t-${TIER(d.perf)}">${TIER(d.perf)}</b> <span class="mono">${d.perf}</span>${!d.rated ? ' · 평가 없음' : d.perfEdited ? ' · 직접 수정' : ''}</div></div>
+        <div class="tags">캐릭터 성능 <b class="tier t-${TIER(d.perf)}">${TIER(d.perf)}</b> <span class="mono">${d.perf}</span>${!d.rated ? ' · 평가 없음' : d.perfEdited ? ' · 직접 수정' : ''}</div>
+        <div class="tags">${esc(weaponValue(c).name)} · ${esc(setInfo(c).label)}</div></div>
         <span class="score" style="color:${scoreColor(a.score)}" title="육성 점수">${Math.round(a.score)}<small class="cap">육성</small></span></div>
       <div class="parts">${pr.map(([n, x]) => `<span>${n}</span><div class="meter"><i style="width:${x * 100}%;--c:${scoreColor(x * 100)}"></i></div>`).join('')}</div>
       <ul class="issues">${iss.length ? iss.slice(0, 2).map(([s, t]) => `<li class="sev-${s}">${esc(t)}</li>`).join('') : '<li class="sev-ok">기준 육성 완료</li>'}</ul>
@@ -1123,6 +1179,39 @@ document.querySelector('.tabs').addEventListener('click', e => { const b = e.tar
 const dChar = $('#dlg-char');
 let editId = null;
 $('#f-wt').innerHTML = Object.entries(WT).map(([k, w]) => `<option value="${k}">${w.n}</option>`).join('');
+let legacySet = null;
+// 무기·세트 선택지: 그 캐릭터의 추천(순위순)을 먼저, 나머지는 성급 높은 순
+function fillGearOptions(id) {
+  const d = DB[id], type = weaponType(d), rec = recWeapons(id);
+  const wopt = (nm, pre = '') => { const w = WEAPONS[nm]; return `<option value="${esc(nm)}">${pre}${esc(nm)} · ${w.r}★${w.sub ? ' · ' + esc(w.sub) : ''}</option>`; };
+  const types = type ? [type] : Object.keys(WEAPONS_BY_TYPE);
+  const rest = types.flatMap(t => WEAPONS_BY_TYPE[t].filter(nm => !rec.includes(nm)));
+  $('#f-wn').innerHTML = `<option value="">— 목록에서 고르지 않음 (아래 등급으로 평가) —</option>`
+    + (rec.length ? `<optgroup label="${esc(d.name)} 추천 무기 (순위)">${rec.map((nm, i) => wopt(nm, `${i + 1}위 · `)).join('')}</optgroup>` : '')
+    + `<optgroup label="그 밖의 ${type ? WPN[type] : '무기'}">${rest.map(nm => wopt(nm)).join('')}</optgroup>`;
+  const b = BUILDS[id];
+  const fours = b ? b.sets.filter(s => s.set && ART_SET_BY_NAME[s.set]).map(s => s.set) : [];
+  const others = ART_SETS.filter(s => !fours.includes(s.name)).sort((x, y) => y.r - x.r || x.name.localeCompare(y.name, 'ko'));
+  const sopt = (s, pre = '') => `<option value="${esc(s.name)}">${pre}${esc(s.name)} · ${s.r}★ · ${esc(s.two)}</option>`;
+  const setGroups = (pre) => (fours.length ? `<optgroup label="${esc(d.name)} 추천 세트 (순위)">${fours.map((nm, i) => sopt(ART_SET_BY_NAME[nm], `${i + 1}위 · `)).join('')}</optgroup>` : '')
+    + `<optgroup label="그 밖의 세트">${others.map(s => sopt(s)).join('')}</optgroup>`;
+  $('#f-sa').innerHTML = `<option value="">— 세트 효과 없음 —</option>` + setGroups();
+  $('#f-sb').innerHTML = `<option value="">— 없음 (첫째 세트 4개) —</option>` + setGroups();
+}
+// 무기·세트 선택 결과를 편집 창에 한 줄로 설명
+function gearNotes(c) {
+  const wv = weaponValue(c), si = setInfo(c), rec = recWeapons(c.id);
+  $('#wt-wrap').hidden = wv.picked;
+  $('#wn-note').innerHTML = wv.picked
+    ? (wv.rank >= 0 ? `추천 <b>${wv.rank + 1}위</b> 무기 · 무기 계수 ${wv.v.toFixed(2)}` : `추천 목록 밖 ${wv.r}성 무기 · 무기 계수 ${wv.v.toFixed(2)}${rec.length ? ` · 1위는 <b>${esc(rec[0])}</b>` : ''}`)
+    : `무기를 목록에서 고르면 추천 순위로 더 정확하게 평가합니다.`;
+  $('#f-sb').disabled = !c.sa;
+  const b = BUILDS[c.id], picks = b ? b.sets.filter(s => s.pick).flatMap(s => s.pick) : [];
+  $('#set-note').innerHTML = si.picked
+    ? (si.mode === 'full' ? (si.rank >= 0 ? `추천 <b>${si.rank + 1}위</b> 4세트 · 세트 계수 ${si.v.toFixed(2)}` : `추천 4세트가 아님 · 세트 계수 ${si.v.toFixed(2)}`)
+      : `2+2 · 추천 2세트 조합과 ${si.hits}개 일치 · 세트 계수 ${si.v.toFixed(2)}${picks.length ? ` · 추천 2세트: ${picks.map(esc).join(', ')}` : ''}`)
+    : (legacySet && legacySet !== 'broken' ? `예전 입력값(${si.label})으로 평가 중입니다. 세트를 고르면 추천 순위로 평가합니다.` : '세트 효과 없음 · 세트 계수 0.35');
+}
 function defaultsFor(id) {
   const d = DB[id];
   const lv = Math.min(80, lvTarget()), tc = Math.min(6, talCapAt(lv));
@@ -1137,8 +1226,13 @@ function fillChar(c) {
   $('#guess-note').hidden = !d.guess;
   $('#f-lv').value = c.lv; $('#f-cons').value = c.cons;
   c.t.forEach((x, i) => $('#f-t' + i).value = x);
+  fillGearOptions(c.id);
+  $('#f-wn').value = c.wn && WEAPONS[c.wn] ? c.wn : '';
+  // 예전 데이터(세트를 고르지 않음)는 세트 상태만 있으므로, 2+2·4세트였다면 추천 1순위로 채우지 않고 비워 두고 안내
+  $('#f-sa').value = c.sa || ''; $('#f-sb').value = c.sb || '';
   $('#f-wt').value = c.wt; $('#f-wl').value = c.wl; $('#f-wr').value = c.wr;
-  $('#f-set').value = c.set; $('#f-main').checked = c.mainOk;
+  $('#f-main').checked = c.mainOk;
+  legacySet = editId && !c.sa ? c.set : null;
   $('#f-cr').value = c.cr; $('#f-cd').value = c.cd; $('#f-er').value = c.er; $('#f-key').value = c.key;
   for (const i of [0, 1, 2]) $('#f-t' + i).parentElement.style.fontWeight = d.tal.includes(i) ? '600' : '';
   previewChar();
@@ -1157,14 +1251,20 @@ function readChar() {
   if (pf !== d.perf) ov.perf = pf;
   // 특성은 현재 레벨의 돌파 단계가 허용하는 값까지만 인정
   const lvIn = n('#f-lv', 1, 90);
+  // 세트: 첫째만 고르면 4세트, 둘 다 고르면 2+2, 아무것도 안 고르면 '세트 효과 없음'
+  // (예전 데이터를 열고 세트를 건드리지 않았다면 원래 세트 상태를 유지)
+  const sa = $('#f-sa').value, sb = sa ? $('#f-sb').value : '';
+  const setMode = sa ? (sb && sb !== sa ? 'two' : 'full') : (legacySet || 'broken');
   const c = mk(id, lvIn, Math.round(n('#f-cons', 0, 6)), [0, 1, 2].map(i => Math.min(talCapAt(lvIn), Math.round(n('#f-t' + i, 1, 10)))),
-    $('#f-wt').value, n('#f-wl', 1, 90), Math.round(n('#f-wr', 1, 5)), $('#f-set').value, $('#f-main').checked,
-    n('#f-cr', 0, 150), n('#f-cd', 0, 400), n('#f-er', 100, 400), n('#f-key', 0, 80000));
+    $('#f-wt').value, n('#f-wl', 1, 90), Math.round(n('#f-wr', 1, 5)), setMode, $('#f-main').checked,
+    n('#f-cr', 0, 150), n('#f-cd', 0, 400), n('#f-er', 100, 400), n('#f-key', 0, 80000),
+    $('#f-wn').value, sa, sb === sa ? '' : sb);
   if (Object.keys(ov).length) c.ov = ov;
   return c;
 }
 function previewChar() {
   const c = readChar(), d = prof(c), a = charCalc(c);
+  gearNotes(c);
   $('#key-name').textContent = `${SCALE[d.scale].n} (권장 ${keyTarget(d).toLocaleString()})`;
   $('#pv-score').textContent = Math.round(a.score);
   $('#pv-score').style.color = scoreColor(a.score);
@@ -1192,7 +1292,11 @@ function openChar(id) {
   dChar.showModal();
 }
 $('#f-id').addEventListener('change', () => fillChar(defaultsFor($('#f-id').value)));
-$('#form-char').addEventListener('input', e => { if (e.target.id !== 'f-id') previewChar(); });
+$('#form-char').addEventListener('input', e => {
+  if (e.target.id === 'f-id') return;
+  if (e.target.id === 'f-sa' || e.target.id === 'f-sb') legacySet = null;   // 세트를 직접 고르면 예전 세트 상태는 버림
+  previewChar();
+});
 $('#form-char').addEventListener('submit', e => {
   e.preventDefault();
   const c = readChar(); S.roster[c.id] = c; save(); dChar.close(); render();
