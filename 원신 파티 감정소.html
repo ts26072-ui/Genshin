@@ -1,0 +1,1287 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>원신 파티 감정소</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: 좁은 단일 열 작업대 — 상단 탭, 파티 카드는 등급 인장 + 멤버 + 진단 3단 */
+:root {
+  --bg: #F1F2F7;
+  --surface: #FFFFFF;
+  --sunk: #E7E9F1;
+  --ink: #1B2136;
+  --muted: #5D6480;
+  --line: #D8DBE7;
+  --gold: #9E7128;
+  --gold-soft: #F4EBD9;
+  --good: #23835A;
+  --warn: #B4700A;
+  --bad: #BE3F35;
+  --pyro: #E0603F; --hydro: #3A8FD9; --anemo: #2FAF92; --electro: #9A67D8;
+  --dendro: #6FA531; --cryo: #5BB6CF; --geo: #CE9A2C;
+  --f-display: "Gowun Batang", "Noto Serif KR", serif;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1220; --surface: #161B2D; --sunk: #1E2438; --ink: #E5E8F3; --muted: #9AA1BA;
+    --line: #2A3150; --gold: #D9AE5F; --gold-soft: #2A2416; --good: #5DC18D; --warn: #E2A94B; --bad: #EC7A6F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1220; --surface: #161B2D; --sunk: #1E2438; --ink: #E5E8F3; --muted: #9AA1BA;
+  --line: #2A3150; --gold: #D9AE5F; --gold-soft: #2A2416; --good: #5DC18D; --warn: #E2A94B; --bad: #EC7A6F;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 14.5px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+.wrap { max-width: 1040px; margin: 0 auto; }
+header.top { padding-block: 28px 8px; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; }
+h1 { font-family: var(--f-display); font-size: 30px; font-weight: 700; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h1 .star { color: var(--gold); }
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 60ch; }
+h2 { font-family: var(--f-display); font-size: 21px; margin: 0; text-wrap: balance; }
+.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-block: 12px 20px; overflow-x: auto; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.tab { appearance: none; border: 0; background: none; font: inherit; font-weight: 600; color: var(--muted); padding: 12px 14px; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--gold); }
+.tab .n { font-family: var(--f-mono); font-size: 12px; color: var(--muted); margin-left: 4px; }
+button.btn { font: inherit; font-weight: 600; border-radius: 8px; padding: 8px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+button.btn:hover { border-color: var(--gold); }
+button.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+button.btn.ghost { background: transparent; }
+button.btn.danger { color: var(--bad); }
+button.btn.sm { padding: 5px 10px; font-size: 13px; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.bar .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.notice { background: var(--gold-soft); border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent); border-radius: 10px; padding: 10px 14px; margin-bottom: 18px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.notice p { margin: 0; }
+.acct { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: -4px 0 18px; }
+.acct label.inline { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); font-size: 13.5px; font-weight: 600; }
+.acct input { width: 72px; }
+.acct select { width: auto; }
+.acct p { margin: 0; flex: 1 1 320px; min-width: 0; font-size: 13px; color: var(--muted); }
+.acct p b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* party cards */
+.plist { display: flex; flex-direction: column; gap: 14px; }
+.party { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(0, 300px); gap: 18px; }
+.seal { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.rank { font-family: var(--f-mono); font-size: 12px; color: var(--muted); letter-spacing: 0.08em; }
+.grade { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-display); font-weight: 700; font-size: 30px; border: 2px solid currentColor; }
+.g-S { color: var(--gold); } .g-A { color: var(--good); } .g-B { color: var(--hydro); } .g-C { color: var(--warn); } .g-D { color: var(--bad); }
+.val { font-family: var(--f-mono); font-size: 20px; }
+.pname { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.members { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.mem { border: 1px solid var(--line); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 4px; min-width: 0; background: var(--bg); }
+.mem.empty { border-style: dashed; color: var(--muted); align-items: center; justify-content: center; min-height: 74px; }
+.mem .nm { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+.mem .meta { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 4px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--c); }
+.meter { height: 5px; border-radius: 3px; background: var(--sunk); overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--c, var(--ink)); }
+.split { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; align-items: center; margin-top: 12px; font-size: 13px; }
+.split .meter { height: 7px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.chip.rx { color: var(--ink); border-color: color-mix(in srgb, var(--gold) 50%, var(--line)); background: var(--gold-soft); }
+.diag h3, .card h3 { font-size: 12px; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 6px; font-weight: 600; }
+.issues { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.issues li { display: grid; grid-template-columns: 6px 1fr; gap: 8px; font-size: 13px; line-height: 1.45; }
+.issues li::before { content: ""; width: 6px; border-radius: 3px; background: var(--sev); }
+.sev-hi { --sev: var(--bad); } .sev-md { --sev: var(--warn); } .sev-lo { --sev: var(--line); } .sev-ok { --sev: var(--good); }
+.pfoot { grid-column: 1 / -1; display: flex; gap: 6px; justify-content: flex-end; border-top: 1px solid var(--line); padding-top: 10px; margin-top: -4px; }
+
+/* roster */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; text-align: left; font: inherit; color: inherit; }
+.card:hover { border-color: var(--gold); }
+.card .head { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
+.card .nm { font-family: var(--f-display); font-weight: 700; font-size: 17px; display: flex; gap: 7px; align-items: center; }
+.card .score { font-family: var(--f-mono); font-size: 22px; }
+.card .tags { font-size: 12px; color: var(--muted); }
+.parts { display: grid; grid-template-columns: 40px 1fr; gap: 4px 8px; align-items: center; font-size: 12px; color: var(--muted); }
+.r5 { color: var(--gold); } .r4 { color: var(--electro); }
+.tier { font-family: var(--f-mono); font-size: 11px; font-weight: 500; padding: 0 5px; border-radius: 4px; border: 1px solid currentColor; }
+.t-T0 { color: var(--gold); } .t-T1 { color: var(--good); } .t-T2 { color: var(--hydro); } .t-T3 { color: var(--warn); } .t-T4 { color: var(--bad); }
+.card .score { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+.cap { font-family: var(--f-body); font-size: 11px; color: var(--muted); }
+
+/* growth */
+.glist { display: flex; flex-direction: column; gap: 8px; }
+.gitem { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.gitem .no { font-family: var(--f-display); font-size: 22px; color: var(--gold); text-align: center; }
+.gitem .what { font-weight: 600; }
+.gitem .why { font-size: 13px; color: var(--muted); }
+.gitem .nums { text-align: right; font-size: 13px; white-space: nowrap; }
+.gitem .gain { font-family: var(--f-mono); font-size: 18px; color: var(--good); }
+.cost { font-size: 12px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); }
+.cost.lo { color: var(--good); } .cost.md { color: var(--warn); } .cost.hi { color: var(--bad); }
+.legend { font-size: 13px; color: var(--muted); margin: -6px 0 14px; max-width: 72ch; }
+
+/* meta teams */
+.dps-line { margin: 10px 0 0; font-size: 13px; }
+.dps-line b { font-size: 14px; }
+.inline-sel { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); }
+.inline-sel select { width: auto; }
+.meta-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.msum { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.msum h3 { font-size: 12px; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 2px; font-weight: 600; }
+.msum p { margin: 0; font-size: 13px; }
+.msrow { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; }
+.msrow > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.mlist { display: flex; flex-direction: column; gap: 8px; }
+.mrow { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.mhead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.mrank { color: var(--muted); font-size: 12px; width: 30px; }
+.mchips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 auto; min-width: 0; }
+.mchip { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; padding: 2px 8px; border-radius: 999px; border: 1px dashed var(--line); color: var(--muted); }
+.mchip.own { border-style: solid; color: var(--ink); background: var(--bg); }
+.mchip.lead { font-weight: 600; }
+.mbar { display: grid; grid-template-columns: 1fr 52px; gap: 10px; align-items: center; }
+.meter.big { height: 10px; position: relative; }
+.meter.big i { position: absolute; left: 0; top: 0; height: 100%; opacity: 0.35; }
+.meter.big i.mine { opacity: 1; background: var(--good); height: 100%; }
+.mval { text-align: right; font-size: 14px; }
+.mfoot { font-size: 13px; }
+.sec-h { margin: 26px 0 8px; }
+.egrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.ecard { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ehead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 8px; }
+.ehead b { font-family: var(--f-display); font-size: 16px; }
+.epill { margin-left: auto; font-size: 11.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.epill.ok { color: var(--good); } .epill.near { color: var(--warn); } .epill.far { color: var(--muted); }
+.edesc { margin: 0; font-size: 12.5px; color: var(--muted); }
+
+/* dialog */
+dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); padding: 0; width: min(640px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); }
+dialog::backdrop { background: rgb(10 12 24 / 0.5); }
+.dlg { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.dlg-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px 12px; }
+.fgrid.wide { grid-template-columns: 1fr; }
+fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 12px; margin: 0; }
+legend { font-size: 12px; letter-spacing: 0.06em; color: var(--muted); padding: 0 4px; font-weight: 600; }
+label { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--muted); }
+label.check { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); font-size: 13.5px; }
+input, select, textarea { font: inherit; font-size: 14px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 7px 9px; width: 100%; min-width: 0; }
+label.check input { width: auto; }
+textarea { font-family: var(--f-mono); font-size: 12px; min-height: 160px; }
+.preview { display: flex; align-items: center; gap: 14px; background: var(--bg); border-radius: 10px; padding: 10px 14px; flex-wrap: wrap; }
+.preview .score { font-family: var(--f-mono); font-size: 26px; }
+.dlg-foot { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.empty-state { text-align: center; padding: 40px 16px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 999px; font-size: 13px; z-index: 50; }
+.foot-note { margin-top: 32px; font-size: 12.5px; color: var(--muted); max-width: 72ch; }
+
+@media (max-width: 760px) {
+  .party { grid-template-columns: 1fr; }
+  .seal { flex-direction: row; justify-content: flex-start; gap: 12px; }
+  .grade { width: 52px; height: 52px; font-size: 24px; }
+  .members { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gitem { grid-template-columns: 26px minmax(0, 1fr); }
+  .gitem .nums { grid-column: 2; text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1><span class="star">✦</span> 원신 파티 감정소</h1>
+      <p class="sub">보유 캐릭터의 육성 상태를 입력하면 파티를 가치 순으로 줄 세우고, 약한 곳과 레진을 먼저 쓸 곳을 알려 줍니다.</p>
+    </div>
+    <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn ghost sm" id="btn-backup" type="button">백업 · 불러오기</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="parties" id="tab-parties">파티 순위<span class="n" id="cnt-p"></span></button>
+    <button class="tab" role="tab" data-tab="roster" id="tab-roster">내 캐릭터<span class="n" id="cnt-r"></span></button>
+    <button class="tab" role="tab" data-tab="growth" id="tab-growth">성장 우선순위</button>
+    <button class="tab" role="tab" data-tab="meta" id="tab-meta">메타 · 엔진</button>
+  </nav>
+
+  <div class="acct">
+    <label class="inline" for="a-ar">모험 등급<input id="a-ar" type="number" min="1" max="60"></label>
+    <label class="inline" for="a-wl">세계 레벨<select id="a-wl"></select></label>
+    <p id="acct-note"></p>
+  </div>
+
+  <div id="sample-note" class="notice" hidden>
+    <p>지금 보이는 캐릭터와 파티는 <b>예시 데이터</b>입니다. 내 계정 정보로 바꾸거나 비우고 새로 시작하세요.</p>
+    <button class="btn sm" id="btn-clear" type="button">예시 비우기</button>
+  </div>
+
+  <section id="view-parties" role="tabpanel"></section>
+  <section id="view-roster" role="tabpanel" hidden></section>
+  <section id="view-growth" role="tabpanel" hidden></section>
+  <section id="view-meta" role="tabpanel" hidden></section>
+
+  <p class="foot-note">점수는 커뮤니티에서 통용되는 육성 기준(레벨 90, 주력 특성 8–9, 치명 비율 1:2, 캐릭터별 원충 목표 등)을 단순화한 추정치입니다. 레진 비용은 대략적인 상대값입니다. 파티 가치 = 딜량 50% + 육성 25% + 시너지 25%이며, 딜량은 가장 비슷한 실측 파티(genshin.im 7.1 허수아비 실측)의 DPS × 대체 멤버 배율(내 동료 평균 성능 ÷ 실측 동료 평균 성능의 제곱, 최대 1) × 육성 배율(육성 점수/85)로 추정하고 실측 1위(247k)를 100점으로 봅니다. 같은 메인의 실측 파티가 없으면 캐릭터 성능 점수로 보수적으로 추정합니다(최대 실측 1위의 75%). 캐릭터 성능 점수(T0–T4)는 GamsGo 원신 7.1 종합 티어표(2026년 9월, SS=92 · S=84 · A+=76 · A=68 · B=56 · C=44 · D=30)를 60%, 나무위키 각 캐릭터 문서의 '평가' 항목(2026년 10월 열람)을 읽고 매긴 값을 40% 섞은 것이며, 캐릭터 편집 화면에서 직접 바꿀 수 있습니다. 레벨 점수는 모험 등급이 허용하는 최대 레벨 대비 방어 계수 × 기초 스탯 곡선으로 계산하고, Lv.60 전에는 두 번째 고유 특성이 잠긴 만큼 감점합니다. 특성은 돌파 단계별 상한(2·4·6·8·10단계 돌파 시 2·4·6·8·10)을 넘을 수 없습니다.</p>
+</div>
+
+<dialog id="dlg-char">
+  <form class="dlg" id="form-char" method="dialog">
+    <div class="dlg-head"><h2 id="char-title">캐릭터</h2><button class="btn ghost sm" type="button" data-close>닫기</button></div>
+    <label id="pick-wrap">캐릭터 선택<select id="f-id"></select></label>
+    <div class="preview"><span class="score" id="pv-score">–</span><span class="muted" id="pv-note"></span></div>
+    <fieldset><legend>역할 기준</legend>
+      <p id="guess-note" class="muted" hidden style="margin:0 0 8px;font-size:13px">최신 캐릭터라 기본 역할이 추정값입니다. 실제로 쓰는 방식에 맞게 바꿔 주세요.</p>
+      <div class="fgrid">
+        <label>역할<select id="f-role"><option value="main">메인 딜러</option><option value="sub">서브 딜러</option><option value="sup">서포터</option><option value="heal">힐러</option><option value="shield">보호막</option></select></label>
+        <label>핵심 스탯<select id="f-scale"><option value="atk">공격력</option><option value="hp">최대 HP</option><option value="def">방어력</option><option value="em">원소 마스터리</option></select></label>
+        <label>원충 목표 %<input id="f-ertgt" type="number" min="100" max="350"></label>
+        <label><span id="perf-name">캐릭터 성능 (0–100)</span><input id="f-perf" type="number" min="0" max="100"></label>
+      </div>
+      <label class="check" style="margin-top:10px"><input type="checkbox" id="f-crit"> 치명타로 딜을 넣는 캐릭터</label>
+    </fieldset>
+    <fieldset><legend>기본</legend><div class="fgrid">
+      <label>레벨<input id="f-lv" type="number" min="1" max="90"></label>
+      <label>운명의 자리<input id="f-cons" type="number" min="0" max="6"></label>
+      <label>일반 공격<input id="f-t0" type="number" min="1" max="10"></label>
+      <label>원소전투 스킬<input id="f-t1" type="number" min="1" max="10"></label>
+      <label>원소폭발<input id="f-t2" type="number" min="1" max="10"></label>
+    </div></fieldset>
+    <fieldset><legend>무기</legend><div class="fgrid">
+      <label>무기 등급<select id="f-wt"></select></label>
+      <label>무기 레벨<input id="f-wl" type="number" min="1" max="90"></label>
+      <label>재련<input id="f-wr" type="number" min="1" max="5"></label>
+    </div></fieldset>
+    <fieldset><legend>성유물 · 스탯 (캐릭터 상세 화면 기준)</legend><div class="fgrid">
+      <label>세트 상태<select id="f-set">
+        <option value="full">권장 4세트</option><option value="two">2+2 유효 세트</option><option value="broken">미완성 · 잡세트</option>
+      </select></label>
+      <label>치명타 확률 %<input id="f-cr" type="number" min="0" max="150" step="0.1"></label>
+      <label>치명타 피해 %<input id="f-cd" type="number" min="0" max="400" step="0.1"></label>
+      <label>원소 충전 효율 %<input id="f-er" type="number" min="100" max="400" step="0.1"></label>
+      <label id="key-label"><span id="key-name">핵심 스탯</span><input id="f-key" type="number" min="0" max="80000"></label>
+    </div>
+    <label class="check" style="margin-top:10px"><input type="checkbox" id="f-main"> 시계·잔·왕관 주옵션이 캐릭터에 맞음</label>
+    </fieldset>
+    <div class="dlg-foot">
+      <button class="btn danger" type="button" id="btn-del-char">보유 목록에서 삭제</button>
+      <div style="display:flex;gap:8px"><button class="btn" type="button" data-close>취소</button><button class="btn primary" type="submit" id="btn-save-char">저장</button></div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-party">
+  <form class="dlg" id="form-party" method="dialog">
+    <div class="dlg-head"><h2 id="party-title">파티</h2><button class="btn ghost sm" type="button" data-close>닫기</button></div>
+    <label>파티 이름<input id="p-name" maxlength="30" placeholder="예: 나선 비경 12층 전반"></label>
+    <div class="fgrid">
+      <label>슬롯 1<select id="p-m0"></select></label>
+      <label>슬롯 2<select id="p-m1"></select></label>
+      <label>슬롯 3<select id="p-m2"></select></label>
+      <label>슬롯 4<select id="p-m3"></select></label>
+    </div>
+    <div class="preview"><span class="score" id="pp-score">–</span><span class="muted" id="pp-note"></span></div>
+    <div class="dlg-foot">
+      <button class="btn danger" type="button" id="btn-del-party">파티 삭제</button>
+      <div style="display:flex;gap:8px"><button class="btn" type="button" data-close>취소</button><button class="btn primary" type="submit">저장</button></div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-backup">
+  <div class="dlg">
+    <div class="dlg-head"><h2>백업 · 불러오기</h2><button class="btn ghost sm" type="button" data-close>닫기</button></div>
+    <p class="muted" style="margin:0">데이터는 이 브라우저에만 저장됩니다. 아래 내용을 복사해 두었다가 다른 기기에서 붙여넣고 불러오세요.</p>
+    <textarea id="bk-text" spellcheck="false"></textarea>
+    <div class="dlg-foot">
+      <button class="btn" type="button" id="bk-copy">복사</button>
+      <button class="btn primary" type="button" id="bk-load">붙여넣은 내용 불러오기</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+// ───────── 데이터 ─────────
+const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
+const EL_ORDER = Object.keys(EL);
+const ROLE = { main:'메인 딜러', sub:'서브 딜러', sup:'서포터', heal:'힐러', shield:'보호막' };
+const RW = { main:1.4, sub:1.1, sup:0.9, heal:0.8, shield:0.8 };
+const WPN = { sword:'한손검', claymore:'양손검', polearm:'장병기', catalyst:'법구', bow:'활' };
+const SCALE = { atk:{n:'공격력', t:2000}, hp:{n:'최대 HP', t:30000}, def:{n:'방어력', t:2000}, em:{n:'원소 마스터리', t:650} };
+const WT = {
+  sig:{n:'5성 전용(시그니처)', v:1.0}, five:{n:'5성 범용', v:0.86}, fourFit:{n:'4성 적합', v:0.76},
+  four:{n:'4성 범용', v:0.6}, three:{n:'3성 이하 · 부적합', v:0.35}
+};
+const TAL = ['일반 공격', '원소전투 스킬', '원소폭발'];
+
+// id, 이름, 원소, 무기, 성급, 역할(첫째가 주역할), 핵심 스탯, 원충 목표, 치명 의존, 핵심 특성(N/E/Q)
+const RAW = [
+ ['hutao','호두','pyro','polearm',5,'main','hp',100,1,'NE'],
+ ['diluc','다이루크','pyro','claymore',5,'main','atk',120,1,'NEQ'],
+ ['yoimiya','요이미야','pyro','bow',5,'main','atk',110,1,'NE'],
+ ['lyney','리니','pyro','bow',5,'main','atk',110,1,'NQ'],
+ ['arlecchino','아를레키노','pyro','polearm',5,'main','atk',100,1,'NE'],
+ ['mavuika','마비카','pyro','claymore',5,'main','atk',100,1,'EQ'],
+ ['klee','클레','pyro','catalyst',5,'main','atk',120,1,'NQ'],
+ ['dehya','데히야','pyro','claymore',5,'sub/shield','atk',130,1,'EQ'],
+ ['xiangling','향릉','pyro','polearm',4,'sub','atk',180,1,'Q'],
+ ['bennett','베넷','pyro','sword',4,'sup/heal','hp',200,0,'Q'],
+ ['thoma','토마','pyro','polearm',4,'shield','hp',200,0,'Q'],
+ ['yanfei','연비','pyro','catalyst',4,'main','atk',110,1,'NQ'],
+ ['chevreuse','슈브르즈','pyro','polearm',4,'sup/heal','hp',140,0,'EQ'],
+ ['gaming','가명','pyro','claymore',4,'main','atk',110,1,'E'],
+ ['xingqiu','행추','hydro','sword',4,'sub','atk',180,1,'Q'],
+ ['yelan','야란','hydro','bow',5,'sub','hp',170,1,'Q'],
+ ['mona','모나','hydro','catalyst',5,'sup','atk',180,0,'Q'],
+ ['kokomi','산고노미야 코코미','hydro','catalyst',5,'heal/sub','hp',140,0,'NEQ'],
+ ['barbara','바바라','hydro','catalyst',4,'heal','hp',140,0,'EQ'],
+ ['neuvillette','느비예트','hydro','catalyst',5,'main','hp',100,1,'N'],
+ ['furina','푸리나','hydro','sword',5,'sub/sup','hp',180,1,'EQ'],
+ ['ayato','카미사토 아야토','hydro','sword',5,'main','atk',110,1,'EQ'],
+ ['tartaglia','타르탈리아','hydro','bow',5,'main','atk',140,1,'NEQ'],
+ ['nilou','닐루','hydro','sword',5,'sup','hp',100,0,'E'],
+ ['candace','캔디스','hydro','polearm',4,'sup','hp',160,0,'Q'],
+ ['sigewinne','시그윈','hydro','bow',5,'heal/sub','hp',140,1,'E'],
+ ['mualani','말라니','hydro','catalyst',5,'main','hp',100,1,'E'],
+ ['kazuha','카에데하라 카즈하','anemo','sword',5,'sup','em',160,0,'EQ'],
+ ['sucrose','설탕','anemo','catalyst',4,'sup','em',150,0,'Q'],
+ ['venti','벤티','anemo','bow',5,'sup','em',160,0,'Q'],
+ ['jean','진','anemo','sword',5,'heal/sup','atk',170,0,'EQ'],
+ ['wanderer','방랑자','anemo','catalyst',5,'main','atk',100,1,'NE'],
+ ['xiao','소','anemo','polearm',5,'main','atk',120,1,'NQ'],
+ ['faruzan','파루잔','anemo','bow',4,'sup','atk',250,0,'Q'],
+ ['xianyun','한운','anemo','catalyst',5,'heal/sup','atk',160,0,'Q'],
+ ['sayu','사유','anemo','claymore',4,'heal/sup','em',150,0,'EQ'],
+ ['lynette','리넷','anemo','sword',4,'sup','atk',140,1,'E'],
+ ['chasca','차스카','anemo','bow',5,'main','atk',110,1,'E'],
+ ['heizou','시카노인 헤이조','anemo','catalyst',4,'main','atk',120,1,'EQ'],
+ ['raiden','라이덴 쇼군','electro','polearm',5,'main/sub','atk',250,1,'Q'],
+ ['fischl','피슬','electro','bow',4,'sub','atk',120,1,'E'],
+ ['beidou','북두','electro','claymore',4,'sub/shield','atk',170,1,'Q'],
+ ['keqing','각청','electro','sword',5,'main','atk',110,1,'NEQ'],
+ ['yae','야에 미코','electro','catalyst',5,'sub','atk',120,1,'EQ'],
+ ['shinobu','쿠키 시노부','electro','sword',4,'heal/sup','em',130,0,'E'],
+ ['cyno','사이노','electro','polearm',5,'main','atk',140,1,'EQ'],
+ ['clorinde','클로린드','electro','sword',5,'main','atk',100,1,'E'],
+ ['sethos','세토스','electro','bow',4,'main','atk',120,1,'N'],
+ ['lisa','리사','electro','catalyst',4,'sub','atk',150,1,'Q'],
+ ['ororon','올로룬','electro','bow',4,'sub','atk',150,1,'EQ'],
+ ['varesa','바레사','electro','catalyst',5,'main','atk',100,1,'NQ'],
+ ['iansan','얀사','electro','polearm',4,'sup','atk',160,0,'Q'],
+ ['nahida','나히다','dendro','catalyst',5,'sub/sup','em',130,1,'E'],
+ ['alhaitham','알하이탐','dendro','sword',5,'main','atk',120,1,'EQ'],
+ ['tighnari','타이나리','dendro','bow',5,'main','atk',110,1,'N'],
+ ['baizhu','백출','dendro','catalyst',5,'heal/sup','hp',150,0,'Q'],
+ ['collei','콜레이','dendro','bow',4,'sub','atk',160,1,'Q'],
+ ['kirara','키라라','dendro','sword',4,'shield','hp',150,0,'EQ'],
+ ['yaoyao','요요','dendro','polearm',4,'heal','hp',150,0,'Q'],
+ ['emilie','에밀리','dendro','polearm',5,'sub','atk',130,1,'EQ'],
+ ['kinich','키니치','dendro','claymore',5,'main','atk',110,1,'E'],
+ ['ganyu','감우','cryo','bow',5,'main','atk',110,1,'NQ'],
+ ['ayaka','카미사토 아야카','cryo','sword',5,'main','atk',130,1,'EQ'],
+ ['shenhe','신학','cryo','polearm',5,'sup','atk',160,0,'EQ'],
+ ['rosaria','로자리아','cryo','polearm',4,'sub','atk',140,1,'Q'],
+ ['eula','유라','cryo','claymore',5,'main','atk',120,1,'NQ'],
+ ['layla','레일라','cryo','sword',4,'shield','hp',140,0,'E'],
+ ['diona','디오나','cryo','bow',4,'shield/heal','hp',160,0,'EQ'],
+ ['wriothesley','라이오슬리','cryo','catalyst',5,'main','atk',110,1,'N'],
+ ['charlotte','샤를로트','cryo','catalyst',4,'heal','atk',150,0,'Q'],
+ ['citlali','시틀라리','cryo','catalyst',5,'sup/shield','em',160,0,'EQ'],
+ ['escoffier','에스코피에','cryo','polearm',5,'sup/heal','atk',150,1,'EQ'],
+ ['skirk','스커크','cryo','sword',5,'main','atk',100,1,'NE'],
+ ['mika','미카','cryo','polearm',4,'heal/sup','hp',140,0,'E'],
+ ['zhongli','종려','geo','polearm',5,'shield/sup','hp',120,0,'E'],
+ ['navia','나비아','geo','claymore',5,'main','atk',120,1,'E'],
+ ['albedo','알베도','geo','sword',5,'sub','def',120,1,'E'],
+ ['itto','아라타키 이토','geo','claymore',5,'main','def',130,1,'NQ'],
+ ['gorou','고로','geo','bow',4,'sup','def',160,0,'EQ'],
+ ['yunjin','운근','geo','polearm',4,'sup','def',160,0,'Q'],
+ ['noelle','노엘','geo','claymore',4,'main/shield','def',120,1,'NQ'],
+ ['chiori','치오리','geo','sword',5,'sub','def',120,1,'E'],
+ ['xilonen','실로닌','geo','sword',5,'sup/heal','def',160,0,'E'],
+ ['ningguang','응광','geo','catalyst',4,'main','atk',120,1,'N'],
+ // 여행자
+ ['traveler-pyro','불 원소 여행자','pyro','sword',5,'sub','atk',150,1,'EQ'],
+ ['traveler-hydro','물 원소 여행자','hydro','sword',5,'sub','hp',150,1,'EQ'],
+ ['traveler-anemo','바람 원소 여행자','anemo','sword',5,'sup','em',150,0,'EQ'],
+ ['traveler-electro','번개 원소 여행자','electro','sword',5,'sup','atk',200,0,'Q'],
+ ['traveler-dendro','풀 원소 여행자','dendro','sword',5,'sub','atk',160,1,'Q'],
+ ['traveler-cryo','얼음 원소 여행자','cryo','sword',5,'sub','atk',150,1,'EQ'],
+ ['traveler-geo','바위 원소 여행자','geo','sword',5,'sub','atk',160,1,'Q'],
+ // 초기 · 기타 캐릭터
+ ['amber','엠버','pyro','bow',4,'sub','atk',140,1,'Q'],
+ ['xinyan','신염','pyro','claymore',4,'shield/sup','def',140,0,'E'],
+ ['razor','레이저','electro','claymore',4,'main','atk',130,1,'NE'],
+ ['sara','쿠죠 사라','electro','bow',4,'sup','atk',200,0,'Q'],
+ ['dori','도리','electro','claymore',4,'heal/sup','hp',180,0,'Q'],
+ ['kaveh','카베','dendro','claymore',4,'sub','em',140,0,'E'],
+ ['kaeya','케이아','cryo','sword',4,'sub','atk',140,1,'EQ'],
+ ['chongyun','중운','cryo','claymore',4,'sub/sup','atk',140,1,'EQ'],
+ ['qiqi','치치','cryo','sword',5,'heal','atk',140,0,'EQ'],
+ ['aloy','에일로이','cryo','bow',5,'sub','atk',140,1,'NE'],
+ ['freminet','프레미네','cryo','claymore',4,'main','atk',120,1,'E'],
+ ['kachina','카치나','geo','polearm',4,'sub','def',140,1,'E'],
+ ['lanyan','남연','anemo','catalyst',4,'shield/sup','atk',140,0,'E'],
+ ['mizuki','유메미즈키 미즈키','anemo','catalyst',5,'sub/heal','em',140,0,'E'],
+ ['ifa','이파','anemo','catalyst',4,'heal/sup','em',140,0,'E'],
+ ['dahlia','달리아','hydro','sword',4,'shield/sup','hp',160,0,'EQ'],
+ ['aino','아이노','hydro','claymore',4,'sub/sup','atk',160,1,'Q'],
+ ['ineffa','이네파','electro','polearm',5,'sub/shield','atk',140,1,'EQ'],
+ ['flins','플린스','electro','polearm',5,'main','atk',150,1,'EQ'],
+ ['lauma','라우마','dendro','catalyst',5,'sup/heal','em',160,0,'EQ'],
+ ['nefer','네페르','dendro','catalyst',5,'main','em',120,1,'NE'],
+ // 최신 캐릭터 — 역할은 나무위키 평가 문서 기준, 핵심 스탯·무기는 확인 못 한 값이 섞여 있음
+ ['durin','두린','pyro','',5,'sub','atk',150,1,'Q'],
+ ['nicole','니콜','pyro','',5,'sup/shield','atk',160,0,'EQ'],
+ ['columbina','콜롬비나','hydro','catalyst',5,'sub/sup','hp',160,1,'EQ'],
+ ['vodyanitsa','보댜니차','hydro','catalyst',5,'heal/sup','hp',150,0,'E'],
+ ['jahoda','야호다','anemo','',4,'heal/sup','em',160,0,'EQ'],
+ ['barca','바르카','anemo','',5,'main','atk',130,1,'EQ'],
+ ['prune','프루네','anemo','',4,'sup','em',160,0,'EQ'],
+ ['vesna','베스나','anemo','sword',5,'main','atk',140,1,'EQ'],
+ ['alyosha','알료샤','electro','',4,'sup','atk',160,0,'Q'],
+ ['valery','발레리','electro','',4,'sup','atk',150,0,'EQ',1],
+ ['mitya','미탸','electro','',5,'main','atk',130,1,'EQ',1],
+ ['roen','로엔','cryo','',5,'main','atk',130,1,'EQ'],
+ ['sandrone','산드로네','cryo','',5,'main','atk',130,1,'NE'],
+ ['odette','오데트','cryo','',5,'sub/sup','atk',150,1,'EQ'],
+ ['illuga','일루가','geo','',4,'sup','em',160,0,'EQ'],
+ ['zibai','자백','geo','',5,'main','def',130,1,'EQ'],
+ ['linnea','린네아','geo','',5,'sup/heal','def',160,1,'EQ'],
+];
+// 캐릭터 성능 점수(0~100)는 두 출처를 섞어서 만든다.
+// 1) PERF_NAMU: 나무위키 각 캐릭터 문서 '평가' 항목(2026년 10월 열람)의 장단점과 총평을 읽고 매긴 값. null = 평가 문서 없음
+// 2) GG: GamsGo 원신 7.1 종합 티어표(2026-09-23) — 메인/서브/서포터 칸 중 가장 높은 등급
+// 최종 = 티어표 60% + 나무위키 40%, 한쪽만 있으면 그 값
+const PERF_NAMU = {
+  'traveler-pyro':55, 'traveler-hydro':20, 'traveler-anemo':30, 'traveler-electro':30, 'traveler-dendro':52, 'traveler-cryo':70, 'traveler-geo':25,
+  amber:20, xiangling:78, bennett:92, diluc:45, klee:45, xinyan:25, hutao:75, yanfei:50, yoimiya:50, thoma:55, dehya:55, lyney:72, chevreuse:72, gaming:62, arlecchino:85, mavuika:92, durin:82, nicole:85,
+  barbara:35, xingqiu:85, mona:55, tartaglia:68, kokomi:70, ayato:60, yelan:85, candace:35, nilou:68, neuvillette:88, furina:93, sigewinne:50, mualani:72, dahlia:50, aino:58, columbina:95, vodyanitsa:80,
+  sucrose:65, jean:50, venti:62, xiao:50, kazuha:90, sayu:30, heizou:35, faruzan:72, wanderer:62, lynette:30, xianyun:75, chasca:75, lanyan:62, mizuki:70, ifa:45, jahoda:60, barca:70, prune:70, vesna:78,
+  lisa:30, razor:35, beidou:60, fischl:72, keqing:55, sara:55, raiden:78, yae:65, shinobu:62, dori:30, cyno:60, sethos:45, clorinde:72, ororon:60, iansan:72, varesa:75, ineffa:85, flins:85, alyosha:50, valery:null, mitya:null,
+  collei:35, tighnari:50, nahida:88, yaoyao:45, alhaitham:68, kaveh:35, baizhu:68, kirara:55, emilie:70, kinich:65, lauma:88, nefer:85,
+  kaeya:35, chongyun:40, qiqi:50, diona:55, ganyu:62, rosaria:45, eula:35, ayaka:62, aloy:10, shenhe:65, layla:55, mika:40, freminet:40, wriothesley:72, charlotte:45, citlali:85, escoffier:88, skirk:90, roen:80, sandrone:82, odette:85,
+  ningguang:40, noelle:40, zhongli:72, albedo:60, gorou:50, itto:55, yunjin:55, navia:68, chiori:45, kachina:30, xilonen:88, illuga:60, zibai:82, linnea:85,
+};
+const GG = {
+  'traveler-pyro':'B', 'traveler-hydro':'D', 'traveler-anemo':'D', 'traveler-electro':'C', 'traveler-dendro':'B', 'traveler-cryo':'SS', 'traveler-geo':'D',
+  amber:'D', xiangling:'A+', bennett:'S', diluc:'C', klee:'A', xinyan:'D', hutao:'B', yanfei:'D', yoimiya:'C', thoma:'B', dehya:'B', lyney:'B', chevreuse:'S', gaming:'B', arlecchino:'A', mavuika:'SS', durin:'S', nicole:'SS',
+  barbara:'C', xingqiu:'A+', mona:'A+', tartaglia:'B', kokomi:'A', ayato:'C', yelan:'A+', candace:'C', nilou:'A', neuvillette:'A', furina:'S', sigewinne:'B', mualani:'A+', dahlia:'C', aino:'A', columbina:'SS', vodyanitsa:'S',
+  sucrose:'SS', jean:'A', venti:'A+', xiao:'B', kazuha:'A+', sayu:'C', heizou:'D', faruzan:'A', wanderer:'B', lynette:'B', xianyun:'A', chasca:'A+', lanyan:'A', mizuki:'S', ifa:'C', jahoda:'A', barca:'S', prune:'A+', vesna:'SS',
+  lisa:'C', razor:'B', beidou:'B', fischl:'S', keqing:'C', sara:'B', raiden:'A', yae:'SS', shinobu:'A', dori:'C', cyno:'SS', sethos:'C', clorinde:'B', ororon:'A', iansan:'SS', varesa:'A+', ineffa:'SS', flins:'SS', alyosha:'S',
+  collei:'B', tighnari:'C', nahida:'A+', yaoyao:'A', alhaitham:'B', kaveh:'D', baizhu:'A', kirara:'A', emilie:'A+', kinich:'A+', lauma:'SS', nefer:'SS',
+  kaeya:'B', chongyun:'C', qiqi:'S', diona:'A', ganyu:'B', rosaria:'A', eula:'C', ayaka:'B', aloy:'D', shenhe:'A+', layla:'A', mika:'C', freminet:'D', wriothesley:'S', charlotte:'A', citlali:'SS', escoffier:'S', skirk:'S', roen:'A+', sandrone:'SS', odette:'SS',
+  ningguang:'D', noelle:'C', zhongli:'A', albedo:'A+', gorou:'A', itto:'C', yunjin:'B', navia:'B', chiori:'A', kachina:'C', xilonen:'S', illuga:'A+', zibai:'SS', linnea:'SS',
+};
+const GG_SCORE = { SS: 92, S: 84, 'A+': 76, A: 68, B: 56, C: 44, D: 30 };
+const PERF = {};
+for (const id of new Set([...Object.keys(PERF_NAMU), ...Object.keys(GG)])) {
+  const n = PERF_NAMU[id], g = GG[id] ? GG_SCORE[GG[id]] : null;
+  PERF[id] = n != null && g != null ? Math.round(0.6 * g + 0.4 * n) : (g ?? n);
+}
+const PERF_DEFAULT = 60;
+const TIER = p => p >= 85 ? 'T0' : p >= 72 ? 'T1' : p >= 58 ? 'T2' : p >= 45 ? 'T3' : 'T4';
+const DB = {};
+for (const [id,name,el,wp,r,roles,scale,er,crit,tal,guess] of RAW)
+  DB[id] = { id, name, el, wp, r, roles: roles.split('/'), scale, er, crit: !!crit, tal: tal.split('').map(k => 'NEQ'.indexOf(k)), guess: !!guess,
+    perf: PERF[id] ?? PERF_DEFAULT, rated: PERF[id] != null };
+// 사용자가 편집 화면에서 바꾼 역할·스탯·성능 기준을 반영한 캐릭터 프로필
+function prof(c) {
+  const d = DB[c.id], o = c.ov;
+  if (!o) return d;
+  const role = o.role || d.roles[0];
+  return { ...d, roles: [role, ...d.roles.filter(r => r !== role)], scale: o.scale || d.scale, crit: o.crit ?? d.crit, er: o.er || d.er, guess: false,
+    perf: o.perf ?? d.perf, rated: d.rated || o.perf != null, perfEdited: o.perf != null };
+}
+
+// ───────── 상태 ─────────
+const KEY = 'genshin-party-appraiser-v1';
+const mk = (id, lv, cons, t, wt, wl, wr, set, mainOk, cr, cd, er, key) => ({ id, lv, cons, t, wt, wl, wr, set, mainOk, cr, cd, er, key });
+function sampleState() {
+  const r = [
+    mk('raiden', 90,0,[6,9,10],'sig',90,1,'full',true,62,128,255,1950),
+    mk('xiangling',80,6,[1,8,9],'fourFit',90,5,'full',true,58,112,190,1700),
+    mk('xingqiu',80,6,[1,8,8],'fourFit',90,5,'full',true,55,105,170,1650),
+    mk('bennett',80,5,[1,5,10],'four',80,5,'full',true,5,50,230,22000),
+    mk('nahida',90,0,[1,9,6],'five',90,1,'full',true,48,102,115,880),
+    mk('kazuha',90,0,[1,6,8],'fourFit',90,5,'full',true,5,50,165,950),
+    mk('zhongli',90,0,[1,8,6],'four',80,5,'two',false,10,60,115,38000),
+    mk('hutao',80,0,[8,6,6],'four',80,1,'two',true,41,165,105,29000),
+    mk('yelan',80,0,[1,6,6],'fourFit',80,3,'broken',false,52,98,140,25000),
+    mk('neuvillette',90,0,[9,6,8],'sig',90,1,'full',true,68,190,110,38000),
+    mk('furina',80,0,[1,8,8],'fourFit',80,1,'full',true,52,108,150,34000),
+    mk('fischl',70,6,[1,6,4],'three',70,5,'broken',false,30,80,120,1500),
+  ];
+  const roster = {}; r.forEach(c => roster[c.id] = c);
+  return { sample: true, ar: 60, wl: null, roster, parties: [
+    { pid: 'p1', name: '라이덴 국가대표', m: ['raiden','xiangling','xingqiu','bennett'] },
+    { pid: 'p2', name: '느비예트 · 푸리나', m: ['neuvillette','furina','kazuha','zhongli'] },
+    { pid: 'p3', name: '호두 증발', m: ['hutao','xingqiu','yelan','zhongli'] },
+    { pid: 'p4', name: '나히다 격화', m: ['nahida','fischl','kazuha','bennett'] },
+  ]};
+}
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
+if (!S || !S.roster || !S.parties) S = sampleState();
+function save() { S.sample = false; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+// ───────── 계산 ─────────
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const avg = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0;
+// ───────── 계정 진행도 (모험 등급 · 세계 레벨) ─────────
+// 캐릭터·무기 돌파 1~6단계에 필요한 모험 등급과, 각 돌파가 해금하는 최대 레벨
+const ASC_AR = [15, 25, 30, 35, 40, 45];
+const ASC_CAP = [40, 50, 60, 70, 80, 90];
+const lvCapOf = ar => { let cap = 20; ASC_AR.forEach((r, i) => { if (ar >= r) cap = ASC_CAP[i]; }); return cap; };
+const nextAscAR = ar => ASC_AR.find(r => r > ar);
+// 세계 레벨 자동값: 모험 등급 20/25/30/35/40/45/50/55에서 1~8 (각 단계 승급 임무 완료 가정)
+const autoWL = ar => [20, 25, 30, 35, 40, 45, 50, 55].filter(r => ar >= r).length;
+const ar = () => clamp(Math.round(S.ar ?? 60), 1, 60);
+const wl = () => S.wl ?? autoWL(ar());
+// 현재 레벨에서 끝낸 돌파 단계(경계 레벨은 돌파를 마친 것으로 봄)와 그 단계의 특성 상한
+const ascOf = lv => lv >= 80 ? 6 : lv >= 70 ? 5 : lv >= 60 ? 4 : lv >= 50 ? 3 : lv >= 40 ? 2 : lv >= 20 ? 1 : 0;
+const TAL_CAP = [1, 1, 2, 4, 6, 8, 10];
+const talCapAt = lv => TAL_CAP[ascOf(lv)];
+// 성유물 목표 배율: 5성 성유물이 나오는 비경 레벨이 모험 등급에 묶여 있어 초반 계정은 기준을 낮춤
+const artStage = a => a >= 55 ? 1 : a >= 45 ? 0.9 : a >= 40 ? 0.8 : a >= 35 ? 0.7 : 0.55;
+// 상대할 적 레벨: 모험 등급 45부터는 나선 비경 12층(Lv.100), 그 전에는 세계 레벨에 맞춘 필드 적
+const enemyLv = () => ar() >= 45 ? 100 : 30 + wl() * 9;
+// 레벨이 피해에 주는 영향: 방어 계수(모든 캐릭터 공통 공식) × 기초 스탯 곡선(근사)
+const defMult = lv => (lv + 100) / ((lv + 100) + (enemyLv() + 100));
+const baseRatio = lv => (lv + 10) / 100;
+
+const talTargetRole = d => d.roles[0] === 'main' ? 9 : d.roles[0] === 'sub' ? 8 : 6;
+const lvTarget = () => lvCapOf(ar());
+const talTarget = d => Math.min(talTargetRole(d), talCapAt(lvTarget()));
+const critTarget = d => Math.round((d.roles[0] === 'main' ? 230 : 190) * artStage(ar()));
+const cvOf = c => Math.round(2 * Math.max(0, c.cr - 5) + Math.max(0, c.cd - 50));
+function keyTarget(d) {
+  let t = SCALE[d.scale].t;
+  if (d.scale === 'em' && !d.crit) t *= 1.25;
+  if (d.scale === 'hp' && d.roles[0] === 'main') t *= 1.15;
+  if (d.scale === 'hp' && !d.crit && d.roles[0] !== 'main') t = 25000;
+  return Math.round(t * (0.55 + 0.45 * artStage(ar())) * (0.5 + 0.5 * baseRatio(lvTarget())));
+}
+
+function charCalc(c) {
+  const d = prof(c);
+  // 레벨: 모험 등급이 허용하는 목표 레벨 대비 피해 비율(방어 계수 × 기초 스탯), Lv.60 전에는 두 번째 고유 특성이 잠겨 감점
+  const T = lvTarget();
+  let lv = clamp((defMult(c.lv) / defMult(T)) * (0.5 + 0.5 * baseRatio(c.lv) / baseRatio(T)));
+  if (c.lv < 60 && T >= 60) lv *= 0.8;
+  if (c.lv < 20 && T >= 20) lv *= 0.8;
+  const tg = talTarget(d);
+  const tal = tg <= 1 ? 1 : avg(d.tal.map(i => clamp((Math.min(c.t[i], talCapAt(c.lv)) - 1) / (tg - 1))));
+  const wl = clamp((c.wl + 10) / (T + 10));
+  const five = c.wt === 'sig' || c.wt === 'five';
+  const wep = clamp(WT[c.wt].v * wl + (five ? 0.03 : 0.02) * (c.wr - 1));
+  const setS = { full: 1, two: 0.75, broken: 0.35 }[c.set];
+  const mainS = c.mainOk ? 1 : 0.4;
+  let critS = clamp(cvOf(c) / critTarget(d));
+  if (c.cr > 100) critS *= 0.9;
+  if (d.roles[0] === 'main' && c.cr < 45) critS *= 0.85;
+  const erS = clamp(c.er / d.er) ** 1.5;
+  const keyS = clamp(c.key / keyTarget(d));
+  const art = d.crit
+    ? 0.25 * setS + 0.1 * mainS + 0.35 * critS + 0.15 * erS + 0.15 * keyS
+    : 0.25 * setS + 0.1 * mainS + 0.25 * erS + 0.4 * keyS;
+  const con = d.r === 5 ? [0, .35, .55, .65, .75, .85, 1][c.cons] : c.cons / 6;
+  const parts = { lv, tal, wep, art, con };
+  const score = 15 * lv + 15 * tal + 20 * wep + 40 * art + 10 * con;
+  return { score, parts, setS, critS, erS, keyS };
+}
+
+function charIssues(c) {
+  const d = prof(c), out = [];
+  const tg = talTarget(d), T = lvTarget(), cap = talCapAt(c.lv);
+  if (c.lv > T) out.push(['md', `레벨 ${c.lv} — 모험 등급 ${ar()}의 최대 레벨 ${T}보다 높음, 모험 등급을 확인하세요`]);
+  else if (c.lv < T) out.push([T - c.lv >= 20 ? 'hi' : T - c.lv >= 10 ? 'md' : 'lo', `레벨 ${c.lv} — 목표 ${T}`]);
+  if (c.lv < 60 && T >= 60) out.push(['md', 'Lv.60(4단계 돌파) 전이라 두 번째 고유 특성이 잠겨 있음']);
+  const low = d.tal.filter(i => c.t[i] < tg);
+  if (low.length) {
+    const capped = low.filter(i => c.t[i] >= cap);
+    out.push([low.some(i => c.t[i] <= tg - 3) ? 'hi' : 'md', `${low.map(i => TAL[i] + ' ' + c.t[i]).join(', ')} (목표 ${tg})` + (capped.length ? ` · 현재 돌파로는 ${cap}이 상한` : '')]);
+  }
+  if (WT[c.wt].v < 0.7) out.push(['md', `무기가 약함 — ${WT[c.wt].n}`]);
+  if (c.wl < T - 10) out.push(['md', `무기 레벨 ${c.wl} — 목표 ${T}`]);
+  if (c.set === 'broken') out.push(['hi', '성유물 세트 효과 없음']);
+  if (!c.mainOk) out.push(['hi', '시계·잔·왕관 주옵션이 맞지 않음']);
+  if (c.er < d.er - 5) out.push([c.er < d.er - 30 ? 'hi' : 'md', `원충 ${c.er}% — 목표 ${d.er}%`]);
+  if (d.crit) {
+    const cv = cvOf(c), t = critTarget(d);
+    if (cv < t * 0.8) out.push([cv < t * 0.6 ? 'hi' : 'md', `치명 수치 ${cv} — 목표 ${t}`]);
+    if (c.cr > 100) out.push(['md', `치확 ${c.cr}% — 100% 초과분 낭비`]);
+    else if (c.cr < 45 && c.cd > c.cr * 2.6 && d.roles[0] === 'main') out.push(['md', `치확 ${c.cr}% / 치피 ${c.cd}% — 비율이 치피 쪽으로 쏠림`]);
+  }
+  const kt = keyTarget(d);
+  if (c.key < kt * 0.8) out.push(['md', `${SCALE[d.scale].n} ${c.key.toLocaleString()} — 권장 ${kt.toLocaleString()}`]);
+  return out;
+}
+
+const RX = [
+  { n: '만개', need: ['dendro','hydro','electro'], v: 15, hides: ['개화','격화·발산','감전'] },
+  { n: '증발', need: ['pyro','hydro'], v: 14 },
+  { n: '융해', need: ['pyro','cryo'], v: 12 },
+  { n: '격화·발산', need: ['dendro','electro'], v: 12 },
+  { n: '빙결', need: ['hydro','cryo'], v: 11 },
+  { n: '개화', need: ['dendro','hydro'], v: 8 },
+  { n: '감전', need: ['hydro','electro'], v: 7 },
+  { n: '과부하', need: ['pyro','electro'], v: 5 },
+  { n: '연소', need: ['pyro','dendro'], v: 4 },
+  { n: '초전도', need: ['cryo','electro'], v: 3 },
+];
+const RES = { pyro: ['불 공명 · 공격력', 6], hydro: ['물 공명 · HP', 4], cryo: ['얼음 공명 · 치확', 4], geo: ['바위 공명', 5], dendro: ['풀 공명 · 마스터리', 4], electro: ['번개 공명', 2], anemo: ['바람 공명', 2] };
+// ───────── 유명 엔진(코어 조합) ─────────
+// slots: 자리마다 들어갈 수 있는 캐릭터(앞쪽이 정석). 모든 자리가 서로 다른 멤버로 채워지면 엔진 완성.
+// aka: 커뮤니티에서 부르는 이름, need: 원소 조건 같은 추가 조건, sub: 같은 계열 상위 엔진이 있으면 숨김
+const HEALERS = ['bennett','kokomi','baizhu','charlotte','xianyun','jean','escoffier','sigewinne','vodyanitsa','linnea','lauma','yaoyao','qiqi'];
+const ENGINES = [
+  { id: 'raikuk', n: '라이덴 국가대표', aka: '라국', bonus: 10, slots: [['raiden'], ['xiangling'], ['xingqiu', 'yelan'], ['bennett']],
+    desc: '라이덴이 원소 에너지를 채워 주고 향릉·행추 원소폭발로 불·물을 깔아 증발을 반복. 4성 위주로 굴러가는 대표 엔진' },
+  { id: 'kukdae', n: '국가대표', aka: '국대', bonus: 8, slots: [['xiangling'], ['xingqiu', 'yelan'], ['bennett']], sub: 'raikuk',
+    desc: '향릉 화륜 + 행추 비검 + 베넷 공격력 버프. 남은 한 자리에 라이덴·중운·카즈하 등을 넣는 범용 증발 엔진' },
+  { id: 'gukje', n: '타르탈리아 국제', aka: '국제', bonus: 8, slots: [['tartaglia'], ['xiangling'], ['bennett'], ['kazuha', 'sucrose']],
+    desc: '타르탈리아 물 부착 + 향릉 증발 + 확산 버프. 다수전에 강한 증발 엔진' },
+  { id: 'nahaengsi', n: '나행시', aka: '나히다 만개', bonus: 9, slots: [['nahida'], ['xingqiu', 'yelan'], ['shinobu']],
+    desc: '나히다 풀 + 행추(야란) 물로 풀 원핵을 만들고 시노부가 만개로 터뜨림. 남은 자리는 자유롭게 바꿀 수 있음' },
+  { id: 'neupu', n: '느비예트 · 푸리나', aka: '느푸', bonus: 8, slots: [['neuvillette'], ['furina'], ['kazuha', 'xianyun', 'jean', 'baizhu', 'escoffier', 'vodyanitsa', 'zhongli']],
+    desc: '푸리나 파티 피해 버프를 느비예트 강공격이 그대로 받음. 셋째 자리는 확산 버프나 힐러' },
+  { id: 'hutao2', n: '호두 2물 증발', aka: '호행야', bonus: 7, slots: [['hutao'], ['xingqiu'], ['yelan']],
+    desc: '행추·야란 두 물 서브딜러가 호두 강공격 증발을 받쳐 줌' },
+  { id: 'freeze', n: '영구 빙결', bonus: 7, slots: [['ayaka', 'ganyu', 'wriothesley', 'skirk'], ['kokomi', 'mona', 'furina', 'vodyanitsa'], ['kazuha', 'venti', 'sucrose', 'shenhe']],
+    desc: '물 부착 서포터로 적을 계속 얼려 두고 얼음 딜러가 안전하게 딜. 빙결 면역 적에는 약함' },
+  { id: 'skirk', n: '스커크 물·얼음', bonus: 9, slots: [['skirk'], ['escoffier'], ['furina', 'vodyanitsa', 'shenhe']], need: els => els.every(e => e === 'hydro' || e === 'cryo'),
+    desc: '파티를 물·얼음으로만 짜면 스커크·에스코피에의 특성이 모두 열림' },
+  { id: 'monogeo', n: '모노 바위', bonus: 7, slots: [['itto', 'navia', 'noelle', 'zibai'], ['gorou'], ['albedo', 'chiori', 'zhongli', 'yunjin', 'xilonen']], need: els => els.filter(e => e === 'geo').length >= 3,
+    desc: '고로 방어력·바위 피해 버프와 바위 공명. 원소 반응 없이 안정적으로 딜' },
+  { id: 'overload', n: '슈브르즈 과부하', bonus: 7, slots: [['chevreuse'], ['clorinde', 'varesa', 'raiden', 'razor', 'beidou', 'fischl', 'ororon'], ['xiangling', 'durin', 'bennett', 'mavuika', 'arlecchino', 'lyney']],
+    need: els => els.every(e => e === 'pyro' || e === 'electro'), desc: '불·번개로만 짜면 슈브르즈가 불·번개 내성을 깎고 공격력을 올림' },
+  { id: 'natlan', n: '마비카 나타 코어', bonus: 8, slots: [['mavuika'], ['citlali'], ['xilonen', 'iansan', 'bennett']],
+    desc: '시틀라리 불 내성 감소와 실로닌(또는 얀사·베넷) 버프로 마비카 전의를 빠르게 채움' },
+  { id: 'quicken', n: '알하이탐 격화', bonus: 6, slots: [['alhaitham'], ['nahida'], ['shinobu', 'fischl', 'yae']],
+    desc: '나히다 원소 마스터리 버프와 번개 서브딜러로 촉진을 유지' },
+  { id: 'lunarEC', n: '달 감전', aka: '이네파·콜롬비나', bonus: 9, slots: [['ineffa'], ['columbina'], ['flins', 'sucrose', 'aino', 'alyosha']],
+    desc: '이네파가 감전을 달 감전으로 바꾸고 콜롬비나가 달빛 반응 전체를 강화' },
+  { id: 'lunarBloom', n: '달 개화', aka: '라우마·콜롬비나', bonus: 9, slots: [['lauma'], ['columbina', 'aino', 'xingqiu', 'yelan'], ['nefer', 'nahida']],
+    desc: '라우마 내성 감소·추가 계수와 물 부착으로 네페르 달 개화를 굴림' },
+  { id: 'lunarCrystal', n: '달 결정', bonus: 9, slots: [['zibai', 'navia', 'noelle', 'itto'], ['linnea', 'illuga'], ['columbina']],
+    desc: '린네아·일루가의 달 결정 지원과 콜롬비나 물 부착으로 바위 딜러를 강화' },
+  { id: 'stellarConduct', n: '별 초전도', bonus: 9, slots: [['sandrone', 'cyno', 'wriothesley', 'eula'], ['odette'], ['yae']],
+    desc: '오데트가 별빛 반응을 트리거·강화하고 야에 미코 번개 부착으로 별 초전도를 유지' },
+  { id: 'stellarSwirl', n: '별 확산', bonus: 9, slots: [['vesna', 'mizuki'], ['odette'], ['vodyanitsa', 'faruzan', 'traveler-cryo', 'qiqi']],
+    desc: '얼음 확산을 별 확산으로 바꾸는 7.1 신규 엔진. 보댜니차가 바람 내성 감소와 반응 피해 증가를 담당' },
+  { id: 'shenhe', n: '신학 얼음', bonus: 5, slots: [['shenhe'], ['ayaka', 'ganyu', 'wriothesley', 'skirk']], sub: 'freeze',
+    desc: '신학의 얼음 추가 계수·내성 감소를 얼음 딜러가 받음' },
+  { id: 'furinaHeal', n: '푸리나 · 힐러', bonus: 4, slots: [['furina'], HEALERS], sub: 'neupu',
+    desc: '힐러가 푸리나의 HP 소모를 메워 주며 피해 버프 중첩을 유지' },
+];
+// 엔진 자리 채우기: 후보가 적은 자리부터 서로 다른 멤버로 배정. 결과는 자리별 [배정 id | null]
+function engineFill(e, ids) {
+  const order = e.slots.map((s, i) => i).sort((a, b) => e.slots[a].length - e.slots[b].length);
+  const used = new Set(), fill = e.slots.map(() => null);
+  for (const i of order) { const pick = e.slots[i].find(id => ids.includes(id) && !used.has(id)); if (pick) { fill[i] = pick; used.add(pick); } }
+  return fill;
+}
+// 파티의 엔진 판정: full(완성) / near(1자리 부족) 목록, 상위 엔진이 완성되면 하위(sub)는 뺌
+function partyEngines(ids, els) {
+  const full = [], near = [];
+  for (const e of ENGINES) {
+    const fill = engineFill(e, ids), miss = fill.filter(x => !x).length;
+    const cond = !e.need || e.need(els);
+    if (!miss && cond) full.push(e);
+    else if (miss === 1 && e.slots.length >= 3) {
+      // 원소 조건이 있는 엔진은 빈자리 후보를 넣었을 때 조건을 맞출 수 있을 때만 제안
+      const slot = e.slots[fill.indexOf(null)];
+      if (!e.need || slot.some(x => e.need([...els, DB[x].el]))) near.push({ e, slot });
+    }
+  }
+  const fullIds = new Set(full.map(e => e.id));
+  return { full: full.filter(e => !fullIds.has(e.sub)), near: near.filter(x => !fullIds.has(x.e.sub)) };
+}
+const GRADE = v => v >= 85 ? 'S' : v >= 72 ? 'A' : v >= 58 ? 'B' : v >= 45 ? 'C' : 'D';
+
+function evalParty(p, over, roster) {
+  const R = roster || S.roster;
+  const get = id => (over && over.id === id) ? over : R[id];
+  const mem = p.m.filter(id => id && R[id]).map(id => { const c = get(id); return { id, c, d: prof(c), a: charCalc(c) }; });
+  const issues = [];
+  // 육성 점수의 역할 가중 평균, 빈 슬롯은 0점 서포터로 계산
+  let wsum = 0, ssum = 0;
+  for (const m of mem) { const w = RW[m.d.roles[0]]; wsum += w; ssum += w * m.a.score; }
+  wsum += (4 - mem.length) * RW.sup;
+  const build = wsum ? ssum / wsum : 0;
+  // 딜량: 가장 비슷한 실측 파티 × 겹침 배율 × 육성 배율, 비슷한 파티가 없으면 성능 점수로 추정
+  const td = partyDps(mem, build);
+  const expDps = td.est;
+  const dpsScore = clamp(100 * expDps / META_MAX, 0, 100);
+
+  // 시너지
+  const els = mem.map(m => m.d.el);
+  const elset = new Set(els);
+  const has = r => mem.some(m => m.d.roles.includes(r));
+  const prim = r => mem.filter(m => m.d.roles[0] === r).length;
+  let syn = 30;
+  const mains = prim('main'), subs = mem.filter(m => m.d.roles.includes('sub')).length;
+  if (mains === 1) syn += 12;
+  else if (mains === 0 && subs >= 2) { syn += 7; issues.push(['lo', '필드 메인 딜러 없이 서브 딜러 교대로 딜 — 조작 난도 높음']); }
+  else if (mains === 0) { syn -= 15; issues.push(['hi', '딜을 넣을 캐릭터가 부족함']); }
+  if (mains >= 2) { syn -= 10 * (mains - 1); issues.push(['md', `메인 딜러가 ${mains}명 — 필드 시간이 겹침`]); }
+  if (has('heal') || has('shield')) syn += 12; else issues.push(['hi', '힐러·보호막이 없어 장기전에서 불안정']);
+  if (has('sup')) syn += 8; else issues.push(['md', '버프를 주는 서포터가 없음']);
+
+  const rx = RX.filter(r => r.need.every(e => elset.has(e)));
+  const hidden = new Set(rx.flatMap(r => r.hides || []));
+  const rxs = rx.filter(r => !hidden.has(r.n));
+  const nonAnemoGeo = ['pyro','hydro','electro','cryo'].filter(e => elset.has(e));
+  if (elset.has('anemo') && nonAnemoGeo.length) rxs.push({ n: '확산', v: 8 });
+  if (elset.has('geo') && nonAnemoGeo.length && !rxs.length) rxs.push({ n: '결정화', v: 2 });
+  rxs.sort((a, b) => b.v - a.v);
+  const topRx = rxs.slice(0, 2);
+  syn += topRx.reduce((s, r) => s + r.v, 0);
+  if (!rxs.some(r => r.v >= 7) && !(els.filter(e => e === 'geo').length >= 3)) issues.push(['md', '강한 원소 반응 조합이 없음']);
+
+  const res = [];
+  for (const e of EL_ORDER) if (els.filter(x => x === e).length >= 2) { res.push(RES[e][0]); syn += RES[e][1]; }
+  const ids = new Set(mem.map(m => m.id));
+  const eng = partyEngines([...ids], els);
+  const arch = eng.full;
+  syn += Math.min(12, arch.reduce((s, a) => s + a.bonus, 0));
+  // 1명만 더 있으면 완성되는 엔진: 보유 중인 후보를 먼저 제안
+  for (const { e, slot } of eng.near.slice(0, 2)) {
+    const owned = slot.filter(x => R[x] && !ids.has(x));
+    const cand = (owned.length ? owned : slot).slice(0, 3).map(x => DB[x].name).join('·');
+    issues.push(['lo', `${e.n}${e.aka ? `(${e.aka})` : ''} 엔진까지 1자리 — ${cand}${owned.length ? '(보유)' : ''} 기용 시 완성`]);
+  }
+  if (mem.length < 4) { syn -= 8 * (4 - mem.length); issues.unshift(['hi', `빈 슬롯 ${4 - mem.length}개`]); }
+  syn = clamp(syn, 0, 100);
+
+  // 약한 멤버
+  const weak = mem.filter(m => m.a.score < 62).sort((a, b) => a.a.score - b.a.score);
+  for (const m of weak.slice(0, 2)) {
+    const top = charIssues(m.c).filter(i => i[0] !== 'lo').slice(0, 2).map(i => i[1]).join(' · ');
+    issues.push([m.a.score < 50 ? 'hi' : 'md', `${m.d.name} 육성 ${Math.round(m.a.score)}점${top ? ' — ' + top : ''}`]);
+  }
+  for (const m of mem.filter(m => m.d.perf < 45).sort((a, b) => a.d.perf - b.d.perf).slice(0, 2))
+    issues.push([m.d.perf < 35 ? 'hi' : 'md', `${m.d.name} 캐릭터 성능 ${m.d.perf}점(${TIER(m.d.perf)}) — 같은 역할의 상위 캐릭터로 교체 고려`]);
+  // 딜량 근거와 메타 조합과의 차이
+  if (td.src === 'estimated' && mem.length) issues.push(['lo', '비슷한 실측 파티가 없어 딜량은 캐릭터 성능 점수로 추정']);
+  else if (td.src === 'measured' && td.ov < 4) {
+    const missing = td.m.ids.filter(x => !ids.has(x));
+    issues.push([td.ov <= 2 ? 'md' : 'lo', `실측 조합과 ${td.ov}/4 일치 — ${missing.map(x => DB[x].name).join(', ')} 기용 시 기준 ${kfmt(td.m.dps)}`]);
+  }
+  const value = 0.5 * dpsScore + 0.25 * build + 0.25 * syn;
+  return { mem, build, syn, dps: td, expDps, dpsScore, value, grade: GRADE(value), rx: topRx.map(r => r.n), res, arch: arch.map(a => a.aka ? `${a.n} (${a.aka})` : a.n), issues };
+}
+
+// ───────── 성장 액션 ─────────
+const TAL_COST = [0, 6, 10, 16, 22, 30, 45, 60, 85, 120];
+function actionsFor(id) {
+  const c = S.roster[id], d = prof(c), out = [];
+  const add = (what, why, cost, mod) => { const n = JSON.parse(JSON.stringify(c)); mod(n); out.push({ id, what, why, cost, next: n }); };
+  const T = lvTarget();
+  if (c.lv < T) {
+    // 다음 돌파 구간까지: 60은 고유 특성 해금, 80→90은 마지막 구간
+    const to = c.lv >= 80 ? T : Math.min(T, (Math.floor(c.lv / 10) + 1) * 10);
+    const why = to === 60 ? '두 번째 고유 특성 해금 · 특성 상한 6' : to === 90 ? '주간 보스·경험치 대량 소모' : `특성 상한 ${talCapAt(to)}`;
+    add(`${d.name} 레벨 ${to}`, `Lv.${c.lv} → ${to} (${why})`, to <= 60 ? 70 : to <= 80 ? 140 : 420, n => n.lv = to);
+  }
+  const tg = talTarget(d), cap = talCapAt(c.lv);
+  for (const i of d.tal) {
+    if (c.t[i] >= tg || c.t[i] >= cap) continue;
+    const to = Math.min(tg, cap, c.t[i] < 6 ? 6 : c.t[i] + 1);
+    let cost = 0; for (let l = c.t[i]; l < to; l++) cost += TAL_COST[l];
+    add(`${d.name} ${TAL[i]} ${c.t[i]} → ${to}`, to >= 7 ? '특성 책 + 주간 보스 소재' : '특성 비경', cost, n => n.t[i] = to);
+  }
+  if (WT[c.wt].v < 0.75) add(`${d.name} 무기 교체`, `${WT[c.wt].n} → 4성 적합 무기 (제작·이벤트·상점)`, 300, n => { n.wt = 'fourFit'; n.wl = Math.max(n.wl, Math.min(80, T)); n.wr = 1; });
+  if (c.wl < T) add(`${d.name} 무기 레벨 ${T}`, `Lv.${c.wl} → ${T}`, T - c.wl > 10 ? 220 : 120, n => n.wl = T);
+  if (c.set !== 'full') add(`${d.name} 권장 4세트 맞추기`, c.set === 'broken' ? '세트 효과 없음 → 4세트' : '2+2 → 4세트', c.set === 'broken' ? 500 : 380, n => n.set = 'full');
+  if (!c.mainOk) add(`${d.name} 주옵션 교정`, '시계·잔·왕관을 캐릭터에 맞는 주옵으로', 400, n => n.mainOk = true);
+  if (c.er < d.er - 5) { const to = Math.min(d.er, c.er + 40); add(`${d.name} 원충 보강`, `${c.er}% → ${to}% (원충 시계·부옵·무기)`, 250, n => n.er = to); }
+  if (d.crit) {
+    const cv = cvOf(c);
+    const unbalanced = c.cr > 100 || (c.cr < 45 && c.cd > c.cr * 2.6);
+    if (unbalanced) {
+      const cr = Math.min(85, 5 + cv / 4), cd = 50 + (cv - 2 * (cr - 5));
+      add(`${d.name} 치확·치피 비율 조정`, `왕관 교체로 ${c.cr}/${c.cd} → ${cr.toFixed(0)}/${cd.toFixed(0)}`, 150, n => { n.cr = +cr.toFixed(1); n.cd = +cd.toFixed(1); });
+    }
+    if (cv < critTarget(d) * 0.9) add(`${d.name} 치명 부옵 파밍`, `치명 수치 ${cv} → ${cv + 40}`, 900, n => { n.cr = Math.min(100, n.cr + 10); n.cd += 20; });
+  }
+  const kt = keyTarget(d);
+  if (c.key < kt * 0.85) add(`${d.name} ${SCALE[d.scale].n} 보강`, `${c.key.toLocaleString()} → ${Math.round(kt * 0.95).toLocaleString()}`, 500, n => n.key = Math.round(kt * 0.95));
+  return out;
+}
+function growthList(ranked) {
+  const weightOf = new Map(ranked.map((r, i) => [r.p.pid, i < 2 ? 1 : 0.7]));
+  const all = [];
+  for (const id of Object.keys(S.roster)) {
+    const inParties = S.parties.filter(p => p.m.includes(id));
+    for (const a of actionsFor(id)) {
+      let gain = 0;
+      const touched = [];
+      for (const p of inParties) {
+        const before = ranked.find(r => r.p.pid === p.pid).e.value;
+        const g = (evalParty(p, a.next).value - before) * weightOf.get(p.pid);
+        if (g > 0.01) { gain += g; touched.push(p.name); }
+      }
+      if (!inParties.length) gain = (charCalc(a.next).score - charCalc(S.roster[id]).score) * 0.15;
+      if (gain < 0.05) continue;
+      all.push({ ...a, gain, touched, idle: !inParties.length, rank: gain / Math.sqrt(a.cost) });
+    }
+  }
+  return all.sort((x, y) => y.rank - x.rank);
+}
+
+// ───────── 렌더 ─────────
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+const elc = el => `var(--${el})`;
+const scoreColor = s => s >= 80 ? 'var(--good)' : s >= 62 ? 'var(--hydro)' : s >= 50 ? 'var(--warn)' : 'var(--bad)';
+
+function rankedParties() {
+  return S.parties.map(p => ({ p, e: evalParty(p) })).sort((a, b) => b.e.value - a.e.value);
+}
+
+function renderParties(ranked) {
+  const v = $('#view-parties');
+  const head = `<div class="bar"><h2>파티 순위</h2><div class="actions"><button class="btn primary" type="button" data-act="new-party">+ 새 파티</button></div></div>`;
+  if (!S.parties.length) {
+    v.innerHTML = head + `<div class="empty-state"><p>아직 파티가 없습니다.</p><p>먼저 <b>내 캐릭터</b>에 보유 캐릭터를 등록한 뒤, 새 파티를 만들어 4명을 배치하세요.</p></div>`;
+    return;
+  }
+  v.innerHTML = head + `<div class="plist">` + ranked.map(({ p, e }, i) => {
+    const mem = p.m.map(id => {
+      if (!id || !S.roster[id]) return `<div class="mem empty">빈 슬롯</div>`;
+      const d = prof(S.roster[id]), sc = charCalc(S.roster[id]).score;
+      return `<div class="mem"><div class="nm" title="${esc(d.name)}"><span class="dot" style="--c:${elc(d.el)}"></span>${esc(d.name)}</div>
+        <div class="meta"><span>${ROLE[d.roles[0]]} · <b class="tier t-${TIER(d.perf)}">${TIER(d.perf)}</b></span><span class="mono" title="육성 점수">${Math.round(sc)}</span></div>
+        <div class="meter"><i style="width:${sc}%;--c:${scoreColor(sc)}"></i></div></div>`;
+    }).join('');
+    const chips = [...e.arch.map(a => `<span class="chip rx">✦ ${esc(a)}</span>`), ...e.rx.map(r => `<span class="chip rx">${r}</span>`), ...e.res.map(r => `<span class="chip">${r}</span>`)].join('');
+    const iss = e.issues.length ? e.issues.slice(0, 5).map(([s, t]) => `<li class="sev-${s}">${esc(t)}</li>`).join('') : `<li class="sev-ok">눈에 띄는 약점 없음</li>`;
+    return `<article class="party">
+      <div class="seal"><span class="rank">#${i + 1}</span><span class="grade g-${e.grade}">${e.grade}</span><span class="val">${e.value.toFixed(1)}</span></div>
+      <div style="min-width:0">
+        <div class="pname"><h2>${esc(p.name)}</h2></div>
+        <div class="members">${mem}</div>
+        <div class="split">
+          <span class="muted" title="추정 딜량 ÷ 실측 1위 파티 딜량 × 100 (가치의 50%)">딜량</span><div class="meter"><i style="width:${e.dpsScore}%;--c:var(--pyro)"></i></div><span class="mono">${e.dpsScore.toFixed(0)}</span>
+          <span class="muted" title="멤버 육성 점수의 역할 가중 평균 (가치의 25%)">육성</span><div class="meter"><i style="width:${e.build}%;--c:var(--ink)"></i></div><span class="mono">${e.build.toFixed(0)}</span>
+          <span class="muted" title="역할 구성·생존·원소 반응·공명 (가치의 25%)">시너지</span><div class="meter"><i style="width:${e.syn}%;--c:var(--gold)"></i></div><span class="mono">${e.syn.toFixed(0)}</span>
+        </div>
+        <div class="chips">${chips || '<span class="chip">반응 없음</span>'}</div>
+        ${dpsLine(e)}
+      </div>
+      <div class="diag"><h3>부족한 점</h3><ul class="issues">${iss}</ul></div>
+      <div class="pfoot"><button class="btn sm" type="button" data-act="edit-party" data-id="${p.pid}">편집</button></div>
+    </article>`;
+  }).join('') + `</div>`;
+}
+
+function renderRoster() {
+  const v = $('#view-roster');
+  const ids = Object.keys(S.roster);
+  const head = `<div class="bar"><h2>내 캐릭터</h2><div class="actions"><button class="btn primary" type="button" data-act="new-char">+ 캐릭터 등록</button></div></div>`;
+  if (!ids.length) {
+    v.innerHTML = head + `<div class="empty-state"><p>등록된 캐릭터가 없습니다.</p><p>게임의 캐릭터 상세 화면을 보면서 레벨, 특성, 무기, 치명타·원충 수치를 입력하세요.</p></div>`;
+    return;
+  }
+  const rows = ids.map(id => ({ id, c: S.roster[id], d: prof(S.roster[id]), a: charCalc(S.roster[id]) })).sort((x, y) => y.a.score - x.a.score);
+  v.innerHTML = head + `<div class="grid">` + rows.map(({ id, c, d, a }) => {
+    const iss = charIssues(c).filter(i => i[0] !== 'lo');
+    const pr = [['레벨', a.parts.lv], ['특성', a.parts.tal], ['무기', a.parts.wep], ['성유물', a.parts.art]];
+    return `<button class="card" type="button" data-act="edit-char" data-id="${id}">
+      <div class="head"><div><div class="nm"><span class="dot" style="--c:${elc(d.el)}"></span>${esc(d.name)}</div>
+        <div class="tags"><span class="r${d.r}">${'★'.repeat(d.r)}</span> · ${EL[d.el]} · ${ROLE[d.roles[0]]} · C${c.cons}${d.guess ? ' · <span style="color:var(--warn)">역할 추정</span>' : ''}</div>
+        <div class="tags">캐릭터 성능 <b class="tier t-${TIER(d.perf)}">${TIER(d.perf)}</b> <span class="mono">${d.perf}</span>${!d.rated ? ' · 평가 없음' : d.perfEdited ? ' · 직접 수정' : ''}</div></div>
+        <span class="score" style="color:${scoreColor(a.score)}" title="육성 점수">${Math.round(a.score)}<small class="cap">육성</small></span></div>
+      <div class="parts">${pr.map(([n, x]) => `<span>${n}</span><div class="meter"><i style="width:${x * 100}%;--c:${scoreColor(x * 100)}"></i></div>`).join('')}</div>
+      <ul class="issues">${iss.length ? iss.slice(0, 2).map(([s, t]) => `<li class="sev-${s}">${esc(t)}</li>`).join('') : '<li class="sev-ok">기준 육성 완료</li>'}</ul>
+    </button>`;
+  }).join('') + `</div>`;
+}
+
+// ───────── 메타 파티 실측 딜량 ─────────
+// genshin.im 'Measured Team DPS' (원신 7.1, 2026년 10월 열람): 허수아비 대상 3~6사이클 실측, 돌파·무기 조건은 미표기.
+// [팀 DPS, 출처 표기, 멤버(첫째가 메인)] — est: 출처에서 '추정치'로 표시 / vesna·mizuki·얼음 여행자는 출처에 멤버가 없어 다른 자료의 대표 조합을 붙임
+const META = [
+  [247000, '', ['sandrone','yae','escoffier','odette']],
+  [223000, 'team:GamsGo', ['vesna','vodyanitsa','odette','faruzan']],
+  [210000, '', ['wriothesley','odette','yae','sucrose']],
+  [207000, '', ['zibai','illuga','columbina','linnea']],
+  [191000, '', ['nefer','lauma','columbina','sucrose']],
+  [187000, 'team:AllThings', ['mizuki','sucrose','odette','traveler-cryo']],
+  [187000, '', ['skirk','furina','escoffier','vodyanitsa']],
+  [182000, '', ['flins','ineffa','columbina','sucrose']],
+  [180000, '', ['mavuika','iansan','bennett','citlali']],
+  [180000, 'est', ['arlecchino','fischl','mona','bennett']],
+  [175000, 'est', ['mualani','mona','mavuika','sucrose']],
+  [174000, 'team:AllThings', ['traveler-cryo','qiqi','yae','odette']],
+  [166000, 'est', ['cyno','odette','nicole','yae']],
+  [164000, '', ['columbina','ineffa','lauma','aino']],
+  [164000, '', ['roen','escoffier','mona','vodyanitsa']],
+  [159000, '', ['barca','prune','durin','nicole']],
+  [156000, '', ['kinich','iansan','durin','nicole']],
+  [155000, '', ['varesa','nicole','durin','iansan']],
+  [146000, 'est', ['clorinde','durin','chevreuse','fischl']],
+  [138000, '', ['sucrose','ineffa','columbina','linnea']],
+  [137000, '', ['linnea','chiori','columbina','ineffa']],
+  [136000, '', ['neuvillette','furina','vodyanitsa','escoffier']],
+  [133000, '', ['chasca','nicole','durin','iansan']],
+  [131000, '', ['navia','columbina','ineffa','linnea']],
+  [127000, '', ['klee','nicole','emilie','durin']],
+  [127000, '', ['venti','durin','faruzan','nicole']],
+  [121000, '', ['durin','fischl','chevreuse','bennett']],
+  [121000, '', ['hutao','fischl','yelan','mona']],
+  [120000, '', ['diluc','bennett','xianyun','citlali']],
+  [119000, '', ['noelle','columbina','ineffa','linnea']],
+  [118000, '', ['razor','chevreuse','durin','nicole']],
+  [118000, '', ['itto','columbina','illuga','linnea']],
+  [115000, '', ['yelan','columbina','ineffa','sucrose']],
+  [112000, '', ['raiden','chevreuse','durin','nicole']],
+  [110000, '', ['gaming','bennett','xianyun','citlali']],
+  [110000, 'est', ['lyney','fischl','chevreuse','durin']],
+  [110000, 'est', ['ifa','ineffa','columbina','durin']],
+  [110000, '', ['eula','yae','odette','nicole']],
+  [105000, '', ['lauma','xingqiu','raiden','yelan']],
+  [103000, '', ['zhongli','columbina','xilonen','ineffa']],
+  [103000, '', ['wanderer','faruzan','durin','nicole']],
+  [103000, '', ['xiao','faruzan','durin','nicole']],
+  [102000, '', ['ganyu','durin','emilie','nicole']],
+  [97000, '', ['yoimiya','durin','chevreuse','fischl']],
+  [90000, '', ['alhaitham','lauma','columbina','shinobu']],
+  [90000, '', ['ayato','ineffa','columbina','sucrose']],
+  [77000, '', ['tartaglia','furina','escoffier','vodyanitsa']],
+  [65000, '', ['yanfei','durin','fischl','chevreuse']],
+].map(([dps, note, ids]) => ({ dps, note, ids }));
+const META_MAX = Math.max(...META.map(m => m.dps));
+const kfmt = n => `${Math.round(n / 1000)}k`;
+// 실측은 잘 키운 계정 기준이므로, 멤버 육성 점수의 역할 가중 평균 / 85를 내 계정 배율로 씀(0.25~1.05)
+function buildFactor(ids) {
+  let w = 0, s = 0;
+  for (const id of ids) { const c = S.roster[id]; if (!c) continue; const d = prof(c), rw = RW[d.roles[0]]; w += rw; s += rw * charCalc(c).score; }
+  return w ? clamp(s / w / 85, 0.25, 1.05) : 0;
+}
+// 내 파티와 가장 비슷한 실측 파티: 실측 파티의 메인이 내 파티에 있는 것 중 겹침 수 → 딜량 순
+// (서포터만 겹치는 경우는 딜 구조가 달라 비교하지 않음)
+function matchIds(mine) {
+  let best = null;
+  for (const m of META) {
+    if (!mine.includes(m.ids[0])) continue;
+    const ov = m.ids.filter(id => mine.includes(id)).length;
+    if (!best || ov > best.ov || (ov === best.ov && m.dps > best.m.dps)) best = { m, ov };
+  }
+  return best;
+}
+const matchMeta = p => matchIds(p.m.filter(id => id && S.roster[id]));
+// 메인을 뺀 3자리의 평균 성능(빈 자리는 0)
+function restPerf(ids, core, perfOf) {
+  const rest = ids.filter(x => x !== core).slice(0, 3).map(perfOf);
+  while (rest.length < 3) rest.push(0);
+  return avg(rest);
+}
+// 파티 딜량(evalParty에서 사용, 성장 시뮬레이션의 가상 육성도 반영) = 기준 딜량 × 육성 배율(육성 가중 평균/85)
+// 기준 딜량: 같은 메인의 실측 파티가 있으면 실측 × (내 동료 평균 성능 / 실측 동료 평균 성능)^2 (최대 1, 같은 조합이면 1)
+// 없으면 체급(핵심 딜러 성능 50% + 나머지 평균 50%)으로 실측 1위 대비 (체급/95)^4, 실측되지 않은 조합이라 최대 75%로 제한
+function partyDps(mem, build) {
+  const bf = clamp(build / 85, 0.25, 1.05);
+  if (!mem.length) return { est: 0, src: 'none', ov: 0 };
+  const ids = mem.map(m => m.id);
+  const perfOf = id => mem.find(m => m.id === id)?.d.perf ?? 0;
+  const hit = matchIds(ids);
+  if (hit) {
+    const core = hit.m.ids[0];
+    const sub = clamp(restPerf(ids, core, perfOf) / restPerf(hit.m.ids, core, id => DB[id].perf), 0, 1) ** 2;
+    return { est: hit.m.dps * sub * bf, src: 'measured', m: hit.m, ov: hit.ov, sub };
+  }
+  const dealers = mem.filter(m => m.d.roles[0] === 'main');
+  const core = (dealers.length ? dealers : mem).slice().sort((a, b) => b.d.perf - a.d.perf)[0];
+  const tier = 0.5 * core.d.perf + 0.5 * restPerf(ids, core.id, perfOf);
+  return { est: META_MAX * Math.min(0.75, (tier / 95) ** 4) * bf, src: 'estimated', ov: 0 };
+}
+function dpsLine(e) {
+  const d = e.dps;
+  if (d.src === 'none') return '';
+  if (d.src === 'estimated') return `<p class="dps-line">추정 딜량 <b class="mono">~${kfmt(e.expDps)}/초</b> <span class="muted">· 비슷한 실측 파티가 없어 캐릭터 성능으로 추정</span></p>`;
+  const names = d.m.ids.map(id => DB[id].name).join('·');
+  return `<p class="dps-line">추정 딜량 <b class="mono">~${kfmt(e.expDps)}/초</b> <span class="muted">· 기준 ${esc(names)} ${kfmt(d.m.dps)} (${d.ov}/4 일치${d.ov < 4 ? `, 대체 멤버 배율 ×${d.sub.toFixed(2)}` : ''}, 내 육성 반영)</span></p>`;
+}
+// 엔진 도감: 내 보유 캐릭터로 각 엔진의 자리를 채워 보고, 완성 → 1자리 부족 → 나머지 순으로 보여 줌
+function renderEngines() {
+  const own = Object.keys(S.roster);
+  const rows = ENGINES.map(e => {
+    const fill = engineFill(e, own);
+    return { e, fill, miss: fill.filter(x => !x).length };
+  }).sort((a, b) => a.miss - b.miss);
+  const slotChip = (slot, got) => got
+    ? `<span class="mchip own"><span class="dot" style="--c:${elc(DB[got].el)}"></span>${esc(DB[got].name)}</span>`
+    : `<span class="mchip" title="${esc(slot.map(x => DB[x].name).join(', '))}"><span class="dot" style="--c:${elc(DB[slot[0]].el)}"></span>${esc(DB[slot[0]].name)}${slot.length > 1 ? ` 외 ${slot.length - 1}` : ''}</span>`;
+  return `<h2 class="sec-h">유명 엔진</h2>
+    <p class="legend">커뮤니티에서 이름으로 불리는 코어 조합입니다. 파티에 엔진이 완성되면 시너지에 가산되고, 1자리만 비면 파티 카드에 채울 후보를 알려 줍니다. 회색 점선은 아직 없는 자리이며, 마우스를 올리면 들어갈 수 있는 캐릭터가 모두 보입니다.</p>
+    <div class="egrid">${rows.map(({ e, fill, miss }) => `<div class="ecard">
+      <div class="ehead"><b>${esc(e.n)}</b>${e.aka ? `<span class="muted">${esc(e.aka)}</span>` : ''}<span class="epill ${miss ? (miss === 1 ? 'near' : 'far') : 'ok'}">${miss ? `${miss}자리 부족` : '구성 가능'}</span></div>
+      <div class="mchips">${e.slots.map((s, i) => slotChip(s, fill[i])).join('')}</div>
+      <p class="edesc">${esc(e.desc)}</p></div>`).join('')}</div>`;
+}
+let metaFilter = 'all';
+try { metaFilter = localStorage.getItem(KEY + ':meta') || 'all'; } catch (e) {}
+function renderMeta() {
+  const v = $('#view-meta');
+  const rows = META.map(m => {
+    const missing = m.ids.filter(id => !S.roster[id]);
+    return { ...m, missing, est: missing.length ? null : m.dps * buildFactor(m.ids) };
+  });
+  const ready = rows.filter(r => !r.missing.length).sort((a, b) => b.est - a.est);
+  const near = rows.filter(r => r.missing.length === 1).slice(0, 4);
+  const shown = rows.filter(r => metaFilter === 'all' || (metaFilter === 'ready' ? !r.missing.length : r.missing.length === 1));
+  const memberChips = r => r.ids.map((id, i) => `<span class="mchip${S.roster[id] ? ' own' : ''}${i === 0 ? ' lead' : ''}"><span class="dot" style="--c:${elc(DB[id].el)}"></span>${esc(DB[id].name)}</span>`).join('');
+  const tag = r => r.note === 'est' ? '<span class="chip">출처 추정치</span>' : r.note.startsWith('team:') ? `<span class="chip" title="실측 출처에 멤버가 없어 ${r.note.slice(5)} 대표 조합을 표시">조합: ${r.note.slice(5)}</span>` : '';
+  v.innerHTML = `<div class="bar"><h2>메타 파티 · 엔진</h2>
+      <div class="actions"><label class="inline-sel" for="meta-filter">보기 <select id="meta-filter">
+        <option value="all">전체 ${rows.length}개</option><option value="ready">바로 구성 가능 ${ready.length}개</option><option value="near">1명 부족 ${rows.filter(r => r.missing.length === 1).length}개</option>
+      </select></label></div></div>
+    <p class="legend">원신 7.1 기준 실측 팀 딜량(허수아비 대상, 3~6사이클 평균)입니다. 출처에 돌파·무기 조건이 적혀 있지 않아 잘 키운 계정 기준으로 보고, '내 계정' 값은 멤버들의 육성 점수를 곱한 추정치입니다. 다수 적·기믹·생존은 반영되지 않습니다.</p>
+    <div class="meta-sum">
+      <div class="msum"><h3>지금 만들 수 있는 최고 딜량</h3>${ready.length ? ready.slice(0, 3).map(r => `<div class="msrow"><span>${esc(r.ids.map(id => DB[id].name).join('·'))}</span><b class="mono">~${kfmt(r.est)}</b></div>`).join('') : '<p class="muted">보유 캐릭터로 4명을 모두 갖춘 실측 파티가 없습니다.</p>'}</div>
+      <div class="msum"><h3>1명만 더 있으면 되는 파티</h3>${near.length ? near.map(r => `<div class="msrow"><span>${esc(DB[r.ids[0]].name)} 파티 — <b>${esc(DB[r.missing[0]].name)}</b> 필요</span><span class="mono muted">${kfmt(r.dps)}</span></div>`).join('') : '<p class="muted">해당 없음</p>'}</div>
+    </div>
+    ${renderEngines()}
+    <h2 class="sec-h">실측 팀 딜량</h2>
+    <div class="mlist">${shown.map(r => `<div class="mrow">
+      <div class="mhead"><span class="mrank mono">#${rows.indexOf(r) + 1}</span><div class="mchips">${memberChips(r)}</div>${tag(r)}</div>
+      <div class="mbar"><div class="meter big"><i style="width:${r.dps / META_MAX * 100}%;--c:var(--gold)"></i>${r.est != null ? `<i class="mine" style="width:${r.est / META_MAX * 100}%"></i>` : ''}</div>
+        <span class="mono mval">${kfmt(r.dps)}</span></div>
+      <div class="mfoot">${r.missing.length ? `<span class="muted">보유 ${4 - r.missing.length}/4 · 부족: ${esc(r.missing.map(id => DB[id].name).join(', '))}</span>` : `<span>내 계정 추정 <b class="mono">~${kfmt(r.est)}/초</b> <span class="muted">(육성 배율 ×${(r.est / r.dps).toFixed(2)})</span></span>`}</div>
+    </div>`).join('')}</div>
+    <p class="foot-note">출처: <a href="https://genshin.im/measured-dps" target="_blank" rel="noopener">genshin.im Measured Team DPS (7.1)</a>. 베스나 파티 멤버는 <a href="https://www.gamsgo.com/ko/blog/%EC%9B%90%EC%8B%A0-%ED%8B%B0%EC%96%B4%ED%91%9C" target="_blank" rel="noopener">GamsGo 7.1 가이드</a>, 미즈키·얼음 여행자 파티 멤버는 <a href="https://allthings.how/genshin-impact-dps-tier-list/" target="_blank" rel="noopener">AllThings.How 7.0 딜량 순위</a>의 조합입니다. 출처에 멤버가 없는 아야카·응광·코코미·불 여행자는 제외했습니다.</p>`;
+  $('#meta-filter').value = metaFilter;
+  $('#meta-filter').addEventListener('change', e => { metaFilter = e.target.value; try { localStorage.setItem(KEY + ':meta', metaFilter); } catch (er) {} renderMeta(); });
+}
+
+function renderGrowth(ranked) {
+  const v = $('#view-growth');
+  const list = growthList(ranked);
+  const head = `<div class="bar"><h2>성장 우선순위</h2></div>
+    <p class="legend">각 육성 항목을 적용했을 때 파티 가치가 얼마나 오르는지 계산해, 들인 레진 대비 효과가 큰 순서로 정렬했습니다. 파티 가치의 절반이 추정 딜량이므로, 실측 딜량이 높은 파티의 핵심 멤버를 키울수록 위로 올라옵니다. 상위 2개 파티(나선 비경 전·후반)는 가중치 1, 나머지는 0.7입니다. 레벨·특성·무기 목표는 위에 입력한 모험 등급에서 실제로 올릴 수 있는 값까지만 추천합니다.</p>`;
+  if (!list.length) { v.innerHTML = head + `<div class="empty-state"><p>추천할 육성 항목이 없습니다. 파티에 캐릭터를 배치했는지 확인하세요.</p></div>`; return; }
+  v.innerHTML = head + `<div class="glist">` + list.slice(0, 20).map((a, i) => {
+    const d = DB[a.id];
+    const tier = a.cost < 200 ? ['lo', '저비용'] : a.cost < 500 ? ['md', '중간'] : ['hi', '장기 파밍'];
+    const where = a.idle ? '현재 어느 파티에도 없음' : a.touched.join(', ');
+    return `<div class="gitem"><span class="no">${i + 1}</span>
+      <div style="min-width:0"><div class="what"><span class="dot" style="--c:${elc(d.el)};display:inline-block;margin-right:6px"></span>${esc(a.what)}</div>
+      <div class="why">${esc(a.why)} · ${esc(where)}</div></div>
+      <div class="nums"><div class="gain">+${a.gain.toFixed(2)}</div><span class="cost ${tier[0]}">${tier[1]} · 약 ${a.cost} 레진</span></div></div>`;
+  }).join('') + `</div>`;
+}
+
+function render() {
+  const ranked = rankedParties();
+  renderParties(ranked); renderRoster(); renderGrowth(ranked); renderMeta();
+  $('#cnt-p').textContent = S.parties.length;
+  $('#cnt-r').textContent = Object.keys(S.roster).length;
+  $('#sample-note').hidden = !S.sample;
+  renderAccount();
+}
+
+// ───────── 계정 진행도 입력 ─────────
+$('#a-wl').innerHTML = `<option value="auto">자동</option>` + [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<option value="${n}">${n}</option>`).join('');
+function renderAccount() {
+  const a = ar(), T = lvTarget(), nx = nextAscAR(a);
+  $('#a-ar').value = a;
+  $('#a-wl').value = S.wl == null ? 'auto' : String(S.wl);
+  $('#a-wl').options[0].textContent = `자동 (${autoWL(a)})`;
+  $('#acct-note').innerHTML = `목표치: 캐릭터·무기 <b>Lv.${T}</b> · 특성 최대 <b>${talCapAt(T)}</b> · 치명 수치 메인 <b>${critTarget({ roles: ['main'] })}</b> / 서브 <b>${critTarget({ roles: ['sub'] })}</b> · 기준 적 Lv.${enemyLv()}`
+    + (nx ? ` · 모험 등급 ${nx}에서 Lv.${lvCapOf(nx)} 해금` : '');
+}
+// 설정 변경은 예시 데이터 여부를 바꾸지 않도록 sample 표시를 건드리지 않고 저장
+function saveSettings() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+$('#a-ar').addEventListener('change', () => { S.ar = clamp(Math.round(Number($('#a-ar').value) || 1), 1, 60); saveSettings(); render(); });
+$('#a-wl').addEventListener('change', () => { const v = $('#a-wl').value; S.wl = v === 'auto' ? null : Number(v); saveSettings(); render(); });
+
+// ───────── 탭 ─────────
+let tab = 'parties';
+try { tab = localStorage.getItem(KEY + ':tab') || 'parties'; } catch (e) {}
+function setTab(t) {
+  tab = t;
+  for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', b.dataset.tab === t);
+  for (const n of ['parties', 'roster', 'growth', 'meta']) $('#view-' + n).hidden = n !== t;
+  try { localStorage.setItem(KEY + ':tab', t); } catch (e) {}
+}
+document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) setTab(b.dataset.tab); });
+
+// ───────── 캐릭터 편집 ─────────
+const dChar = $('#dlg-char');
+let editId = null;
+$('#f-wt').innerHTML = Object.entries(WT).map(([k, w]) => `<option value="${k}">${w.n}</option>`).join('');
+function defaultsFor(id) {
+  const d = DB[id];
+  const lv = Math.min(80, lvTarget()), tc = Math.min(6, talCapAt(lv));
+  return mk(id, lv, 0, [1, tc, tc], d.r === 5 ? 'four' : 'fourFit', lv, 1, 'two', true, d.crit ? 50 : 5, d.crit ? 100 : 50, d.er, Math.round(keyTarget(d) * 0.8));
+}
+function fillChar(c) {
+  const d = prof(c);
+  $('#f-role').value = d.roles[0]; $('#f-scale').value = d.scale; $('#f-ertgt').value = d.er; $('#f-crit').checked = d.crit; $('#f-perf').value = d.perf;
+  const base = DB[c.id];
+  const src = [GG[c.id] && `티어표 ${GG[c.id]}`, PERF_NAMU[c.id] != null && `나무위키 ${PERF_NAMU[c.id]}`].filter(Boolean).join(' · ');
+  $('#perf-name').textContent = base.rated ? `캐릭터 성능 (기본 ${base.perf} = ${src})` : '캐릭터 성능 (평가 없음 · 기본 60)';
+  $('#guess-note').hidden = !d.guess;
+  $('#f-lv').value = c.lv; $('#f-cons').value = c.cons;
+  c.t.forEach((x, i) => $('#f-t' + i).value = x);
+  $('#f-wt').value = c.wt; $('#f-wl').value = c.wl; $('#f-wr').value = c.wr;
+  $('#f-set').value = c.set; $('#f-main').checked = c.mainOk;
+  $('#f-cr').value = c.cr; $('#f-cd').value = c.cd; $('#f-er').value = c.er; $('#f-key').value = c.key;
+  for (const i of [0, 1, 2]) $('#f-t' + i).parentElement.style.fontWeight = d.tal.includes(i) ? '600' : '';
+  previewChar();
+}
+function readChar() {
+  const n = (s, lo, hi) => clamp(Number($(s).value) || 0, lo, hi);
+  const id = editId || $('#f-id').value, d = DB[id];
+  // DB 기본값과 다른 항목만 저장해 두어야 나중에 기본값이 고쳐져도 반영됨
+  const ov = {};
+  if ($('#f-role').value !== d.roles[0]) ov.role = $('#f-role').value;
+  if ($('#f-scale').value !== d.scale) ov.scale = $('#f-scale').value;
+  if ($('#f-crit').checked !== d.crit) ov.crit = $('#f-crit').checked;
+  const ert = Math.round(n('#f-ertgt', 100, 350));
+  if (ert !== d.er) ov.er = ert;
+  const pf = Math.round(n('#f-perf', 0, 100));
+  if (pf !== d.perf) ov.perf = pf;
+  // 특성은 현재 레벨의 돌파 단계가 허용하는 값까지만 인정
+  const lvIn = n('#f-lv', 1, 90);
+  const c = mk(id, lvIn, Math.round(n('#f-cons', 0, 6)), [0, 1, 2].map(i => Math.min(talCapAt(lvIn), Math.round(n('#f-t' + i, 1, 10)))),
+    $('#f-wt').value, n('#f-wl', 1, 90), Math.round(n('#f-wr', 1, 5)), $('#f-set').value, $('#f-main').checked,
+    n('#f-cr', 0, 150), n('#f-cd', 0, 400), n('#f-er', 100, 400), n('#f-key', 0, 80000));
+  if (Object.keys(ov).length) c.ov = ov;
+  return c;
+}
+function previewChar() {
+  const c = readChar(), d = prof(c), a = charCalc(c);
+  $('#key-name').textContent = `${SCALE[d.scale].n} (권장 ${keyTarget(d).toLocaleString()})`;
+  $('#pv-score').textContent = Math.round(a.score);
+  $('#pv-score').style.color = scoreColor(a.score);
+  const cap = talCapAt(c.lv);
+  for (const i of [0, 1, 2]) $('#f-t' + i).max = cap;
+  $('#pv-note').textContent = `${ROLE[d.roles[0]]} · 목표 Lv.${lvTarget()} · 핵심 특성 ${d.tal.map(i => TAL[i]).join(', ')} (목표 ${talTarget(d)}, Lv.${c.lv} 상한 ${cap}) · 원충 목표 ${d.er}%` + (d.crit ? ` · 치명 수치 ${cvOf(c)}/${critTarget(d)}` : '');
+}
+function openChar(id) {
+  editId = id;
+  $('#pick-wrap').hidden = !!id;
+  $('#btn-del-char').hidden = !id;
+  if (id) { $('#char-title').textContent = DB[id].name; fillChar(S.roster[id]); }
+  else {
+    const free = Object.values(DB).filter(d => !S.roster[d.id]);
+    if (!free.length) { toast('모든 캐릭터가 이미 등록되어 있습니다'); return; }
+    $('#f-id').innerHTML = EL_ORDER.map(el => {
+      const opts = free.filter(d => d.el === el).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+      return opts.length ? `<optgroup label="${EL[el]}">${opts.map(d => `<option value="${d.id}">${d.name} (${d.r}성${d.wp ? ' · ' + WPN[d.wp] : ''})</option>`).join('')}</optgroup>` : '';
+    }).join('');
+    $('#char-title').textContent = '캐릭터 등록';
+    fillChar(defaultsFor($('#f-id').value));
+  }
+  dChar.showModal();
+}
+$('#f-id').addEventListener('change', () => fillChar(defaultsFor($('#f-id').value)));
+$('#form-char').addEventListener('input', e => { if (e.target.id !== 'f-id') previewChar(); });
+$('#form-char').addEventListener('submit', e => {
+  e.preventDefault();
+  const c = readChar(); S.roster[c.id] = c; save(); dChar.close(); render();
+  toast(`${DB[c.id].name} 저장됨`);
+});
+$('#btn-del-char').addEventListener('click', () => {
+  const b = $('#btn-del-char');
+  if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = '한 번 더 누르면 삭제'; setTimeout(() => { b.dataset.armed = ''; b.textContent = '보유 목록에서 삭제'; }, 3000); return; }
+  b.dataset.armed = ''; b.textContent = '보유 목록에서 삭제';
+  delete S.roster[editId];
+  S.parties.forEach(p => p.m = p.m.map(x => x === editId ? null : x));
+  save(); dChar.close(); render(); toast('삭제됨');
+});
+
+// ───────── 파티 편집 ─────────
+const dParty = $('#dlg-party');
+let editPid = null;
+function readParty() { return { pid: editPid || 'tmp', name: $('#p-name').value.trim() || '이름 없는 파티', m: [0, 1, 2, 3].map(i => $('#p-m' + i).value || null) }; }
+function fillPartySelects(m) {
+  const opts = Object.keys(S.roster).map(id => DB[id]).sort((a, b) => EL_ORDER.indexOf(a.el) - EL_ORDER.indexOf(b.el) || a.name.localeCompare(b.name, 'ko'));
+  for (let i = 0; i < 4; i++) {
+    const taken = new Set(m.filter((x, j) => x && j !== i));
+    $('#p-m' + i).innerHTML = `<option value="">— 비워 두기 —</option>` + opts.filter(d => !taken.has(d.id)).map(d => `<option value="${d.id}"${m[i] === d.id ? ' selected' : ''}>${EL[d.el]} · ${d.name}</option>`).join('');
+  }
+}
+function previewParty() {
+  const p = readParty();
+  fillPartySelects(p.m);
+  const e = evalParty(p);
+  $('#pp-score').textContent = `${e.grade} ${e.value.toFixed(1)}`;
+  $('#pp-note').textContent = `딜량 ~${kfmt(e.expDps)}/초 (${e.dpsScore.toFixed(0)}) · 육성 ${e.build.toFixed(0)} · 시너지 ${e.syn.toFixed(0)}` + (e.rx.length ? ` · ${e.rx.join(', ')}` : '');
+}
+function openParty(pid) {
+  if (!Object.keys(S.roster).length) { setTab('roster'); toast('먼저 캐릭터를 등록하세요'); return; }
+  editPid = pid;
+  const p = pid ? S.parties.find(x => x.pid === pid) : { name: '', m: [null, null, null, null] };
+  $('#party-title').textContent = pid ? '파티 편집' : '새 파티';
+  $('#p-name').value = p.name;
+  $('#btn-del-party').hidden = !pid;
+  fillPartySelects(p.m);
+  previewParty();
+  dParty.showModal();
+}
+$('#form-party').addEventListener('change', e => { if (e.target.tagName === 'SELECT') previewParty(); });
+$('#form-party').addEventListener('submit', e => {
+  e.preventDefault();
+  const p = readParty();
+  if (editPid) Object.assign(S.parties.find(x => x.pid === editPid), p);
+  else { p.pid = 'p' + Date.now().toString(36); S.parties.push(p); }
+  save(); dParty.close(); render(); toast('파티 저장됨');
+});
+$('#btn-del-party').addEventListener('click', () => {
+  const b = $('#btn-del-party');
+  if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = '한 번 더 누르면 삭제'; setTimeout(() => { b.dataset.armed = ''; b.textContent = '파티 삭제'; }, 3000); return; }
+  b.dataset.armed = ''; b.textContent = '파티 삭제';
+  S.parties = S.parties.filter(x => x.pid !== editPid);
+  save(); dParty.close(); render(); toast('파티 삭제됨');
+});
+
+// ───────── 공통 ─────────
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-close]'); if (c) { c.closest('dialog').close(); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act;
+  if (act === 'new-char') openChar(null);
+  if (act === 'edit-char') openChar(a.dataset.id);
+  if (act === 'new-party') openParty(null);
+  if (act === 'edit-party') openParty(a.dataset.id);
+});
+$('#btn-clear').addEventListener('click', () => { S = { sample: false, ar: S.ar, wl: S.wl, roster: {}, parties: [] }; save(); render(); setTab('roster'); toast('예시 데이터를 비웠습니다'); });
+$('#btn-backup').addEventListener('click', () => { $('#bk-text').value = JSON.stringify({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties }); $('#dlg-backup').showModal(); });
+$('#bk-copy').addEventListener('click', () => {
+  const t = $('#bk-text');
+  navigator.clipboard.writeText(t.value).then(() => toast('복사됨'), () => { t.select(); toast('텍스트를 선택했습니다. Ctrl+C로 복사하세요'); });
+});
+$('#bk-load').addEventListener('click', () => {
+  try {
+    const j = JSON.parse($('#bk-text').value);
+    if (!j.roster || !Array.isArray(j.parties)) throw 0;
+    for (const id of Object.keys(j.roster)) if (!DB[id]) delete j.roster[id];
+    S = { sample: false, ar: j.ar ?? S.ar, wl: j.wl ?? null, roster: j.roster, parties: j.parties };
+    save(); render(); $('#dlg-backup').close(); toast('불러왔습니다');
+  } catch (e) { toast('형식이 맞지 않습니다. 백업에서 복사한 내용을 그대로 붙여넣으세요'); }
+});
+let tt;
+function toast(msg) {
+  let el = document.querySelector('.toast');
+  if (!el) { el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+  el.textContent = msg; el.hidden = false;
+  clearTimeout(tt); tt = setTimeout(() => el.hidden = true, 2200);
+}
+
+render();
+setTab(tab);
+</script>
+
+
+</body></html>
