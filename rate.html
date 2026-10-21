@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>성유물 감정 · 원신 파티 감정소</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="common.css">
+<style>
+.layout { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.form { display: flex; flex-direction: column; gap: 12px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.subrow { display: grid; grid-template-columns: minmax(0, 1fr) 92px; gap: 8px; }
+.subs { display: flex; flex-direction: column; gap: 8px; }
+.result { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.verdict { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.badge { width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--c); color: var(--c); display: grid; place-items: center; font-family: var(--f-display); font-weight: 700; font-size: 32px; flex: none; }
+.vtext { min-width: 0; flex: 1 1 220px; }
+.vtext .name { font-family: var(--f-display); font-size: 20px; font-weight: 700; }
+.nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.num { background: var(--bg); border-radius: 10px; padding: 10px 12px; }
+.num .v { font-family: var(--f-mono); font-size: 22px; }
+.num .k { font-size: 12px; color: var(--muted); }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tbl th, .tbl td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 600; }
+.tbl td.r, .tbl th.r { text-align: right; font-variant-numeric: tabular-nums; }
+.tblwrap { overflow-x: auto; }
+.pips { letter-spacing: 2px; color: var(--gold); }
+.wbar { height: 6px; border-radius: 3px; background: var(--sunk); overflow: hidden; width: 70px; display: inline-block; vertical-align: middle; }
+.wbar i { display: block; height: 100%; background: var(--ink); }
+.notes { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.hint { font-size: 12.5px; color: var(--muted); margin: 0; }
+@media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1><span class="star">✦</span> 성유물 감정</h1>
+    <p class="sub">성유물 한 개의 주옵과 부옵을 넣으면, 고른 캐릭터에게 쓸모 있는 부옵이 몇 번 붙었는지 세어 등급을 매깁니다.</p>
+  </header>
+  <nav class="sitenav" aria-label="페이지">
+    <a href="index.html">파티 감정소</a>
+    <a href="rate.html" aria-current="page">성유물 감정</a>
+    <a href="guide.html">성유물 추천</a>
+    <a href="stats.html">종결 스탯 도감</a>
+  </nav>
+
+  <div class="layout">
+    <form class="panel form" id="f" autocomplete="off">
+      <label for="c">누가 낄 성유물인가요?<select id="c"></select></label>
+      <div class="row2">
+        <label for="slot">부위<select id="slot"></select></label>
+        <label for="lv">강화 레벨<input id="lv" type="number" min="0" max="20" step="1"></label>
+      </div>
+      <label for="main">주옵<select id="main"></select></label>
+      <div>
+        <h3>부옵 (게임 화면의 숫자 그대로, % 옵션은 % 숫자만)</h3>
+        <div class="subs" id="subs"></div>
+      </div>
+      <p class="hint">기준: 5성 성유물. 4성 이하는 상승치가 작아 실제보다 낮게 나옵니다.</p>
+    </form>
+
+    <section class="result" aria-live="polite">
+      <div class="panel">
+        <div class="verdict">
+          <div class="badge" id="badge">–</div>
+          <div class="vtext">
+            <div class="name" id="gname">–</div>
+            <p class="muted" id="gsay" style="margin:4px 0 0"></p>
+          </div>
+        </div>
+      </div>
+      <div class="nums" id="nums"></div>
+      <div class="panel">
+        <h3>부옵별 기여</h3>
+        <div class="tblwrap"><table class="tbl" id="tbl"></table></div>
+      </div>
+      <div class="panel">
+        <h3>판정 근거</h3>
+        <ul class="notes" id="notes"></ul>
+      </div>
+    </section>
+  </div>
+
+  <p class="foot-note">유효 옵션 = 부옵 수치 ÷ 1회 최대 상승치 × 캐릭터 가중치의 합입니다. 가중치는 추천 부옵 우선순위(genshin-builds.com v7.1) 순서대로 1·1·0.8·0.6·0.45이며, 치명타 확률·피해는 같은 값, 깡옵은 % 옵션의 40%입니다. +20 성유물의 부옵 상승은 8~9회이고 1회 상승치는 최댓값의 70~100%라, 유효 옵션 6.5회 이상이면 종결급으로 봅니다. 강화 중인 성유물은 남은 강화가 지금 부옵들에 고르게 붙는다고 가정한 기대값으로 등급을 냅니다.</p>
+</div>
+
+<script src="chars.js"></script>
+<script src="builds.js"></script>
+<script src="gear.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const PREF = 'genshin-party-appraiser-v1:rate';
+const own = GP.roster();
+
+// 캐릭터 목록: 보유 캐릭터를 먼저, 그다음 원소별
+const opts = id => `<option value="${id}">${GP.esc(GP.DB[id].name)}</option>`;
+const ids = Object.keys(GP.DB).filter(id => BUILDS[id]);
+const ownIds = ids.filter(id => own[id]);
+$('#c').innerHTML = `<option value="">캐릭터 없이 (치명 딜러 기준)</option>`
+  + (ownIds.length ? `<optgroup label="내 캐릭터">${ownIds.map(opts).join('')}</optgroup>` : '')
+  + GP.ORDER.map(el => `<optgroup label="${GP.EL[el]}">${ids.filter(id => GP.DB[id].el === el).sort((a, b) => GP.DB[a].name.localeCompare(GP.DB[b].name, 'ko')).map(opts).join('')}</optgroup>`).join('');
+$('#slot').innerHTML = Object.entries(SLOTS).map(([k, s]) => `<option value="${k}">${s.n}</option>`).join('');
+$('#subs').innerHTML = [0, 1, 2, 3].map(i => `<div class="subrow">
+  <select id="s${i}" aria-label="부옵 ${i + 1} 종류"><option value="">— 없음 —</option>${SUB_STATS.map(s => `<option>${s}</option>`).join('')}</select>
+  <input id="v${i}" type="number" min="0" step="0.1" aria-label="부옵 ${i + 1} 수치"></div>`).join('');
+
+function fillMain(keep) {
+  const list = SLOTS[$('#slot').value].main;
+  $('#main').innerHTML = list.map(m => `<option>${m}</option>`).join('');
+  if (keep && list.includes(keep)) $('#main').value = keep;
+}
+function read() {
+  return { c: $('#c').value, slot: $('#slot').value, main: $('#main').value, level: Math.round(Number($('#lv').value) || 0),
+    subs: [0, 1, 2, 3].map(i => [$('#s' + i).value, Number($('#v' + i).value) || 0]) };
+}
+function write(st) {
+  $('#c').value = GP.DB[st.c] && BUILDS[st.c] ? st.c : '';
+  $('#slot').value = st.slot; fillMain(st.main);
+  $('#lv').value = st.level;
+  st.subs.forEach(([s, v], i) => { $('#s' + i).value = s; $('#v' + i).value = v || ''; });
+}
+// 처음 열면 보여 줄 예시: 호두용 +20 치명 왕관
+const SAMPLE = { c: 'hutao', slot: 'circlet', main: '치명타 피해', level: 20, subs: [['치명타 확률', 10.5], ['HP%', 9.9], ['원소 마스터리', 42], ['공격력', 18]] };
+
+function render() {
+  const st = read();
+  try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {}
+  const r = rateArtifact(st, st.c || null);
+  const g = r.grade;
+  $('#badge').textContent = g.g; $('#badge').style.setProperty('--c', g.c);
+  $('#gname').textContent = `${g.n} · 유효 옵션 ${(st.level >= 20 ? r.eff : r.projected).toFixed(1)}회${st.level < 20 ? ' (강화 완료 기대값)' : ''}`;
+  $('#gsay').textContent = g.say;
+  const who = st.c ? GP.DB[st.c].name : '치명 딜러';
+  $('#nums').innerHTML = [
+    ['현재 유효 옵션', r.eff.toFixed(2) + '회', `${who} 기준`],
+    ['치명 수치(CV)', r.cv.toFixed(1), '치확×2 + 치피, 부옵만'],
+    ['남은 강화', r.left + '회', st.level >= 20 ? '강화 완료' : `+${st.level} → +20`],
+  ].map(([k, v, s]) => `<div class="num"><div class="k">${k}</div><div class="v">${v}</div><div class="k">${s}</div></div>`).join('');
+  $('#tbl').innerHTML = `<thead><tr><th>부옵</th><th class="r">수치</th><th>상승 횟수(추정)</th><th>${GP.esc(who)} 가중치</th><th class="r">유효 옵션</th></tr></thead><tbody>`
+    + (r.rows.length ? r.rows.map(x => `<tr><td>${x.s}</td><td class="r mono">${x.v}</td><td><span class="pips" title="시작값 포함 ${x.rolls}회">${'●'.repeat(x.rolls)}</span></td>
+      <td><span class="wbar"><i style="width:${x.weight * 100}%"></i></span> <span class="mono">${x.weight.toFixed(2)}</span></td><td class="r mono">${x.eff.toFixed(2)}</td></tr>`).join('')
+      : `<tr><td colspan="5" class="muted">부옵을 입력하세요.</td></tr>`) + '</tbody>';
+  const notes = [];
+  const mv = r.mainOk, b = st.c && BUILDS[st.c];
+  if (mv === 'best') notes.push(`<span class="ok">주옵 ${st.main}</span> — ${who}에게 1순위 주옵입니다.`);
+  else if (mv === 'ok') notes.push(`<span class="mid">주옵 ${st.main}</span> — 쓸 수는 있지만 1순위는 ${b ? b.main[st.slot][0] : '치명타 확률·피해'}입니다.`);
+  else if (mv === 'bad') notes.push(`<span class="low">주옵 ${st.main}</span> — ${who}의 추천 주옵(${b.main[st.slot].join(', ')})이 아닙니다. 부옵이 좋아도 다른 캐릭터에게 주는 편이 낫습니다.`);
+  const dead = r.rows.filter(x => x.weight === 0);
+  if (dead.length) notes.push(`${dead.map(x => x.s).join(', ')}은(는) ${who}에게 쓸모없는 부옵입니다.`);
+  const best = r.rows.slice().sort((a, b2) => b2.eff - a.eff)[0];
+  if (best && best.eff > 0) notes.push(`가장 큰 기여는 ${best.s}(${best.rolls}회 상승 추정)입니다.`);
+  if (r.rows.length < 4 && st.level < 4) notes.push('부옵이 3줄이면 +4 강화 때 네 번째 부옵이 무작위로 붙습니다.');
+  if (st.level < 20 && r.left) notes.push(`남은 ${r.left}회 강화가 모두 쓸모없는 부옵에 붙으면 ${r.eff.toFixed(1)}회에 머뭅니다. 기대값은 지금 부옵 구성이 좋을수록 높습니다.`);
+  if (b) notes.push(`${who} 추천 부옵 순서: ${b.subs.join(' > ')}`);
+  $('#notes').innerHTML = notes.map(n => `<li>${n}</li>`).join('');
+}
+
+let start = SAMPLE;
+try { const saved = JSON.parse(localStorage.getItem(PREF)); if (saved && saved.subs) start = saved; } catch (e) {}
+const hashId = decodeURIComponent(location.hash.slice(1));
+write(start);
+if (GP.DB[hashId] && BUILDS[hashId]) $('#c').value = hashId;
+$('#slot').addEventListener('change', () => { fillMain(); render(); });
+$('#f').addEventListener('input', render);
+$('#f').addEventListener('submit', e => e.preventDefault());
+render();
+</script>
+</body>
+</html>

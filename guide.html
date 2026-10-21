@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>성유물 추천 · 원신 파티 감정소</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="common.css">
+<style>
+.list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; scroll-margin-top: 16px; }
+.card:target { border-color: var(--gold); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 30%, transparent); }
+.chead { display: flex; justify-content: space-between; gap: 10px; align-items: start; flex-wrap: wrap; }
+.cname { font-family: var(--f-display); font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+.cmeta { font-size: 12.5px; color: var(--muted); }
+.sets { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.sets li { display: grid; grid-template-columns: 22px 1fr; gap: 6px; font-size: 14px; }
+.sets .no { font-family: var(--f-mono); color: var(--gold); font-size: 13px; padding-top: 1px; }
+.sets .pick { color: var(--muted); font-size: 13px; }
+.mains { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.slot { background: var(--bg); border-radius: 9px; padding: 8px 10px; min-width: 0; }
+.slot .k { font-size: 11.5px; color: var(--muted); }
+.slot .v { font-weight: 600; font-size: 13.5px; }
+.slot .alt { font-size: 12px; color: var(--muted); }
+.subs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 13px; }
+.subs .s { padding: 2px 8px; border-radius: 6px; background: var(--bg); }
+.subs .s.top { background: var(--gold-soft); }
+.subs .gt { color: var(--muted); font-size: 11px; }
+.links { display: flex; flex-wrap: wrap; gap: 6px; }
+.edit { color: var(--warn); font-size: 12px; }
+@media (max-width: 480px) { .mains { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1><span class="star">✦</span> 성유물 추천</h1>
+    <p class="sub">캐릭터마다 어떤 세트를 맞추고, 모래·성배·왕관 주옵과 부옵을 무엇으로 노려야 하는지 정리했습니다.</p>
+  </header>
+  <nav class="sitenav" aria-label="페이지">
+    <a href="index.html">파티 감정소</a>
+    <a href="rate.html">성유물 감정</a>
+    <a href="guide.html" aria-current="page">성유물 추천</a>
+    <a href="stats.html">종결 스탯 도감</a>
+  </nav>
+
+  <div class="filters">
+    <input type="search" id="q" placeholder="캐릭터·세트 이름 검색" aria-label="검색">
+    <div class="elchips" id="els"></div>
+    <label class="check" for="mine"><input type="checkbox" id="mine"> 내 캐릭터만</label>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="list" id="list"></div>
+
+  <p class="foot-note">출처: <a href="https://genshin-builds.com/ko/characters" target="_blank" rel="noopener">genshin-builds.com 캐릭터 빌드(v7.1, 2026년 10월 열람)</a>의 첫 번째 빌드. 세트는 추천 순위 순서이며, '2세트 조합'은 그중 두 개를 골라 2+2로 맞추라는 뜻입니다. '공격력 +18%'처럼 효과로 적힌 2세트는 같은 효과를 주는 세트 아무거나 쓰면 됩니다. 발레리·미탸는 출처에 아직 빌드가 없어 빠져 있습니다. '직접 보정' 표시는 출처 값이 비었거나 특수 빌드라 일반 빌드로 바꾼 항목입니다.</p>
+</div>
+
+<script src="chars.js"></script>
+<script src="builds.js"></script>
+<script src="gear.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const own = GP.roster();
+const PREF = 'genshin-party-appraiser-v1:guide';
+let st = { q: '', el: '', mine: false };
+try { st = { ...st, ...JSON.parse(localStorage.getItem(PREF)) }; } catch (e) {}
+if (!Object.keys(own).length) st.mine = false;
+
+$('#els').innerHTML = `<button type="button" class="elchip" data-el="">전체</button>` + GP.ORDER.map(el => `<button type="button" class="elchip" data-el="${el}"><span class="dot" style="--c:var(--${el})"></span>${GP.EL[el]}</button>`).join('');
+$('#mine').disabled = !Object.keys(own).length;
+$('#mine').parentElement.title = Object.keys(own).length ? '' : '파티 감정소에 등록한 캐릭터가 없습니다';
+
+const ids = Object.keys(GP.DB).filter(id => BUILDS[id])
+  .sort((a, b) => (own[b] ? 1 : 0) - (own[a] ? 1 : 0) || GP.ORDER.indexOf(GP.DB[a].el) - GP.ORDER.indexOf(GP.DB[b].el) || GP.DB[a].name.localeCompare(GP.DB[b].name, 'ko'));
+const setLine = s => s.set ? `${GP.esc(s.set)} <span class="muted">4세트</span>` : `<span class="pick">2세트 조합 —</span> ${s.pick.map(GP.esc).join(' · ')}`;
+const slot = (k, list) => `<div class="slot"><div class="k">${k}</div><div class="v">${GP.esc(list[0] || '—')}</div>${list.length > 1 ? `<div class="alt">대안 ${list.slice(1).map(GP.esc).join(', ')}</div>` : ''}</div>`;
+
+function card(id) {
+  const d = GP.DB[id], b = BUILDS[id];
+  return `<article class="card" id="${id}">
+    <div class="chead"><div><div class="cname"><span class="dot" style="--c:var(--${d.el})"></span>${GP.esc(d.name)}</div>
+      <div class="cmeta">${'★'.repeat(d.r)} · ${GP.EL[d.el]}${d.wp ? ' · ' + GP.WPN[d.wp] : ''} · ${GP.ROLE[d.roles[0]]}</div></div>
+      ${own[id] ? '<span class="chip own">내 캐릭터</span>' : ''}</div>
+    <div><h3>세트 (추천 순)</h3><ol class="sets">${b.sets.map((s, i) => `<li><span class="no">${i + 1}</span><span>${setLine(s)}</span></li>`).join('')}</ol></div>
+    <div><h3>주옵 ${b.edited ? '<span class="edit">· 직접 보정</span>' : ''}</h3><div class="mains">${slot('시간의 모래', b.main.sands)}${slot('공간의 성배', b.main.goblet)}${slot('이성의 왕관', b.main.circlet)}</div></div>
+    <div><h3>부옵 우선순위</h3><div class="subs">${b.subs.map((s, i) => `<span class="s${i < 2 ? ' top' : ''}">${GP.esc(s)}</span>`).join('<span class="gt">›</span>')}</div></div>
+    <div class="links"><a class="btn sm" href="rate.html#${id}">이 캐릭터로 성유물 감정</a><a class="btn sm" href="stats.html#${id}">종결 스탯</a><a class="btn sm" href="${b.url}" target="_blank" rel="noopener">출처</a></div>
+  </article>`;
+}
+function render() {
+  try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {}
+  for (const b of document.querySelectorAll('.elchip')) b.setAttribute('aria-pressed', b.dataset.el === st.el);
+  $('#q').value = st.q; $('#mine').checked = st.mine;
+  const q = st.q.trim();
+  const shown = ids.filter(id => {
+    const d = GP.DB[id], b = BUILDS[id];
+    if (st.el && d.el !== st.el) return false;
+    if (st.mine && !own[id]) return false;
+    if (q && !(d.name.includes(q) || b.sets.some(s => (s.set || s.pick.join(' ')).includes(q)))) return false;
+    return true;
+  });
+  $('#count').textContent = `${shown.length}명`;
+  $('#list').innerHTML = shown.length ? shown.map(card).join('') : `<div class="empty">조건에 맞는 캐릭터가 없습니다.</div>`;
+}
+$('#els').addEventListener('click', e => { const b = e.target.closest('.elchip'); if (b) { st.el = b.dataset.el; render(); } });
+$('#q').addEventListener('input', e => { st.q = e.target.value; render(); });
+$('#mine').addEventListener('change', e => { st.mine = e.target.checked; render(); });
+// 다른 페이지에서 #캐릭터로 들어오면 필터를 풀고 그 카드로 이동
+const hashId = decodeURIComponent(location.hash.slice(1));
+if (BUILDS[hashId]) st = { q: '', el: '', mine: false };
+render();
+// 카드가 그려지고 글꼴이 적용된 뒤에 이동해야 위치가 맞음
+if (BUILDS[hashId]) {
+  history.scrollRestoration = 'manual';
+  const go = () => document.getElementById(hashId)?.scrollIntoView({ block: 'start' });
+  requestAnimationFrame(go);
+  (document.fonts?.ready || Promise.resolve()).then(go);
+}
+</script>
+</body>
+</html>

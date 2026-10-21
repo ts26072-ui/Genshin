@@ -1,0 +1,69 @@
+/* 파티 감정소 하위 페이지 공용 스타일 — 메인 앱(genshin-party.html)과 같은 토큰 */
+:root {
+  --bg: #F1F2F7; --surface: #FFFFFF; --sunk: #E7E9F1; --ink: #1B2136; --muted: #5D6480; --line: #D8DBE7;
+  --gold: #9E7128; --gold-soft: #F4EBD9; --good: #23835A; --warn: #B4700A; --bad: #BE3F35;
+  --pyro: #E0603F; --hydro: #3A8FD9; --anemo: #2FAF92; --electro: #9A67D8; --dendro: #6FA531; --cryo: #5BB6CF; --geo: #CE9A2C;
+  --f-display: "Gowun Batang", "Noto Serif KR", serif;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1220; --surface: #161B2D; --sunk: #1E2438; --ink: #E5E8F3; --muted: #9AA1BA;
+    --line: #2A3150; --gold: #D9AE5F; --gold-soft: #2A2416; --good: #5DC18D; --warn: #E2A94B; --bad: #EC7A6F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1220; --surface: #161B2D; --sunk: #1E2438; --ink: #E5E8F3; --muted: #9AA1BA;
+  --line: #2A3150; --gold: #D9AE5F; --gold-soft: #2A2416; --good: #5DC18D; --warn: #E2A94B; --bad: #EC7A6F;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 14.5px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px;
+}
+[hidden] { display: none !important; }
+.wrap { max-width: 1040px; margin: 0 auto; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+h1 { font-family: var(--f-display); font-size: 28px; font-weight: 700; margin: 0; text-wrap: balance; }
+h1 .star { color: var(--gold); }
+h2 { font-family: var(--f-display); font-size: 19px; margin: 0; text-wrap: balance; }
+h3 { font-size: 12px; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 6px; font-weight: 600; }
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 64ch; }
+.muted { color: var(--muted); }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* 페이지 간 이동 */
+.sitenav { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); margin-block: 18px 22px; overflow-x: auto; }
+.sitenav a { text-decoration: none; font-weight: 600; color: var(--muted); padding: 11px 13px; border-bottom: 2px solid transparent; white-space: nowrap; }
+.sitenav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--gold); }
+.sitenav a:hover { color: var(--ink); }
+header.top { padding-block: 26px 0; }
+
+/* 공용 컨트롤 */
+.btn { font: inherit; font-weight: 600; border-radius: 8px; padding: 7px 13px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { border-color: var(--gold); }
+.btn.sm { padding: 4px 10px; font-size: 13px; }
+label { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--muted); }
+label.check { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); font-size: 13.5px; }
+input, select { font: inherit; font-size: 14px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 7px 9px; width: 100%; min-width: 0; }
+label.check input { width: auto; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 16px; }
+.filters input[type="search"] { width: 220px; }
+.elchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.elchip { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 3px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.elchip[aria-pressed="true"] { color: var(--ink); border-color: var(--ink); }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--c); display: inline-block; }
+.chip { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.own { color: var(--ink); background: var(--gold-soft); border-color: color-mix(in srgb, var(--gold) 45%, var(--line)); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+.count { color: var(--muted); font-size: 13px; }
+.empty { text-align: center; padding: 36px 16px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); }
+.foot-note { margin-top: 28px; font-size: 12.5px; color: var(--muted); max-width: 76ch; }
+.ok { color: var(--good); } .mid { color: var(--warn); } .low { color: var(--bad); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

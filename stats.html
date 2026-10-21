@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>종결 스탯 도감 · 원신 파티 감정소</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="common.css">
+<style>
+.list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; scroll-margin-top: 16px; }
+.card:target { border-color: var(--gold); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 30%, transparent); }
+.chead { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
+.cname { font-family: var(--f-display); font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+.cmeta { font-size: 12.5px; color: var(--muted); }
+/* 스탯 한 줄 = 이름·내 값(윗줄) → 목표 막대 → 합격/종결 수치(아랫줄). 좁은 카드에서도 줄바꿈되지 않게 세로로 쌓음 */
+.stats { display: flex; flex-direction: column; gap: 12px; }
+.srow { min-width: 0; }
+.shead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.shead .k { font-size: 13px; color: var(--muted); }
+.shead .mine { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+/* 목표 막대: 합격선~종결 구간과 내 값 표시. 표시는 막대 안쪽에 머물도록 양 끝 여백을 둠 */
+.track { position: relative; height: 18px; margin: 2px 0; }
+.track .rail { position: absolute; left: 0; right: 0; top: 7px; height: 4px; border-radius: 2px; background: var(--sunk); }
+.track .band { position: absolute; top: 5px; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--good) 35%, transparent); }
+.track .me { position: absolute; top: 1px; width: 4px; height: 16px; border-radius: 2px; background: var(--ink); margin-left: -2px; }
+.vals { font-size: 12px; color: var(--muted); font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.tag { font-size: 11.5px; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; font-family: var(--f-body); white-space: nowrap; }
+.sum { display: flex; gap: 6px; flex-wrap: wrap; }
+.links { display: flex; flex-wrap: wrap; gap: 6px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); margin: -6px 0 14px; align-items: center; }
+.legend i { display: inline-block; vertical-align: middle; margin-right: 5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1><span class="star">✦</span> 종결 스탯 도감</h1>
+    <p class="sub">캐릭터별로 "이 정도면 실전 합격", "여기부터 종결"인 스탯 구간을 보여 줍니다. 파티 감정소에 등록한 캐릭터는 지금 수치도 함께 표시합니다.</p>
+  </header>
+  <nav class="sitenav" aria-label="페이지">
+    <a href="index.html">파티 감정소</a>
+    <a href="rate.html">성유물 감정</a>
+    <a href="guide.html">성유물 추천</a>
+    <a href="stats.html" aria-current="page">종결 스탯 도감</a>
+  </nav>
+
+  <div class="filters">
+    <input type="search" id="q" placeholder="캐릭터 이름 검색" aria-label="검색">
+    <div class="elchips" id="els"></div>
+    <label class="check" for="mine"><input type="checkbox" id="mine"> 내 캐릭터만</label>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="legend">
+    <span><i style="width:22px;height:8px;border-radius:4px;background:color-mix(in srgb, var(--good) 35%, transparent)"></i>합격선 ~ 종결 구간</span>
+    <span><i style="width:4px;height:14px;border-radius:2px;background:var(--ink)"></i>내 현재 값</span>
+    <span class="ok">종결</span><span class="mid">합격</span><span class="low">부족</span>
+  </div>
+  <div class="list" id="list"></div>
+
+  <p class="foot-note">목표치는 추천 주옵·부옵(genshin-builds.com v7.1)과 캐릭터 역할로 계산한 근사값이며, 공식 수치가 아닙니다. 치명 딜러는 치확 60/75%, 치피 150/210%(합격/종결)를 기준으로 서브 딜러·서포터는 조금 낮게 잡았고, 원충은 캐릭터별 목표(파티 감정소와 같은 값)에서 −10%가 합격선입니다. 공격력·HP·방어력·마스터리는 캐릭터 상세 화면의 최종 수치 기준입니다. 무기·별자리·파티 버프에 따라 실제 필요한 값은 달라집니다.</p>
+</div>
+
+<script src="chars.js"></script>
+<script src="builds.js"></script>
+<script src="gear.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const own = GP.roster();
+const PREF = 'genshin-party-appraiser-v1:stats';
+let st = { q: '', el: '', mine: Object.keys(own).length > 0 };
+try { st = { ...st, ...JSON.parse(localStorage.getItem(PREF)) }; } catch (e) {}
+if (!Object.keys(own).length) st.mine = false;
+
+$('#els').innerHTML = `<button type="button" class="elchip" data-el="">전체</button>` + GP.ORDER.map(el => `<button type="button" class="elchip" data-el="${el}"><span class="dot" style="--c:var(--${el})"></span>${GP.EL[el]}</button>`).join('');
+$('#mine').disabled = !Object.keys(own).length;
+
+const ids = Object.keys(GP.DB).filter(id => BUILDS[id])
+  .sort((a, b) => (own[b] ? 1 : 0) - (own[a] ? 1 : 0) || GP.ORDER.indexOf(GP.DB[a].el) - GP.ORDER.indexOf(GP.DB[b].el) || GP.DB[a].name.localeCompare(GP.DB[b].name, 'ko'));
+const fmt = (v, unit) => unit === '%' ? `${v}%` : Number(v).toLocaleString();
+
+// 한 줄: 축은 합격선의 50%부터 종결의 125%까지. 축 밖의 값은 막대 양 끝(1~99%)에 붙여서 표시
+function line(label, [pass, end], unit, mine) {
+  const lo = pass * 0.5, hi = end * 1.25;
+  const pos = v => clamp((v - lo) / (hi - lo), 0, 1) * 100;
+  const s = mine != null ? stage(mine, [pass, end]) : null;
+  return `<div class="srow">
+    <div class="shead"><span class="k">${label}</span>${s ? `<span class="mine">${fmt(mine, unit)} <span class="tag ${STAGE_TXT[s][1]}">${STAGE_TXT[s][0]}</span></span>` : ''}</div>
+    <div class="track"><div class="rail"></div><div class="band" style="left:${pos(pass)}%;width:${pos(end) - pos(pass)}%"></div>
+      ${mine != null ? `<div class="me" style="left:${clamp(pos(mine), 1, 99)}%" title="내 값 ${fmt(mine, unit)}"></div>` : ''}</div>
+    <div class="vals">합격 ${fmt(pass, unit)} · <span class="ok">종결 ${fmt(end, unit)}</span>${s === 'short' ? ` · 합격까지 ${fmt(+(pass - mine).toFixed(1), unit)}` : s === 'pass' ? ` · 종결까지 ${fmt(+(end - mine).toFixed(1), unit)}` : ''}</div>
+  </div>`;
+}
+function card(id) {
+  const d = GP.DB[id], t = endgame(id), c = own[id];
+  // 파티 감정소의 핵심 스탯 입력값은 그 캐릭터의 핵심 스탯 하나뿐이라, 도감 기준 스탯과 같을 때만 비교
+  const myKey = c && (c.ov?.scale || d.scale) === t.scale ? c.key : null;
+  const rows = [];
+  if (t.crit) { rows.push(line('치명타 확률', t.cr, '%', c ? c.cr : null)); rows.push(line('치명타 피해', t.cd, '%', c ? c.cd : null)); }
+  rows.push(line('원소 충전 효율', t.er, '%', c ? c.er : null));
+  rows.push(line(KEY_NAME[t.scale], t.key, '', myKey));
+  if (t.em2) rows.push(line('원소 마스터리(보조)', t.em2, '', null));
+  let sum = '';
+  if (c) {
+    const checks = [t.crit && stage(c.cr, t.cr), t.crit && stage(c.cd, t.cd), stage(c.er, t.er), myKey != null && stage(myKey, t.key)].filter(Boolean);
+    const short = checks.filter(x => x === 'short').length, end = checks.filter(x => x === 'end').length;
+    sum = `<div class="sum">${short ? `<span class="chip low">부족 ${short}개</span>` : end === checks.length ? '<span class="chip ok">전 항목 종결</span>' : '<span class="chip mid">실전 합격</span>'}</div>`;
+  }
+  return `<article class="card" id="${id}">
+    <div class="chead"><div><div class="cname"><span class="dot" style="--c:var(--${d.el})"></span>${GP.esc(d.name)}</div>
+      <div class="cmeta">${GP.EL[d.el]} · ${GP.ROLE[d.roles[0]]} · ${KEY_NAME[t.scale]} 계수${t.crit ? ' · 치명 딜' : ''}</div></div>
+      ${c ? '<span class="chip own">내 캐릭터</span>' : ''}</div>
+    ${sum}
+    <div class="stats">${rows.join('')}</div>
+    <div class="links"><a class="btn sm" href="guide.html#${id}">추천 성유물</a><a class="btn sm" href="rate.html#${id}">성유물 감정</a></div>
+  </article>`;
+}
+function render() {
+  try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {}
+  for (const b of document.querySelectorAll('.elchip')) b.setAttribute('aria-pressed', b.dataset.el === st.el);
+  $('#q').value = st.q; $('#mine').checked = st.mine;
+  const q = st.q.trim();
+  const shown = ids.filter(id => (!st.el || GP.DB[id].el === st.el) && (!st.mine || own[id]) && (!q || GP.DB[id].name.includes(q)));
+  $('#count').textContent = `${shown.length}명`;
+  $('#list').innerHTML = shown.length ? shown.map(card).join('') : `<div class="empty">조건에 맞는 캐릭터가 없습니다.</div>`;
+}
+$('#els').addEventListener('click', e => { const b = e.target.closest('.elchip'); if (b) { st.el = b.dataset.el; render(); } });
+$('#q').addEventListener('input', e => { st.q = e.target.value; render(); });
+$('#mine').addEventListener('change', e => { st.mine = e.target.checked; render(); });
+const hashId = decodeURIComponent(location.hash.slice(1));
+if (BUILDS[hashId]) st = { q: '', el: '', mine: false };
+render();
+// 카드가 그려지고 글꼴이 적용된 뒤에 이동해야 위치가 맞음
+if (BUILDS[hashId]) {
+  history.scrollRestoration = 'manual';
+  const go = () => document.getElementById(hashId)?.scrollIntoView({ block: 'start' });
+  requestAnimationFrame(go);
+  (document.fonts?.ready || Promise.resolve()).then(go);
+}
+</script>
+</body>
+</html>

@@ -52,12 +52,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .tab { appearance: none; border: 0; background: none; font: inherit; font-weight: 600; color: var(--muted); padding: 12px 14px; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
 .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--gold); }
 .tab .n { font-family: var(--f-mono); font-size: 12px; color: var(--muted); margin-left: 4px; }
-button.btn { font: inherit; font-weight: 600; border-radius: 8px; padding: 8px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
-button.btn:hover { border-color: var(--gold); }
-button.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-button.btn.ghost { background: transparent; }
-button.btn.danger { color: var(--bad); }
-button.btn.sm { padding: 5px 10px; font-size: 13px; }
+.btn { font: inherit; font-weight: 600; border-radius: 8px; padding: 8px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; }
+.btn:hover { border-color: var(--gold); }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--bad); }
+.btn.sm { padding: 5px 10px; font-size: 13px; }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .bar .actions { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -201,6 +201,9 @@ textarea { font-family: var(--f-mono); font-size: 12px; min-height: 160px; }
       <p class="sub">보유 캐릭터의 육성 상태를 입력하면 파티를 가치 순으로 줄 세우고, 약한 곳과 레진을 먼저 쓸 곳을 알려 줍니다.</p>
     </div>
     <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn ghost sm" href="rate.html">성유물 감정</a>
+      <a class="btn ghost sm" href="guide.html">성유물 추천</a>
+      <a class="btn ghost sm" href="stats.html">종결 스탯 도감</a>
       <button class="btn ghost sm" id="btn-backup" type="button">백업 · 불러오기</button>
     </div>
   </header>
@@ -233,7 +236,8 @@ textarea { font-family: var(--f-mono); font-size: 12px; min-height: 160px; }
 
 <dialog id="dlg-char">
   <form class="dlg" id="form-char" method="dialog">
-    <div class="dlg-head"><h2 id="char-title">캐릭터</h2><button class="btn ghost sm" type="button" data-close>닫기</button></div>
+    <div class="dlg-head"><h2 id="char-title">캐릭터</h2>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><a class="btn ghost sm" id="char-guide" href="guide.html">추천 성유물</a><a class="btn ghost sm" id="char-stats" href="stats.html">종결 스탯</a><button class="btn ghost sm" type="button" data-close>닫기</button></div></div>
     <label id="pick-wrap">캐릭터 선택<select id="f-id"></select></label>
     <div class="preview"><span class="score" id="pv-score">–</span><span class="muted" id="pv-note"></span></div>
     <fieldset><legend>역할 기준</legend>
@@ -1172,6 +1176,8 @@ function openChar(id) {
   editId = id;
   $('#pick-wrap').hidden = !!id;
   $('#btn-del-char').hidden = !id;
+  $('#char-guide').hidden = $('#char-stats').hidden = !id;
+  if (id) { $('#char-guide').href = 'guide.html#' + id; $('#char-stats').href = 'stats.html#' + id; }
   if (id) { $('#char-title').textContent = DB[id].name; fillChar(S.roster[id]); }
   else {
     const free = Object.values(DB).filter(d => !S.roster[d.id]);
