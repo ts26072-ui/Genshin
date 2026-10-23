@@ -360,6 +360,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
     </fieldset>
     <fieldset><legend>기본</legend><div class="fgrid">
       <label>레벨<input id="f-lv" type="number" min="1" max="90"></label>
+      <label class="check" id="ap-wrap"><input type="checkbox" id="f-ap"> 이 레벨에서 아직 돌파 전</label>
       <label>운명의 자리<input id="f-cons" type="number" min="0" max="6"></label>
       <label>일반 공격<input id="f-t0" type="number" min="1" max="10"></label>
       <label>원소전투 스킬<input id="f-t1" type="number" min="1" max="10"></label>
@@ -690,6 +691,13 @@ const wl = () => S.wl ?? autoWL(ar());
 const ascOf = lv => lv >= 80 ? 6 : lv >= 70 ? 5 : lv >= 60 ? 4 : lv >= 50 ? 3 : lv >= 40 ? 2 : lv >= 20 ? 1 : 0;
 const TAL_CAP = [1, 1, 2, 4, 6, 8, 10];
 const talCapAt = lv => TAL_CAP[ascOf(lv)];
+// 돌파 경계 레벨(20·40·50·60·70·80)에서는 돌파 전·후가 갈림. c.ap = 경계 레벨에서 아직 돌파하지 않음
+const ASC_EDGE = [20, 40, 50, 60, 70, 80];
+const pendingAsc = c => !!c.ap && ASC_EDGE.includes(c.lv);
+const ascOfC = c => ascOf(c.lv) - (pendingAsc(c) ? 1 : 0);
+const talCapOf = c => TAL_CAP[ascOfC(c)];
+// 레벨 점수용 실효 레벨: 돌파 전이면 기초 스탯이 한 단계 낮으므로 5레벨 낮게 봄(근사)
+const effLv = c => pendingAsc(c) ? c.lv - 5 : c.lv;
 // 성유물 목표 배율: 5성 성유물이 나오는 비경 레벨이 모험 등급에 묶여 있어 초반 계정은 기준을 낮춤
 const artStage = a => a >= 55 ? 1 : a >= 45 ? 0.9 : a >= 40 ? 0.8 : a >= 35 ? 0.7 : 0.55;
 // 상대할 적 레벨: 모험 등급 45부터는 나선 비경 12층(Lv.100), 그 전에는 세계 레벨에 맞춘 필드 적
@@ -745,11 +753,12 @@ function charCalc(c) {
   const d = prof(c);
   // 레벨: 모험 등급이 허용하는 목표 레벨 대비 피해 비율(방어 계수 × 기초 스탯), Lv.60 전에는 두 번째 고유 특성이 잠겨 감점
   const T = lvTarget();
-  let lv = clamp((defMult(c.lv) / defMult(T)) * (0.5 + 0.5 * baseRatio(c.lv) / baseRatio(T)));
-  if (c.lv < 60 && T >= 60) lv *= 0.8;
-  if (c.lv < 20 && T >= 20) lv *= 0.8;
+  const L = effLv(c);
+  let lv = clamp((defMult(L) / defMult(T)) * (0.5 + 0.5 * baseRatio(L) / baseRatio(T)));
+  if (ascOfC(c) < 4 && T >= 60) lv *= 0.8;
+  if (ascOfC(c) < 1 && T >= 20) lv *= 0.8;
   const tg = talTarget(d);
-  const tal = tg <= 1 ? 1 : avg(d.tal.map(i => clamp((Math.min(c.t[i], talCapAt(c.lv)) - 1) / (tg - 1))));
+  const tal = tg <= 1 ? 1 : avg(d.tal.map(i => clamp((Math.min(c.t[i], talCapOf(c)) - 1) / (tg - 1))));
   const wl = clamp((c.wl + 10) / (T + 10));
   const wv = weaponValue(c);
   const wep = clamp(wv.v * wl + (wv.five ? 0.03 : 0.02) * (c.wr - 1));
@@ -771,10 +780,11 @@ function charCalc(c) {
 
 function charIssues(c) {
   const d = prof(c), out = [];
-  const tg = talTarget(d), T = lvTarget(), cap = talCapAt(c.lv);
+  const tg = talTarget(d), T = lvTarget(), cap = talCapOf(c);
   if (c.lv > T) out.push(['md', `레벨 ${c.lv} — 모험 등급 ${ar()}의 최대 레벨 ${T}보다 높음, 모험 등급을 확인하세요`]);
   else if (c.lv < T) out.push([T - c.lv >= 20 ? 'hi' : T - c.lv >= 10 ? 'md' : 'lo', `레벨 ${c.lv} — 목표 ${T}`]);
-  if (c.lv < 60 && T >= 60) out.push(['md', 'Lv.60(4단계 돌파) 전이라 두 번째 고유 특성이 잠겨 있음']);
+  if (pendingAsc(c)) out.push([ascOf(c.lv) >= 4 ? 'hi' : 'md', `Lv.${c.lv} ${ascOf(c.lv)}단계 돌파 전 — 돌파해야 레벨과 특성(상한 ${TAL_CAP[ascOf(c.lv)]})을 올릴 수 있음`]);
+  if (ascOfC(c) < 4 && T >= 60) out.push(['md', 'Lv.60(4단계 돌파) 전이라 두 번째 고유 특성이 잠겨 있음']);
   const low = d.tal.filter(i => c.t[i] < tg);
   if (low.length) {
     const capped = low.filter(i => c.t[i] >= cap);
@@ -961,14 +971,30 @@ const TAL_COST = [0, 6, 10, 16, 22, 30, 45, 60, 85, 120];
 function actionsFor(id) {
   const c = S.roster[id], d = prof(c), out = [];
   const add = (what, why, cost, mod) => { const n = JSON.parse(JSON.stringify(c)); mod(n); out.push({ id, what, why, cost, next: n }); };
-  const T = lvTarget();
-  if (c.lv < T) {
-    // 다음 돌파 구간까지: 60은 고유 특성 해금, 80→90은 마지막 구간
+  const T = lvTarget(), tg = talTarget(d), cap = talCapOf(c);
+  // 돌파·레벨: 돌파 전 상한에 막혀 있던 핵심 특성은 같은 행동에 묶어 올림(돌파해야 올릴 수 있으므로 그 효과도 돌파의 몫)
+  // apAfter: 도착 레벨이 돌파 경계라 아직 다음 돌파 전인 상태(예: 4단계 돌파 후 Lv.70)
+  const lvUp = (what, why, cost, toLv, apAfter = false) => {
+    const cap1 = talCapOf({ lv: toLv, ap: apAfter }), to = Math.min(tg, cap1);
+    const raise = cap1 > cap ? d.tal.filter(i => c.t[i] >= cap && c.t[i] < to) : [];
+    let tc = 0; for (const i of raise) for (let l = c.t[i]; l < to; l++) tc += TAL_COST[l];
+    const tw = raise.map(i => `${TAL[i]} ${c.t[i]}→${to}`).join(', ');
+    add(what + (tw ? ` + ${tw}` : ''), why, cost + tc, n => { n.lv = toLv; n.ap = apAfter; for (const i of raise) n.t[i] = to; });
+  };
+  const lvCost = to => to <= 60 ? 70 : to <= 80 ? 140 : 420;
+  if (pendingAsc(c)) {
+    // 돌파만으로는 이득이 작으니, 돌파 후 새 상한까지 레벨을 올리는 것까지 한 행동으로 봄 (모험 등급이 모자라면 돌파 불가)
+    const k = ascOf(c.lv), to = Math.min(T, ASC_CAP[k - 1]);
+    if (ar() >= ASC_AR[k - 1]) lvUp(`${d.name} ${k}단계 돌파` + (to > c.lv ? ` → Lv.${to}` : ''),
+      `Lv.${c.lv} 돌파 (보스 소재·지역 특산물·모라)${to > c.lv ? ` 후 Lv.${to}까지` : ''} · 특성 상한 ${TAL_CAP[k]}${k === 4 ? ' · 두 번째 고유 특성 해금' : ''}`,
+      60 + (to > c.lv ? lvCost(to) : 0), to, to > c.lv && ASC_EDGE.includes(to));
+  } else if (c.lv < T) {
+    // 다음 돌파 구간까지 올리고 그 자리에서 돌파. 60은 고유 특성 해금, 80→90은 돌파 없는 마지막 구간
     const to = c.lv >= 80 ? T : Math.min(T, (Math.floor(c.lv / 10) + 1) * 10);
+    const asc = ASC_EDGE.includes(to) ? ascOf(to) : 0;
     const why = to === 60 ? '두 번째 고유 특성 해금 · 특성 상한 6' : to === 90 ? '주간 보스·경험치 대량 소모' : `특성 상한 ${talCapAt(to)}`;
-    add(`${d.name} 레벨 ${to}`, `Lv.${c.lv} → ${to} (${why})`, to <= 60 ? 70 : to <= 80 ? 140 : 420, n => n.lv = to);
+    lvUp(asc ? `${d.name} Lv.${to} + ${asc}단계 돌파` : `${d.name} 레벨 ${to}`, `Lv.${c.lv} → ${to} (${why})`, lvCost(to) + (asc ? 60 : 0), to);
   }
-  const tg = talTarget(d), cap = talCapAt(c.lv);
   for (const i of d.tal) {
     if (c.t[i] >= tg || c.t[i] >= cap) continue;
     const to = Math.min(tg, cap, c.t[i] < 6 ? 6 : c.t[i] + 1);
@@ -1289,7 +1315,7 @@ function renderGrowth(ranked) {
       <option value="all">모든 파티</option>${ranked.map(({ p }, i) => `<option value="${p.pid}">#${i + 1} ${esc(p.name)}</option>`).join('')}
     </select></label></div>` : '';
   const head = `<div class="bar"><h2>성장 우선순위</h2>${sel}</div>
-    <p class="legend">파티에 들어간 캐릭터만 순위에 올립니다. 각 육성 항목을 적용했을 때 파티 가치가 얼마나 오르는지 계산해, 들인 레진 대비 효과가 큰 순서로 정렬했습니다. 여러 파티에 들어간 캐릭터는 효과가 합산되어 위로 올라오고, 상위 2개 파티(나선 비경 전·후반)는 가중치 1, 나머지는 0.7입니다. 파티를 고르면 그 파티 멤버만 봅니다. 레벨·특성·무기 목표는 위에 입력한 모험 등급에서 실제로 올릴 수 있는 값까지만 추천합니다. 무기 교체는 지금 얻을 수 있는 무기만 추천하며, 대장간 제작·낚시·잡화점·기행처럼 확실히 얻는 무기를 먼저, 없으면 기원(뽑기) 무기를 고릅니다. 지난 이벤트·픽업 한정 무기는 제외합니다.</p>`;
+    <p class="legend">파티에 들어간 캐릭터만 순위에 올립니다. 각 육성 항목을 적용했을 때 파티 가치가 얼마나 오르는지 계산해, 들인 레진 대비 효과가 큰 순서로 정렬했습니다. 여러 파티에 들어간 캐릭터는 효과가 합산되어 위로 올라오고, 상위 2개 파티(나선 비경 전·후반)는 가중치 1, 나머지는 0.7입니다. 파티를 고르면 그 파티 멤버만 봅니다. 레벨·특성·무기 목표는 위에 입력한 모험 등급에서 실제로 올릴 수 있는 값까지만 추천합니다. 무기 교체는 지금 얻을 수 있는 무기만 추천하며, 대장간 제작·낚시·잡화점·기행처럼 확실히 얻는 무기를 먼저, 없으면 기원(뽑기) 무기를 고릅니다. 지난 이벤트·픽업 한정 무기는 제외합니다. 돌파는 그다음 레벨 구간까지 올리는 것과 묶어 한 항목으로 보며, 경계 레벨(20·40·50·60·70·80)에서 아직 돌파 전이면 캐릭터 편집에서 "아직 돌파 전"을 체크하세요.</p>`;
   const item = (a, i) => {
     const d = DB[a.id];
     const tier = a.cost < 200 ? ['lo', '저비용'] : a.cost < 500 ? ['md', '중간'] : ['hi', '장기 파밍'];
@@ -1393,7 +1419,7 @@ function fillChar(c) {
   const src = [GG[c.id] && `티어표 ${GG[c.id]}`, PERF_NAMU[c.id] != null && `나무위키 ${PERF_NAMU[c.id]}`].filter(Boolean).join(' · ');
   $('#perf-name').textContent = base.rated ? `캐릭터 성능 (기본 ${base.perf} = ${src})` : '캐릭터 성능 (평가 없음 · 기본 60)';
   $('#guess-note').hidden = !d.guess;
-  $('#f-lv').value = c.lv; $('#f-cons').value = c.cons;
+  $('#f-lv').value = c.lv; $('#f-ap').checked = !!c.ap; $('#f-cons').value = c.cons;
   c.t.forEach((x, i) => $('#f-t' + i).value = x);
   fillGearOptions(c.id);
   $('#f-wn').value = c.wn && WEAPONS[c.wn] ? c.wn : '';
@@ -1419,16 +1445,17 @@ function readChar() {
   const pf = Math.round(n('#f-perf', 0, 100));
   if (pf !== d.perf) ov.perf = pf;
   // 특성은 현재 레벨의 돌파 단계가 허용하는 값까지만 인정
-  const lvIn = n('#f-lv', 1, 90);
+  const lvIn = n('#f-lv', 1, 90), ap = pendingAsc({ lv: lvIn, ap: $('#f-ap').checked });
   // 세트: 첫째만 고르면 4세트, 둘 다 고르면 2+2, 아무것도 안 고르면 '세트 효과 없음'
   // (예전 데이터를 열고 세트를 건드리지 않았다면 원래 세트 상태를 유지)
   const sa = $('#f-sa').value, sb = sa ? $('#f-sb').value : '';
   const setMode = sa ? (sb && sb !== sa ? 'two' : 'full') : (legacySet || 'broken');
-  const c = mk(id, lvIn, Math.round(n('#f-cons', 0, 6)), [0, 1, 2].map(i => Math.min(talCapAt(lvIn), Math.round(n('#f-t' + i, 1, 10)))),
+  const c = mk(id, lvIn, Math.round(n('#f-cons', 0, 6)), [0, 1, 2].map(i => Math.min(talCapOf({ lv: lvIn, ap }), Math.round(n('#f-t' + i, 1, 10)))),
     $('#f-wt').value, n('#f-wl', 1, 90), Math.round(n('#f-wr', 1, 5)), setMode, $('#f-main').checked,
     n('#f-cr', 0, 150), n('#f-cd', 0, 400), n('#f-er', 100, 400), n('#f-key', 0, 80000),
     $('#f-wn').value, sa, sb === sa ? '' : sb);
   if (Object.keys(ov).length) c.ov = ov;
+  if (ap) c.ap = true;
   return c;
 }
 function previewChar() {
@@ -1437,9 +1464,10 @@ function previewChar() {
   $('#key-name').textContent = `${SCALE[d.scale].n} (권장 ${keyTarget(d).toLocaleString()})`;
   $('#pv-score').textContent = Math.round(a.score);
   $('#pv-score').style.color = scoreColor(a.score);
-  const cap = talCapAt(c.lv);
+  const cap = talCapOf(c);
   for (const i of [0, 1, 2]) $('#f-t' + i).max = cap;
-  $('#pv-note').textContent = `${ROLE[d.roles[0]]} · 목표 Lv.${lvTarget()} · 핵심 특성 ${d.tal.map(i => TAL[i]).join(', ')} (목표 ${talTarget(d)}, Lv.${c.lv} 상한 ${cap}) · 원충 목표 ${d.er}%` + (d.crit ? ` · 치명 수치 ${cvOf(c)}/${critTarget(d)}` : '');
+  $('#ap-wrap').hidden = !ASC_EDGE.includes(c.lv);
+  $('#pv-note').textContent = `${ROLE[d.roles[0]]} · 목표 Lv.${lvTarget()} · 핵심 특성 ${d.tal.map(i => TAL[i]).join(', ')} (목표 ${talTarget(d)}, Lv.${c.lv}${pendingAsc(c) ? ' 돌파 전' : ''} 상한 ${cap}) · 원충 목표 ${d.er}%` + (d.crit ? ` · 치명 수치 ${cvOf(c)}/${critTarget(d)}` : '');
 }
 function openChar(id) {
   editId = id;
