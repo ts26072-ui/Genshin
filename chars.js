@@ -171,3 +171,22 @@ GP.KEY = 'genshin-party-appraiser-v1';
 // 메인 앱(파티 감정소)에 저장된 내 캐릭터 목록. 없거나 읽을 수 없으면 빈 객체
 GP.roster = () => { try { return (JSON.parse(localStorage.getItem(GP.KEY)) || {}).roster || {}; } catch (e) { return {}; } };
 GP.esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+// 캐릭터 아이콘 파일 이름(게임 내부 이름, enka.network 제공 · © HoYoverse). index.html의 ICON과 같은 표 — 신캐 추가 시 둘 다 고칠 것
+const ICON = {
+  hutao:'Hutao', diluc:'Diluc', yoimiya:'Yoimiya', lyney:'Liney', arlecchino:'Arlecchino', mavuika:'Mavuika', klee:'Klee', dehya:'Dehya',
+  xiangling:'Xiangling', bennett:'Bennett', thoma:'Tohma', yanfei:'Feiyan', chevreuse:'Chevreuse', gaming:'Gaming', xingqiu:'Xingqiu', yelan:'Yelan',
+  mona:'Mona', kokomi:'Kokomi', barbara:'Barbara', neuvillette:'Neuvillette', furina:'Furina', ayato:'Ayato', tartaglia:'Tartaglia', nilou:'Nilou',
+  candace:'Candace', sigewinne:'Sigewinne', mualani:'Mualani', kazuha:'Kazuha', sucrose:'Sucrose', venti:'Venti', jean:'Qin', wanderer:'Wanderer',
+  xiao:'Xiao', faruzan:'Faruzan', xianyun:'Liuyun', sayu:'Sayu', lynette:'Linette', chasca:'Chasca', heizou:'Heizo', raiden:'Shougun', fischl:'Fischl',
+  beidou:'Beidou', keqing:'Keqing', yae:'Yae', shinobu:'Shinobu', cyno:'Cyno', clorinde:'Clorinde', sethos:'Sethos', lisa:'Lisa', ororon:'Olorun',
+  varesa:'Varesa', iansan:'Iansan', nahida:'Nahida', alhaitham:'Alhatham', tighnari:'Tighnari', baizhu:'Baizhuer', collei:'Collei', kirara:'Momoka',
+  yaoyao:'Yaoyao', emilie:'Emilie', kinich:'Kinich', ganyu:'Ganyu', ayaka:'Ayaka', shenhe:'Shenhe', rosaria:'Rosaria', eula:'Eula', layla:'Layla',
+  diona:'Diona', wriothesley:'Wriothesley', charlotte:'Charlotte', citlali:'Citlali', escoffier:'Escoffier', skirk:'SkirkNew', mika:'Mika',
+  zhongli:'Zhongli', navia:'Navia', albedo:'Albedo', itto:'Itto', gorou:'Gorou', yunjin:'Yunjin', noelle:'Noel', chiori:'Chiori', xilonen:'Xilonen',
+  ningguang:'Ningguang', amber:'Ambor', xinyan:'Xinyan', razor:'Razor', sara:'Sara', dori:'Dori', kaveh:'Kaveh', kaeya:'Kaeya', chongyun:'Chongyun',
+  qiqi:'Qiqi', aloy:'Aloy', freminet:'Freminet', kachina:'Kachina', lanyan:'Lanyan', mizuki:'Mizuki', ifa:'Ifa', dahlia:'Dahlia', aino:'Aino',
+  ineffa:'Ineffa', flins:'Flins', lauma:'Lauma', nefer:'Nefer', durin:'Durin', nicole:'Nicole', columbina:'Columbina', vodyanitsa:'Vodyanitsa',
+  jahoda:'Jahoda', barca:'Varka', prune:'Prune', vesna:'Vesna', alyosha:'Alyosha', roen:'Lohen', sandrone:'MarionetteNew', odette:'Odette',
+  illuga:'Illuga', zibai:'Zibai', linnea:'Linnea',
+};
+GP.iconUrl = id => { const n = ICON[id] || (id.startsWith('traveler') ? 'PlayerGirl' : null); return n ? `https://enka.network/ui/UI_AvatarIcon_${n}.png` : null; };

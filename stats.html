@@ -7,9 +7,32 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <link rel="stylesheet" href="common.css">
 <style>
-.list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 12px; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; scroll-margin-top: 16px; }
-.card:target { border-color: var(--gold); box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 30%, transparent); }
+/* 캐릭터 카드 갤러리: 게임 캐릭터 카드처럼 초상 + 이름 + 상태, 누르면 상세 스탯 창 */
+.list { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 12px; }
+.ccard { font: inherit; color: inherit; text-align: left; cursor: pointer; padding: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; display: flex; flex-direction: column; min-width: 0; transition: transform .12s, border-color .12s; }
+.ccard:hover { transform: translateY(-2px); border-color: var(--gold); }
+.ccard .art { position: relative; aspect-ratio: 1 / 1.05; display: grid; place-items: end center; overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 100%, color-mix(in srgb, var(--c) 55%, transparent), transparent 70%), var(--rar); }
+.ccard.r5 .art { --rar: linear-gradient(160deg, #8a5a2b, #c48a3f); }
+.ccard.r4 .art { --rar: linear-gradient(160deg, #5a4a8a, #8a6ac4); }
+.ccard .art img { width: 92%; height: 92%; object-fit: contain; object-position: bottom; display: block; filter: drop-shadow(0 4px 8px rgb(0 0 0 / .25)); }
+.ccard .art .ph { font-family: var(--f-display); font-size: 40px; font-weight: 700; color: rgb(255 255 255 / .85); place-self: center; }
+.ccard .elb { position: absolute; top: 8px; left: 8px; width: 22px; height: 22px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 2px rgb(255 255 255 / .7); }
+.ccard .own { position: absolute; top: 8px; right: 8px; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: rgb(0 0 0 / .45); color: #fff; }
+.ccard .stars { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font-size: 12px; letter-spacing: 1px; color: #ffd66b; text-shadow: 0 1px 2px rgb(0 0 0 / .5); }
+.ccard .info { padding: 9px 10px 10px; display: flex; flex-direction: column; gap: 3px; border-top: 3px solid var(--c); }
+.ccard .nm { font-family: var(--f-display); font-weight: 700; font-size: 15.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ccard .rl { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ccard .st { align-self: flex-start; margin-top: 3px; }
+/* 상세 창 */
+dialog { border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--ink); padding: 0; width: min(460px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); }
+dialog::backdrop { background: rgb(10 12 24 / .55); }
+.card { padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.dhead { display: flex; gap: 14px; align-items: center; }
+.dhead .pic { width: 72px; height: 72px; border-radius: 14px; flex: none; overflow: hidden; background: radial-gradient(circle at 50% 100%, color-mix(in srgb, var(--c) 60%, transparent), transparent 75%), var(--rar); }
+.dhead .pic.r5 { --rar: linear-gradient(160deg, #8a5a2b, #c48a3f); } .dhead .pic.r4 { --rar: linear-gradient(160deg, #5a4a8a, #8a6ac4); }
+.dhead .pic img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.dclose { margin-left: auto; align-self: start; }
 .chead { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
 .cname { font-family: var(--f-display); font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; }
 .cmeta { font-size: 12.5px; color: var(--muted); }
@@ -57,8 +80,9 @@
     <span class="ok">종결</span><span class="mid">합격</span><span class="low">부족</span>
   </div>
   <div class="list" id="list"></div>
+  <dialog id="dlg" aria-label="캐릭터 종결 스탯"></dialog>
 
-  <p class="foot-note">목표치는 추천 주옵·부옵(genshin-builds.com v7.1)과 캐릭터 역할로 계산한 근사값이며, 공식 수치가 아닙니다. 치명 딜러는 치확 60/75%, 치피 150/210%(합격/종결)를 기준으로 서브 딜러·서포터는 조금 낮게 잡았고, 원충은 캐릭터별 목표(파티 감정소와 같은 값)에서 −10%가 합격선입니다. 공격력·HP·방어력·마스터리는 캐릭터 상세 화면의 최종 수치 기준입니다. 무기·별자리·파티 버프에 따라 실제 필요한 값은 달라집니다.</p>
+  <p class="foot-note">카드를 누르면 그 캐릭터의 종결 스탯이 열립니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러옵니다. 목표치는 추천 주옵·부옵(genshin-builds.com v7.1)과 캐릭터 역할로 계산한 근사값이며, 공식 수치가 아닙니다. 치명 딜러는 치확 60/75%, 치피 150/210%(합격/종결)를 기준으로 서브 딜러·서포터는 조금 낮게 잡았고, 원충은 캐릭터별 목표(파티 감정소와 같은 값)에서 −10%가 합격선입니다. 공격력·HP·방어력·마스터리는 캐릭터 상세 화면의 최종 수치 기준입니다. 무기·별자리·파티 버프에 따라 실제 필요한 값은 달라집니다.</p>
 </div>
 
 <script src="chars.js"></script>
@@ -91,30 +115,54 @@ function line(label, [pass, end], unit, mine) {
     <div class="vals">합격 ${fmt(pass, unit)} · <span class="ok">종결 ${fmt(end, unit)}</span>${s === 'short' ? ` · 합격까지 ${fmt(+(pass - mine).toFixed(1), unit)}` : s === 'pass' ? ` · 종결까지 ${fmt(+(end - mine).toFixed(1), unit)}` : ''}</div>
   </div>`;
 }
+// 파티 감정소의 핵심 스탯 입력값은 그 캐릭터의 핵심 스탯 하나뿐이라, 도감 기준 스탯과 같을 때만 비교
+const myKeyOf = (id, t) => { const c = own[id]; return c && (c.ov?.scale || GP.DB[id].scale) === t.scale ? c.key : null; };
+// 보유 캐릭터의 종합 상태: 부족 개수 / 전 항목 종결 / 실전 합격
+function verdict(id) {
+  const c = own[id], t = endgame(id);
+  if (!c) return null;
+  const myKey = myKeyOf(id, t);
+  const checks = [t.crit && stage(c.cr, t.cr), t.crit && stage(c.cd, t.cd), stage(c.er, t.er), myKey != null && stage(myKey, t.key)].filter(Boolean);
+  const short = checks.filter(x => x === 'short').length, end = checks.filter(x => x === 'end').length;
+  return short ? `<span class="chip low">부족 ${short}개</span>` : end === checks.length ? '<span class="chip ok">전 항목 종결</span>' : '<span class="chip mid">실전 합격</span>';
+}
+const pic = id => { const u = GP.iconUrl(id); return u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : ''; };
+// 갤러리 카드
+function tile(id) {
+  const d = GP.DB[id], t = endgame(id), v = verdict(id);
+  return `<button type="button" class="ccard r${d.r}" data-id="${id}" style="--c:var(--${d.el})" aria-label="${GP.esc(d.name)} 종결 스탯 보기">
+    <div class="art">${pic(id) || `<span class="ph">${GP.esc(d.name[0])}</span>`}<span class="elb" title="${GP.EL[d.el]}"></span>${own[id] ? '<span class="own">보유</span>' : ''}<span class="stars">${'★'.repeat(d.r)}</span></div>
+    <div class="info"><span class="nm">${GP.esc(d.name)}</span><span class="rl">${GP.ROLE[d.roles[0]]} · ${KEY_NAME[t.scale]}${t.crit ? ' · 치명' : ''}</span>${v ? `<span class="st">${v}</span>` : ''}</div>
+  </button>`;
+}
+// 상세 창 내용
 function card(id) {
-  const d = GP.DB[id], t = endgame(id), c = own[id];
-  // 파티 감정소의 핵심 스탯 입력값은 그 캐릭터의 핵심 스탯 하나뿐이라, 도감 기준 스탯과 같을 때만 비교
-  const myKey = c && (c.ov?.scale || d.scale) === t.scale ? c.key : null;
+  const d = GP.DB[id], t = endgame(id), c = own[id], myKey = myKeyOf(id, t);
   const rows = [];
   if (t.crit) { rows.push(line('치명타 확률', t.cr, '%', c ? c.cr : null)); rows.push(line('치명타 피해', t.cd, '%', c ? c.cd : null)); }
   rows.push(line('원소 충전 효율', t.er, '%', c ? c.er : null));
   rows.push(line(KEY_NAME[t.scale], t.key, '', myKey));
   if (t.em2) rows.push(line('원소 마스터리(보조)', t.em2, '', null));
-  let sum = '';
-  if (c) {
-    const checks = [t.crit && stage(c.cr, t.cr), t.crit && stage(c.cd, t.cd), stage(c.er, t.er), myKey != null && stage(myKey, t.key)].filter(Boolean);
-    const short = checks.filter(x => x === 'short').length, end = checks.filter(x => x === 'end').length;
-    sum = `<div class="sum">${short ? `<span class="chip low">부족 ${short}개</span>` : end === checks.length ? '<span class="chip ok">전 항목 종결</span>' : '<span class="chip mid">실전 합격</span>'}</div>`;
-  }
-  return `<article class="card" id="${id}">
-    <div class="chead"><div><div class="cname"><span class="dot" style="--c:var(--${d.el})"></span>${GP.esc(d.name)}</div>
-      <div class="cmeta">${GP.EL[d.el]} · ${GP.ROLE[d.roles[0]]} · ${KEY_NAME[t.scale]} 계수${t.crit ? ' · 치명 딜' : ''}</div></div>
-      ${c ? '<span class="chip own">내 캐릭터</span>' : ''}</div>
-    ${sum}
+  const v = verdict(id);
+  return `<article class="card" style="--c:var(--${d.el})">
+    <div class="dhead"><div class="pic r${d.r}">${pic(id)}</div>
+      <div><div class="cname">${GP.esc(d.name)}</div>
+      <div class="cmeta">${'★'.repeat(d.r)} · ${GP.EL[d.el]} · ${GP.ROLE[d.roles[0]]} · ${KEY_NAME[t.scale]} 계수${t.crit ? ' · 치명 딜' : ''}</div>
+      <div class="sum" style="margin-top:6px">${c ? '<span class="chip own">내 캐릭터</span>' : ''}${v || ''}</div></div>
+      <button type="button" class="btn sm dclose" data-close>닫기</button></div>
     <div class="stats">${rows.join('')}</div>
     <div class="links"><a class="btn sm" href="guide.html#${id}">추천 성유물</a><a class="btn sm" href="rate.html#${id}">성유물 감정</a></div>
   </article>`;
 }
+const dlg = $('#dlg');
+function openCard(id) {
+  dlg.innerHTML = card(id);
+  if (!dlg.open) dlg.showModal();
+  history.replaceState(null, '', '#' + id);
+}
+dlg.addEventListener('close', () => history.replaceState(null, '', location.pathname + location.search));
+dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); });
+$('#list').addEventListener('click', e => { const b = e.target.closest('.ccard'); if (b) openCard(b.dataset.id); });
 function render() {
   try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {}
   for (const b of document.querySelectorAll('.elchip')) b.setAttribute('aria-pressed', b.dataset.el === st.el);
@@ -122,21 +170,17 @@ function render() {
   const q = st.q.trim();
   const shown = ids.filter(id => (!st.el || GP.DB[id].el === st.el) && (!st.mine || own[id]) && (!q || GP.DB[id].name.includes(q)));
   $('#count').textContent = `${shown.length}명`;
-  $('#list').innerHTML = shown.length ? shown.map(card).join('') : `<div class="empty">조건에 맞는 캐릭터가 없습니다.</div>`;
+  $('#list').innerHTML = shown.length ? shown.map(tile).join('') : `<div class="empty">조건에 맞는 캐릭터가 없습니다.</div>`;
 }
 $('#els').addEventListener('click', e => { const b = e.target.closest('.elchip'); if (b) { st.el = b.dataset.el; render(); } });
 $('#q').addEventListener('input', e => { st.q = e.target.value; render(); });
 $('#mine').addEventListener('change', e => { st.mine = e.target.checked; render(); });
-const hashId = decodeURIComponent(location.hash.slice(1));
-if (BUILDS[hashId]) st = { q: '', el: '', mine: false };
+// 아이콘을 못 불러오면 이름 첫 글자로 대신
+document.addEventListener('error', e => { const img = e.target; if (img.tagName === 'IMG' && img.closest('.art')) { const d = GP.DB[img.closest('.ccard').dataset.id]; img.outerHTML = `<span class="ph">${GP.esc(d.name[0])}</span>`; } else if (img.tagName === 'IMG' && img.closest('.pic')) img.remove(); }, true);
 render();
-// 카드가 그려지고 글꼴이 적용된 뒤에 이동해야 위치가 맞음
-if (BUILDS[hashId]) {
-  history.scrollRestoration = 'manual';
-  const go = () => document.getElementById(hashId)?.scrollIntoView({ block: 'start' });
-  requestAnimationFrame(go);
-  (document.fonts?.ready || Promise.resolve()).then(go);
-}
+// 다른 페이지에서 #캐릭터로 들어오면 그 캐릭터 상세 창을 바로 엶
+const hashId = decodeURIComponent(location.hash.slice(1));
+if (BUILDS[hashId]) openCard(hashId);
 </script>
 </body>
 </html>
