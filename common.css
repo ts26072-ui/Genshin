@@ -1,23 +1,23 @@
 /* 파티 감정소 하위 페이지 공용 스타일 — 메인 앱(genshin-party.html)과 같은 토큰 */
 :root {
-  --bg: #F1F2F7; --surface: #FFFFFF; --sunk: #E7E9F1; --ink: #1B2136; --muted: #5D6480; --line: #D8DBE7;
-  --gold: #9E7128; --gold-soft: #F4EBD9; --good: #23835A; --warn: #B4700A; --bad: #BE3F35;
+  --bg: #ECE5D8; --surface: #F8F4EC; --sunk: #E2D9C8; --ink: #3B4255; --muted: #6F695E; --line: #D6CBB6;
+  --gold: #9A7230; --gold-soft: #F1E5C9; --good: #2F7D55; --warn: #A3670F; --bad: #B4463A;
   --pyro: #E0603F; --hydro: #3A8FD9; --anemo: #2FAF92; --electro: #9A67D8; --dendro: #6FA531; --cryo: #5BB6CF; --geo: #CE9A2C;
-  --f-display: "Gowun Batang", "Noto Serif KR", serif;
-  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --f-display: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --f-mono: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0E1220; --surface: #161B2D; --sunk: #1E2438; --ink: #E5E8F3; --muted: #9AA1BA;
-    --line: #2A3150; --gold: #D9AE5F; --gold-soft: #2A2416; --good: #5DC18D; --warn: #E2A94B; --bad: #EC7A6F;
+    --bg: #151823; --surface: #1F2333; --sunk: #2A2F42; --ink: #ECE5D8; --muted: #A9A294;
+    --line: #383D52; --gold: #D3BC8E; --gold-soft: #2E2A1E; --good: #6CC596; --warn: #E2AE55; --bad: #EC7F72;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0E1220; --surface: #161B2D; --sunk: #1E2438; --ink: #E5E8F3; --muted: #9AA1BA;
-  --line: #2A3150; --gold: #D9AE5F; --gold-soft: #2A2416; --good: #5DC18D; --warn: #E2A94B; --bad: #EC7A6F;
+  --bg: #151823; --surface: #1F2333; --sunk: #2A2F42; --ink: #ECE5D8; --muted: #A9A294;
+  --line: #383D52; --gold: #D3BC8E; --gold-soft: #2E2A1E; --good: #6CC596; --warn: #E2AE55; --bad: #EC7F72;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -67,3 +67,27 @@ label.check input { width: auto; }
 .foot-note { margin-top: 28px; font-size: 12.5px; color: var(--muted); max-width: 76ch; }
 .ok { color: var(--good); } .mid { color: var(--warn); } .low { color: var(--bad); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* HoYoverse 풍 테마: 크림 종이 바탕 + 남색 글자 + 금색 테두리, 알약 버튼과 탭 */
+body { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+h1 { font-weight: 900; letter-spacing: -0.03em; }
+h2 { font-weight: 700; letter-spacing: -0.02em; }
+h1 .star { color: var(--gold); text-shadow: 0 0 10px color-mix(in srgb, var(--gold) 45%, transparent); }
+:root { --frame: color-mix(in srgb, var(--gold) 38%, transparent); }
+.btn { border-radius: 999px; padding-inline: 16px; transition: border-color .15s, background .15s; }
+.btn.sm { padding-inline: 12px; }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); gap: 8px; }
+.btn.primary::before { content: ""; width: 14px; height: 14px; border-radius: 50%; flex: none; border: 2px solid var(--gold); box-sizing: border-box; margin-left: -6px; }
+.btn.primary:hover { border-color: var(--gold); }
+.tabs, .sitenav { border-bottom: 0; gap: 6px; padding-block: 8px; }
+.tab, .sitenav a { border: 0; border-radius: 999px; padding: 8px 16px; transition: background .15s, color .15s; }
+.tab:hover, .sitenav a:hover { background: var(--sunk); }
+.tab[aria-selected="true"], .sitenav a[aria-current="page"] { background: var(--ink); color: var(--bg); box-shadow: inset 0 0 0 1px var(--gold); }
+.tab[aria-selected="true"] .n { color: inherit; opacity: .7; }
+.elchip { padding: 4px 12px; }
+.elchip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+input, select, textarea { border-radius: 8px; }
+.panel, .party, .gitem, .msum, .mrow, .ecard, dialog, .grid > .card, .list > .card {
+  border-color: var(--line); box-shadow: inset 0 0 0 3px var(--surface), inset 0 0 0 4px var(--frame); }
+.grade { box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px currentColor; font-weight: 900; }
+.gitem .no { font-weight: 900; }
