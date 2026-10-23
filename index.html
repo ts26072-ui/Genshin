@@ -87,6 +87,11 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .mem .nm { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
 .mem .meta { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 4px; }
 .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--c); }
+.av { --s: 24px; width: var(--s); height: var(--s); border-radius: 50%; flex: none; display: inline-block; vertical-align: middle; overflow: hidden;
+  background: color-mix(in srgb, var(--c) 22%, var(--surface)); box-shadow: inset 0 0 0 1.5px var(--c); }
+.av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.av.sm { --s: 20px; } .av.lg { --s: 34px; }
+.gitem .what .av { margin-right: 6px; }
 .meter { height: 5px; border-radius: 3px; background: var(--sunk); overflow: hidden; }
 .meter i { display: block; height: 100%; background: var(--c, var(--ink)); }
 .split { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; align-items: center; margin-top: 12px; font-size: 13px; }
@@ -243,7 +248,7 @@ textarea { font-family: var(--f-mono); font-size: 12px; min-height: 160px; }
   <section id="view-growth" role="tabpanel" hidden></section>
   <section id="view-meta" role="tabpanel" hidden></section>
 
-  <p class="foot-note">점수는 커뮤니티에서 통용되는 육성 기준(레벨 90, 주력 특성 8–9, 치명 비율 1:2, 캐릭터별 원충 목표 등)을 단순화한 추정치입니다. 레진 비용은 대략적인 상대값입니다. 파티 가치 = 딜량 50% + 육성 25% + 시너지 25%이며, 딜량은 가장 비슷한 실측 파티(genshin.im 7.1 허수아비 실측)의 DPS × 대체 멤버 배율(내 동료 평균 성능 ÷ 실측 동료 평균 성능의 제곱, 최대 1) × 육성 배율(육성 점수/85)로 추정하고 실측 1위(247k)를 100점으로 봅니다. 같은 메인의 실측 파티가 없으면 캐릭터 성능 점수로 보수적으로 추정합니다(최대 실측 1위의 75%). 캐릭터 성능 점수(T0–T4)는 GamsGo 원신 7.1 종합 티어표(2026년 9월, SS=92 · S=84 · A+=76 · A=68 · B=56 · C=44 · D=30)를 60%, 나무위키 각 캐릭터 문서의 '평가' 항목(2026년 10월 열람)을 읽고 매긴 값을 40% 섞은 것이며, 캐릭터 편집 화면에서 직접 바꿀 수 있습니다. 레벨 점수는 모험 등급이 허용하는 최대 레벨 대비 방어 계수 × 기초 스탯 곡선으로 계산하고, Lv.60 전에는 두 번째 고유 특성이 잠긴 만큼 감점합니다. 특성은 돌파 단계별 상한(2·4·6·8·10단계 돌파 시 2·4·6·8·10)을 넘을 수 없습니다.</p>
+  <p class="foot-note">점수는 커뮤니티에서 통용되는 육성 기준(레벨 90, 주력 특성 8–9, 치명 비율 1:2, 캐릭터별 원충 목표 등)을 단순화한 추정치입니다. 레진 비용은 대략적인 상대값입니다. 파티 가치 = 딜량 50% + 육성 25% + 시너지 25%이며, 딜량은 가장 비슷한 실측 파티(genshin.im 7.1 허수아비 실측)의 DPS × 대체 멤버 배율(내 동료 평균 성능 ÷ 실측 동료 평균 성능의 제곱, 최대 1) × 육성 배율(육성 점수/85)로 추정하고 실측 1위(247k)를 100점으로 봅니다. 같은 메인의 실측 파티가 없으면 캐릭터 성능 점수로 보수적으로 추정합니다(최대 실측 1위의 75%). 캐릭터 성능 점수(T0–T4)는 GamsGo 원신 7.1 종합 티어표(2026년 9월, SS=92 · S=84 · A+=76 · A=68 · B=56 · C=44 · D=30)를 60%, 나무위키 각 캐릭터 문서의 '평가' 항목(2026년 10월 열람)을 읽고 매긴 값을 40% 섞은 것이며, 캐릭터 편집 화면에서 직접 바꿀 수 있습니다. 레벨 점수는 모험 등급이 허용하는 최대 레벨 대비 방어 계수 × 기초 스탯 곡선으로 계산하고, Lv.60 전에는 두 번째 고유 특성이 잠긴 만큼 감점합니다. 특성은 돌파 단계별 상한(2·4·6·8·10단계 돌파 시 2·4·6·8·10)을 넘을 수 없습니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러오며, 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
 </div>
 
 <dialog id="dlg-char">
@@ -521,6 +526,28 @@ function prof(c) {
   return { ...d, roles: [role, ...d.roles.filter(r => r !== role)], scale: o.scale || d.scale, crit: o.crit ?? d.crit, er: o.er || d.er, guess: false,
     perf: o.perf ?? d.perf, rated: d.rated || o.perf != null, perfEdited: o.perf != null };
 }
+
+const ICON = {
+  hutao:'Hutao', diluc:'Diluc', yoimiya:'Yoimiya', lyney:'Liney', arlecchino:'Arlecchino', mavuika:'Mavuika', klee:'Klee', dehya:'Dehya',
+  xiangling:'Xiangling', bennett:'Bennett', thoma:'Tohma', yanfei:'Feiyan', chevreuse:'Chevreuse', gaming:'Gaming', xingqiu:'Xingqiu', yelan:'Yelan',
+  mona:'Mona', kokomi:'Kokomi', barbara:'Barbara', neuvillette:'Neuvillette', furina:'Furina', ayato:'Ayato', tartaglia:'Tartaglia', nilou:'Nilou',
+  candace:'Candace', sigewinne:'Sigewinne', mualani:'Mualani', kazuha:'Kazuha', sucrose:'Sucrose', venti:'Venti', jean:'Qin', wanderer:'Wanderer',
+  xiao:'Xiao', faruzan:'Faruzan', xianyun:'Liuyun', sayu:'Sayu', lynette:'Linette', chasca:'Chasca', heizou:'Heizo', raiden:'Shougun', fischl:'Fischl',
+  beidou:'Beidou', keqing:'Keqing', yae:'Yae', shinobu:'Shinobu', cyno:'Cyno', clorinde:'Clorinde', sethos:'Sethos', lisa:'Lisa', ororon:'Olorun',
+  varesa:'Varesa', iansan:'Iansan', nahida:'Nahida', alhaitham:'Alhatham', tighnari:'Tighnari', baizhu:'Baizhuer', collei:'Collei', kirara:'Momoka',
+  yaoyao:'Yaoyao', emilie:'Emilie', kinich:'Kinich', ganyu:'Ganyu', ayaka:'Ayaka', shenhe:'Shenhe', rosaria:'Rosaria', eula:'Eula', layla:'Layla',
+  diona:'Diona', wriothesley:'Wriothesley', charlotte:'Charlotte', citlali:'Citlali', escoffier:'Escoffier', skirk:'SkirkNew', mika:'Mika',
+  zhongli:'Zhongli', navia:'Navia', albedo:'Albedo', itto:'Itto', gorou:'Gorou', yunjin:'Yunjin', noelle:'Noel', chiori:'Chiori', xilonen:'Xilonen',
+  ningguang:'Ningguang', amber:'Ambor', xinyan:'Xinyan', razor:'Razor', sara:'Sara', dori:'Dori', kaveh:'Kaveh', kaeya:'Kaeya', chongyun:'Chongyun',
+  qiqi:'Qiqi', aloy:'Aloy', freminet:'Freminet', kachina:'Kachina', lanyan:'Lanyan', mizuki:'Mizuki', ifa:'Ifa', dahlia:'Dahlia', aino:'Aino',
+  ineffa:'Ineffa', flins:'Flins', lauma:'Lauma', nefer:'Nefer', durin:'Durin', nicole:'Nicole', columbina:'Columbina', vodyanitsa:'Vodyanitsa',
+  jahoda:'Jahoda', barca:'Varka', prune:'Prune', vesna:'Vesna', alyosha:'Alyosha', roen:'Lohen', sandrone:'MarionetteNew', odette:'Odette',
+  illuga:'Illuga', zibai:'Zibai', linnea:'Linnea',
+};
+// 캐릭터 아이콘: 게임 파일의 공식 아이콘(enka.network 제공, © HoYoverse). 여행자는 공용 아이콘, 아이콘이 없거나 못 불러오면 원소 색 원
+const iconUrl = id => { const n = ICON[id] || (id.startsWith('traveler') ? 'PlayerGirl' : null); return n ? `https://enka.network/ui/UI_AvatarIcon_${n}.png` : null; };
+const av = (id, cls = '') => { const u = iconUrl(id); return `<span class="av ${cls}" style="--c:var(--${DB[id].el})">${u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : ''}</span>`; };
+document.addEventListener('error', e => { if (e.target.tagName === 'IMG' && e.target.parentElement?.classList.contains('av')) e.target.remove(); }, true);
 
 // ───────── 상태 ─────────
 const KEY = 'genshin-party-appraiser-v1';
@@ -937,7 +964,7 @@ function renderParties(ranked) {
     const mem = p.m.map(id => {
       if (!id || !S.roster[id]) return `<div class="mem empty">빈 슬롯</div>`;
       const d = prof(S.roster[id]), sc = charCalc(S.roster[id]).score;
-      return `<div class="mem"><div class="nm" title="${esc(d.name)}"><span class="dot" style="--c:${elc(d.el)}"></span>${esc(d.name)}</div>
+      return `<div class="mem"><div class="nm" title="${esc(d.name)}">${av(id)}${esc(d.name)}</div>
         <div class="meta"><span>${ROLE[d.roles[0]]} · <b class="tier t-${TIER(d.perf)}">${TIER(d.perf)}</b></span><span class="mono" title="육성 점수">${Math.round(sc)}</span></div>
         <div class="meter"><i style="width:${sc}%;--c:${scoreColor(sc)}"></i></div></div>`;
     }).join('');
@@ -975,7 +1002,7 @@ function renderRoster() {
     const iss = charIssues(c).filter(i => i[0] !== 'lo');
     const pr = [['레벨', a.parts.lv], ['특성', a.parts.tal], ['무기', a.parts.wep], ['성유물', a.parts.art]];
     return `<button class="card" type="button" data-act="edit-char" data-id="${id}">
-      <div class="head"><div><div class="nm"><span class="dot" style="--c:${elc(d.el)}"></span>${esc(d.name)}</div>
+      <div class="head"><div><div class="nm">${av(id, 'lg')}${esc(d.name)}</div>
         <div class="tags"><span class="r${d.r}">${'★'.repeat(d.r)}</span> · ${EL[d.el]} · ${ROLE[d.roles[0]]} · C${c.cons}${d.guess ? ' · <span style="color:var(--warn)">역할 추정</span>' : ''}</div>
         <div class="tags">캐릭터 성능 <b class="tier t-${TIER(d.perf)}">${TIER(d.perf)}</b> <span class="mono">${d.perf}</span>${!d.rated ? ' · 평가 없음' : d.perfEdited ? ' · 직접 수정' : ''}</div>
         <div class="tags">${esc(weaponValue(c).name)} · ${esc(setInfo(c).label)}</div></div>
@@ -1104,8 +1131,8 @@ function renderEngines() {
     return { e, fill, miss: fill.filter(x => !x).length };
   }).sort((a, b) => a.miss - b.miss);
   const slotChip = (slot, got) => got
-    ? `<span class="mchip own"><span class="dot" style="--c:${elc(DB[got].el)}"></span>${esc(DB[got].name)}</span>`
-    : `<span class="mchip" title="${esc(slot.map(x => DB[x].name).join(', '))}"><span class="dot" style="--c:${elc(DB[slot[0]].el)}"></span>${esc(DB[slot[0]].name)}${slot.length > 1 ? ` 외 ${slot.length - 1}` : ''}</span>`;
+    ? `<span class="mchip own">${av(got, 'sm')}${esc(DB[got].name)}</span>`
+    : `<span class="mchip" title="${esc(slot.map(x => DB[x].name).join(', '))}">${av(slot[0], 'sm')}${esc(DB[slot[0]].name)}${slot.length > 1 ? ` 외 ${slot.length - 1}` : ''}</span>`;
   return `<h2 class="sec-h">유명 엔진</h2>
     <p class="legend">커뮤니티에서 이름으로 불리는 코어 조합입니다. 파티에 엔진이 완성되면 시너지에 가산되고, 1자리만 비면 파티 카드에 채울 후보를 알려 줍니다. 회색 점선은 아직 없는 자리이며, 마우스를 올리면 들어갈 수 있는 캐릭터가 모두 보입니다.</p>
     <div class="egrid">${rows.map(({ e, fill, miss }) => `<div class="ecard">
@@ -1124,7 +1151,7 @@ function renderMeta() {
   const ready = rows.filter(r => !r.missing.length).sort((a, b) => b.est - a.est);
   const near = rows.filter(r => r.missing.length === 1).slice(0, 4);
   const shown = rows.filter(r => metaFilter === 'all' || (metaFilter === 'ready' ? !r.missing.length : r.missing.length === 1));
-  const memberChips = r => r.ids.map((id, i) => `<span class="mchip${S.roster[id] ? ' own' : ''}${i === 0 ? ' lead' : ''}"><span class="dot" style="--c:${elc(DB[id].el)}"></span>${esc(DB[id].name)}</span>`).join('');
+  const memberChips = r => r.ids.map((id, i) => `<span class="mchip${S.roster[id] ? ' own' : ''}${i === 0 ? ' lead' : ''}">${av(id, 'sm')}${esc(DB[id].name)}</span>`).join('');
   const tag = r => r.note === 'est' ? '<span class="chip">출처 추정치</span>' : r.note.startsWith('team:') ? `<span class="chip" title="실측 출처에 멤버가 없어 ${r.note.slice(5)} 대표 조합을 표시">조합: ${r.note.slice(5)}</span>` : '';
   v.innerHTML = `<div class="bar"><h2>메타 파티 · 엔진</h2>
       <div class="actions"><label class="inline-sel" for="meta-filter">보기 <select id="meta-filter">
@@ -1165,7 +1192,7 @@ function renderGrowth(ranked) {
     const tier = a.cost < 200 ? ['lo', '저비용'] : a.cost < 500 ? ['md', '중간'] : ['hi', '장기 파밍'];
     const where = a.idle ? '현재 어느 파티에도 없음' : a.touched.join(', ');
     return `<div class="gitem"><span class="no">${i + 1}</span>
-      <div style="min-width:0"><div class="what"><span class="dot" style="--c:${elc(d.el)};display:inline-block;margin-right:6px"></span>${esc(a.what)}</div>
+      <div style="min-width:0"><div class="what">${av(a.id, 'sm')}${esc(a.what)}</div>
       <div class="why">${esc(a.why)} · ${esc(where)}</div></div>
       <div class="nums"><div class="gain">${a.idle ? '참고 ' : '+'}${a.gain.toFixed(2)}</div><span class="cost ${tier[0]}">${tier[1]} · 약 ${a.cost} 레진</span></div></div>`;
   };
