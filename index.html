@@ -215,6 +215,7 @@ textarea { font-family: var(--f-mono); font-size: 12px; min-height: 160px; }
       <a class="btn ghost sm" href="guide.html">성유물 추천</a>
       <a class="btn ghost sm" href="stats.html">종결 스탯 도감</a>
       <span class="sync" id="sync" role="status"></span>
+      <button class="btn sm" id="btn-login" type="button" hidden>Google 로그인</button>
       <button class="btn ghost sm" id="btn-backup" type="button">백업 · 불러오기</button>
     </div>
   </header>
@@ -316,7 +317,7 @@ textarea { font-family: var(--f-mono); font-size: 12px; min-height: 160px; }
 <dialog id="dlg-backup">
   <div class="dlg">
     <div class="dlg-head"><h2>백업 · 불러오기</h2><button class="btn ghost sm" type="button" data-close>닫기</button></div>
-    <p class="muted" style="margin:0">claude.ai에 로그인한 상태로 열면 데이터가 계정에 자동 저장되어 다른 기기에서도 그대로 보입니다. 로그인하지 않고 쓸 때나 다른 계정으로 옮길 때만 아래 내용을 복사해 두었다가 붙여넣고 불러오세요.</p>
+    <p class="muted" style="margin:0">claude.ai에서 열거나 오른쪽 위 Google 로그인을 하면 데이터가 계정에 자동 저장되어 다른 기기에서도 그대로 보입니다. 로그인하지 않고 쓸 때나 다른 계정으로 옮길 때만 아래 내용을 복사해 두었다가 붙여넣고 불러오세요.</p>
     <textarea id="bk-text" spellcheck="false"></textarea>
     <div class="dlg-foot">
       <button class="btn" type="button" id="bk-copy">복사</button>
@@ -1458,14 +1459,9 @@ async function push(retried) {
   pushing = false;
   if (pushAgain) { pushAgain = false; push(); }
 }
-async function initSync() {
-  const use = window.claude && window.claude.use;
-  if (!use) { setSync('이 브라우저에만 저장'); return; }
-  setSync('계정 연결 중…');
-  const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
-  const uid = user ? await user.id() : null;
-  if (!db || !uid) { setSync('로그인하지 않아 이 브라우저에만 저장'); return; }
-  const ref = db.doc(`data/users/${uid}/state`);
+// 저장소 문서(get · set · onSnapshot)에 연결: claude.ai db와 Firebase Firestore가 같은 모양이라 둘 다 이 함수로 처리
+let unsubCloud = null;
+async function connect(ref) {
   let snap;
   try { snap = await ref.get(); } catch (e) { setSync('계정 연결 실패 — 이 브라우저에만 저장', 'bad'); return; }
   cloud = ref;
@@ -1475,11 +1471,56 @@ async function initSync() {
   else if (!S.sample) { S.savedAt = S.savedAt || Date.now(); push(); }
   else setSync('☁ 계정 연결됨 — 저장하면 계정에 보관', 'ok');
   // 다른 기기에서 저장하면 실시간으로 반영
-  ref.onSnapshot(s => {
+  unsubCloud = ref.onSnapshot(s => {
     const x = s.exists && s.data();
     if (!x || !x.json || s.metadata.hasPendingWrites || (x.at || 0) <= cloudAt) return;
     if (adopt(x.json, x.at)) setSync('☁ 다른 기기의 변경을 불러옴', 'ok');
   }, () => setSync('계정 실시간 연결 끊김 — 새로고침하면 다시 연결', 'bad'));
+}
+// claude.ai 밖(GitHub Pages 등)에서는 Google 로그인 + Firebase Firestore(users/<uid>)에 저장. 설정이 비어 있으면 브라우저 저장만 씀
+// Firebase 웹 설정은 공개되어도 되는 값(접근 제한은 Firestore 규칙이 맡음: users/<uid>는 본인만)
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyChYr0vyOJNxYXFJovig6Gsg-94LbMJCag',
+  authDomain: 'genshin-346e6.firebaseapp.com',
+  projectId: 'genshin-346e6',
+  storageBucket: 'genshin-346e6.firebasestorage.app',
+  messagingSenderId: '837973963041',
+  appId: '1:837973963041:web:418445be3ee2c09c964e60',
+};
+const FB = 'https://cdn.jsdelivr.net/npm/firebase@10.12.2/';
+const loadScript = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+async function initGoogle() {
+  if (!FIREBASE_CONFIG) { setSync('이 브라우저에만 저장'); return; }
+  setSync('Google 로그인 준비 중…');
+  try { for (const f of ['firebase-app-compat.js', 'firebase-auth-compat.js', 'firebase-firestore-compat.js']) await loadScript(FB + f); }
+  catch (e) { setSync('Google 로그인 모듈을 불러오지 못함 — 이 브라우저에만 저장', 'bad'); return; }
+  firebase.initializeApp(FIREBASE_CONFIG);
+  const auth = firebase.auth(), fs = firebase.firestore(), btn = $('#btn-login');
+  btn.hidden = false;
+  btn.addEventListener('click', () => {
+    if (auth.currentUser) { auth.signOut(); return; }
+    const p = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(p).catch(e => {
+      if (e.code === 'auth/popup-blocked') auth.signInWithRedirect(p);
+      else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') toast('Google 로그인 실패: ' + e.code);
+    });
+  });
+  auth.onAuthStateChanged(u => {
+    if (unsubCloud) { unsubCloud(); unsubCloud = null; }
+    cloud = null; cloudAt = 0;
+    if (!u) { btn.textContent = 'Google 로그인'; setSync('로그인하면 Google 계정에 자동 저장'); return; }
+    btn.textContent = '로그아웃'; btn.title = u.email || '';
+    setSync('계정 연결 중…');
+    connect(fs.doc(`users/${u.uid}`));
+  });
+}
+async function initSync() {
+  if (!(window.claude && window.claude.use)) return initGoogle();
+  setSync('계정 연결 중…');
+  const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+  const uid = user ? await user.id() : null;
+  if (!db || !uid) { setSync('로그인하지 않아 이 브라우저에만 저장'); return; }
+  connect(db.doc(`data/users/${uid}/state`));
 }
 
 render();
