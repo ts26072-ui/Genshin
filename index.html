@@ -97,6 +97,23 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .issues li { display: grid; grid-template-columns: 6px 1fr; gap: 8px; font-size: 13px; line-height: 1.45; }
 .issues li::before { content: ""; width: 6px; border-radius: 3px; background: var(--sev); }
 .sev-hi { --sev: var(--bad); } .sev-md { --sev: var(--warn); } .sev-lo { --sev: var(--line); } .sev-ok { --sev: var(--good); }
+/* 파티 한 줄 요약 */
+.plist { gap: 8px; }
+.prow { border: 1px solid var(--line); border-radius: 12px; }
+.prow > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 30px 34px 44px minmax(0, 1fr) auto auto 14px; gap: 10px; align-items: center; padding: 10px 16px; }
+.prow > summary::-webkit-details-marker { display: none; }
+.prow .rank { text-align: right; }
+.prow .val { font-size: 16px; }
+.prow .pn { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow .faces { display: flex; gap: 3px; }
+.prow .faces .av { --s: 26px; }
+.prow .mini { display: flex; gap: 10px; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.prow .chev { width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); margin-top: -4px; transition: transform .15s; }
+.prow[open] .chev { transform: rotate(-135deg); margin-top: 4px; }
+.prow > summary:hover .pn { color: var(--gold); }
+.prow .party { grid-template-columns: minmax(0, 1fr) minmax(0, 300px); border: 0; border-top: 1px solid var(--line); border-radius: 0; margin: 0 12px; padding: 14px 4px 12px; background: none; }
+.grade.sm { width: 34px; height: 34px; font-size: 17px; border-width: 1.5px; }
+.prow .grade.sm { box-shadow: none; }
 .pfoot { grid-column: 1 / -1; display: flex; gap: 6px; justify-content: flex-end; border-top: 1px solid var(--line); padding-top: 10px; margin-top: -4px; }
 
 /* roster */
@@ -245,11 +262,11 @@ header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 
 .elchip[aria-pressed="true"] { background: #ECE5D8; color: #3B4255; border-color: #fff; }
 input, select, textarea { border-radius: 8px; }
 /* 종이 창: 크림색 패널(다크 모드는 남색) + 안쪽 금선 + 네 모서리 금색 꺾쇠 */
-.panel, .party, .gitem, .msum, .mrow, .ecard, dialog, .grid > .card, .list > .card, .ccard .info, .notice, .preview {
+.panel, .prow, .gitem, .msum, .mrow, .ecard, dialog, .grid > .card, .list > .card, .ccard .info, .notice, .preview {
   --bg: var(--p-bg); --surface: var(--p-surface); --sunk: var(--p-sunk); --ink: var(--p-ink); --muted: var(--p-muted); --line: var(--p-line);
   --gold: var(--p-gold); --gold-soft: var(--p-gold-soft); --good: var(--p-good); --warn: var(--p-warn); --bad: var(--p-bad);
   color: var(--ink); }
-.panel, .party, .gitem, .msum, .mrow, .ecard, dialog, .grid > .card, .list > .card {
+.panel, .prow, .gitem, .msum, .mrow, .ecard, dialog, .grid > .card, .list > .card {
   --cb: color-mix(in srgb, var(--gold) 80%, transparent);
   background-color: var(--surface); border-color: var(--line);
   box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px color-mix(in srgb, var(--gold) 35%, transparent), 0 6px 18px rgb(0 0 0 / .28);
@@ -269,7 +286,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 .bar h2::before, .sec-h::before { content: "◆"; color: var(--gold); font-size: .55em; margin-right: 8px; vertical-align: .25em; }
 .toast { background: #ECE5D8; color: #3B4255; box-shadow: 0 0 0 1px #fff8, 0 6px 18px rgb(0 0 0 / .4); }
 @media (max-width: 760px) {
-  .party { grid-template-columns: 1fr; }
+  .party, .prow .party { grid-template-columns: 1fr; }
+  .prow > summary { grid-template-columns: 24px 30px 38px minmax(0, 1fr) auto 12px; gap: 8px; padding: 10px 12px; }
+  .prow .mini { display: none; }
+  .prow .faces .av { --s: 22px; }
+  .grade.sm { width: 30px; height: 30px; font-size: 15px; }
   .seal { flex-direction: row; justify-content: flex-start; gap: 12px; }
   .grade { width: 52px; height: 52px; font-size: 24px; }
   .members { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1036,6 +1057,7 @@ function renderParties(ranked) {
     v.innerHTML = head + `<div class="empty-state"><p>아직 파티가 없습니다.</p><p>먼저 <b>내 캐릭터</b>에 보유 캐릭터를 등록한 뒤, 새 파티를 만들어 4명을 배치하세요.</p></div>`;
     return;
   }
+  const open = new Set([...v.querySelectorAll('details.prow[open]')].map(d => d.dataset.pid));
   v.innerHTML = head + `<div class="plist">` + ranked.map(({ p, e }, i) => {
     const mem = p.m.map(id => {
       if (!id || !S.roster[id]) return `<div class="mem empty">빈 슬롯</div>`;
@@ -1046,10 +1068,15 @@ function renderParties(ranked) {
     }).join('');
     const chips = [...e.arch.map(a => `<span class="chip rx">✦ ${esc(a)}</span>`), ...e.rx.map(r => `<span class="chip rx">${r}</span>`), ...e.res.map(r => `<span class="chip">${r}</span>`)].join('');
     const iss = e.issues.length ? e.issues.slice(0, 5).map(([s, t]) => `<li class="sev-${s}">${esc(t)}</li>`).join('') : `<li class="sev-ok">눈에 띄는 약점 없음</li>`;
-    return `<article class="party">
-      <div class="seal"><span class="rank">#${i + 1}</span><span class="grade g-${e.grade}">${e.grade}</span><span class="val">${e.value.toFixed(1)}</span></div>
+    // 한 줄 요약(순위·등급·가치·이름·멤버·세부 점수), 누르면 상세가 펼쳐짐
+    const faces = p.m.map(id => id && S.roster[id] ? av(id) : `<span class="av" style="--c:var(--line)"></span>`).join('');
+    return `<details class="prow"${open.has(String(p.pid)) ? ' open' : ''} data-pid="${p.pid}">
+      <summary><span class="rank">#${i + 1}</span><span class="grade sm g-${e.grade}">${e.grade}</span><span class="val">${e.value.toFixed(1)}</span>
+        <b class="pn">${esc(p.name)}</b><span class="faces">${faces}</span>
+        <span class="mini mono"><span title="딜량">딜 ${e.dpsScore.toFixed(0)}</span><span title="육성">육 ${e.build.toFixed(0)}</span><span title="시너지">시 ${e.syn.toFixed(0)}</span></span>
+        <span class="chev" aria-hidden="true"></span></summary>
+      <div class="party">
       <div style="min-width:0">
-        <div class="pname"><h2>${esc(p.name)}</h2></div>
         <div class="members">${mem}</div>
         <div class="split">
           <span class="muted" title="추정 딜량 ÷ 실측 1위 파티 딜량 × 100 (가치의 50%)">딜량</span><div class="meter"><i style="width:${e.dpsScore}%;--c:var(--pyro)"></i></div><span class="mono">${e.dpsScore.toFixed(0)}</span>
@@ -1061,7 +1088,7 @@ function renderParties(ranked) {
       </div>
       <div class="diag"><h3>부족한 점</h3><ul class="issues">${iss}</ul></div>
       <div class="pfoot"><button class="btn sm" type="button" data-act="edit-party" data-id="${p.pid}">편집</button></div>
-    </article>`;
+    </div></details>`;
   }).join('') + `</div>`;
 }
 
