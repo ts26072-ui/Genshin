@@ -5,35 +5,28 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <style>
 /* Layout: 좁은 단일 열 작업대 — 상단 탭, 파티 카드는 등급 인장 + 멤버 + 진단 3단 */
+/* 색 토큰: 바깥(밤하늘 바탕) 토큰과 종이 패널(--p-*) 토큰. 다크 모드는 패널도 남색 */
 :root {
-  --bg: #ECE5D8;
-  --surface: #F8F4EC;
-  --sunk: #E2D9C8;
-  --ink: #3B4255;
-  --muted: #6F695E;
-  --line: #D6CBB6;
-  --gold: #9A7230;
-  --gold-soft: #F1E5C9;
-  --good: #2F7D55;
-  --warn: #A3670F;
-  --bad: #B4463A;
-  --pyro: #E0603F; --hydro: #3A8FD9; --anemo: #2FAF92; --electro: #9A67D8;
-  --dendro: #6FA531; --cryo: #5BB6CF; --geo: #CE9A2C;
+  --sky: #121827;
+  --bg: #1A2236; --surface: #1F2840; --sunk: #2A3450; --ink: #ECE5D8; --muted: #AEB3C2; --line: #3A4562;
+  --gold: #D3BC8E; --gold-soft: #3A3324; --good: #7BCB9A; --warn: #E8B65C; --bad: #F08A7E;
+  --p-bg: #E2D9C8; --p-surface: #ECE5D8; --p-sunk: #D8CDB8; --p-ink: #3B4255; --p-muted: #6F695E; --p-line: #CDBFA5;
+  --p-gold: #9A7230; --p-gold-soft: #F4E8CC; --p-good: #2F7D55; --p-warn: #A3670F; --p-bad: #B4463A;
+  --pyro: #E0603F; --hydro: #3A8FD9; --anemo: #2FAF92; --electro: #9A67D8; --dendro: #6FA531; --cryo: #5BB6CF; --geo: #CE9A2C;
   --f-display: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   --f-body: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   --f-mono: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #151823; --surface: #1F2333; --sunk: #2A2F42; --ink: #ECE5D8; --muted: #A9A294;
-    --line: #383D52; --gold: #D3BC8E; --gold-soft: #2E2A1E; --good: #6CC596; --warn: #E2AE55; --bad: #EC7F72;
-    color-scheme: dark;
+    --p-bg: #1A2236; --p-surface: #232C45; --p-sunk: #2C3754; --p-ink: #ECE5D8; --p-muted: #AEB3C2; --p-line: #414D6D;
+    --p-gold: #D3BC8E; --p-gold-soft: #3A3324; --p-good: #7BCB9A; --p-warn: #E8B65C; --p-bad: #F08A7E;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #151823; --surface: #1F2333; --sunk: #2A2F42; --ink: #ECE5D8; --muted: #A9A294;
-  --line: #383D52; --gold: #D3BC8E; --gold-soft: #2E2A1E; --good: #6CC596; --warn: #E2AE55; --bad: #EC7F72;
-  color-scheme: dark;
+  --p-bg: #1A2236; --p-surface: #232C45; --p-sunk: #2C3754; --p-ink: #ECE5D8; --p-muted: #AEB3C2; --p-line: #414D6D;
+  --p-gold: #D3BC8E; --p-gold-soft: #3A3324; --p-good: #7BCB9A; --p-warn: #E8B65C; --p-bad: #F08A7E;
 }
 * { box-sizing: border-box; }
 body {
@@ -198,30 +191,83 @@ textarea { font-family: var(--f-mono); font-size: 12px; min-height: 160px; }
 .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 999px; font-size: 13px; z-index: 50; }
 .foot-note { margin-top: 32px; font-size: 12.5px; color: var(--muted); max-width: 72ch; }
 
-/* HoYoverse 풍 테마: 크림 종이 바탕 + 남색 글자 + 금색 테두리, 알약 버튼과 탭 */
-body { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-h1 { font-weight: 900; letter-spacing: -0.03em; }
+/* 원신 메뉴 풍 테마: 별이 뜬 남색 밤하늘 바탕 위에 크림색 종이 창, 금색 모서리 장식, 원 아이콘이 붙은 크림색 알약 버튼 */
+html { background: var(--sky); }
+body {
+  background-color: var(--sky);
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgb(255 255 255 / .7), transparent 60%),
+    radial-gradient(1px 1px at 68% 9%, rgb(255 255 255 / .55), transparent 60%),
+    radial-gradient(1.5px 1.5px at 83% 31%, rgb(255 244 214 / .8), transparent 60%),
+    radial-gradient(1px 1px at 37% 42%, rgb(255 255 255 / .4), transparent 60%),
+    radial-gradient(1px 1px at 55% 74%, rgb(255 255 255 / .45), transparent 60%),
+    radial-gradient(1.5px 1.5px at 22% 86%, rgb(255 244 214 / .6), transparent 60%),
+    radial-gradient(1px 1px at 91% 66%, rgb(255 255 255 / .5), transparent 60%),
+    radial-gradient(70% 55% at 85% -5%, rgb(96 128 196 / .35), transparent 70%),
+    radial-gradient(60% 45% at 0% 0%, rgb(211 188 142 / .14), transparent 70%),
+    linear-gradient(180deg, #1B2440 0%, #121827 55%, #0E1320 100%);
+  background-size: 260px 260px, 260px 260px, 260px 260px, 260px 260px, 260px 260px, 260px 260px, 260px 260px, auto, auto, auto;
+  background-attachment: fixed;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+}
+body::before { background: var(--sky); }
+h1 { font-weight: 700; letter-spacing: -0.02em; color: #F5EFE3; text-shadow: 0 2px 12px rgb(0 0 0 / .4); }
+h1 .star { color: var(--gold); text-shadow: 0 0 14px rgb(211 188 142 / .7); }
 h2 { font-weight: 700; letter-spacing: -0.02em; }
-h1 .star { color: var(--gold); text-shadow: 0 0 10px color-mix(in srgb, var(--gold) 45%, transparent); }
-:root { --frame: color-mix(in srgb, var(--gold) 38%, transparent); }
-.btn { border-radius: 999px; padding-inline: 16px; transition: border-color .15s, background .15s; }
-.btn.sm { padding-inline: 12px; }
-.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); gap: 8px; }
-.btn.primary::before { content: ""; width: 14px; height: 14px; border-radius: 50%; flex: none; border: 2px solid var(--gold); box-sizing: border-box; margin-left: -6px; }
-.btn.primary:hover { border-color: var(--gold); }
-.tabs, .sitenav { border-bottom: 0; gap: 6px; padding-block: 8px; }
-.tab, .sitenav a { border: 0; border-radius: 999px; padding: 8px 16px; transition: background .15s, color .15s; }
-.tab:hover, .sitenav a:hover { background: var(--sunk); }
-.tab[aria-selected="true"], .sitenav a[aria-current="page"] { background: var(--ink); color: var(--bg); box-shadow: inset 0 0 0 1px var(--gold); }
-.tab[aria-selected="true"] .n { color: inherit; opacity: .7; }
-.elchip { padding: 4px 12px; }
-.elchip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+/* 머리말 아래 장식선: 양끝이 흐려지는 금색 선 + 가운데 마름모 */
+header.top { position: relative; padding-bottom: 22px; }
+header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 10px; pointer-events: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='10'%3E%3Cpath d='M17 0l5 5-5 5-5-5z' fill='%23D3BC8E'/%3E%3Cpath d='M5 5l3-3 3 3-3 3zM23 5l3-3 3 3-3 3z' fill='%23D3BC8E' opacity='.55'/%3E%3C/svg%3E") center / 34px 10px no-repeat,
+    linear-gradient(90deg, transparent, rgb(211 188 142 / .6) 30%, rgb(211 188 142 / .6) 70%, transparent) center / 100% 1px no-repeat; }
+/* 탭: 어두운 띠 위에 고른 탭만 크림색으로 */
+.tabs, .sitenav { border-bottom: 0; gap: 4px; padding: 6px; border-radius: 999px; background: rgb(14 19 32 / .82); backdrop-filter: blur(8px);
+  box-shadow: inset 0 0 0 1px rgb(211 188 142 / .25); width: fit-content; max-width: 100%; }
+.tab, .sitenav a { border: 0; border-radius: 999px; padding: 7px 16px; color: #C9CCD6; transition: background .15s, color .15s; }
+.tab:hover, .sitenav a:hover { color: #fff; background: rgb(255 255 255 / .07); }
+.tab[aria-selected="true"], .sitenav a[aria-current="page"] { background: #ECE5D8; color: #3B4255; box-shadow: 0 0 0 1px #fff8, 0 0 12px rgb(255 244 214 / .35); }
+.tab[aria-selected="true"] .n { color: inherit; opacity: .65; }
+/* 버튼: 원신 확인/취소 버튼처럼 크림색 알약 + 왼쪽 원 아이콘 */
+.btn { border-radius: 999px; padding: 7px 18px; background: #ECE5D8; color: #3B4255; border: 1px solid #D3C6AC; font-weight: 700; gap: 8px;
+  transition: box-shadow .15s, transform .1s; }
+.btn:hover { border-color: #fff; box-shadow: 0 0 0 2px rgb(255 255 255 / .55), 0 0 14px rgb(255 244 214 / .35); }
+.btn:active { transform: scale(.97); }
+.btn.sm { padding: 4px 12px; font-weight: 600; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn.danger { color: #B4463A; }
+.btn.primary { background: #ECE5D8; color: #3B4255; border-color: #D3C6AC; }
+.btn.primary::before { content: ""; width: 18px; height: 18px; border-radius: 50%; flex: none; margin-left: -8px; box-sizing: border-box;
+  background: radial-gradient(circle, transparent 3.5px, #F2C55C 4px 5.5px, transparent 6px), #353D4F; }
+.btn[data-close]::before { content: "✕"; width: 18px; height: 18px; border-radius: 50%; flex: none; margin-left: -8px; display: grid; place-items: center;
+  font-size: 10px; color: #6FB7F2; background: #353D4F; }
+/* 필터 칩 */
+.elchip { padding: 4px 12px; background: rgb(14 19 32 / .6); }
+.elchip[aria-pressed="true"] { background: #ECE5D8; color: #3B4255; border-color: #fff; }
 input, select, textarea { border-radius: 8px; }
+/* 종이 창: 크림색 패널(다크 모드는 남색) + 안쪽 금선 + 네 모서리 금색 꺾쇠 */
+.panel, .party, .gitem, .msum, .mrow, .ecard, dialog, .grid > .card, .list > .card, .ccard .info, .notice, .preview {
+  --bg: var(--p-bg); --surface: var(--p-surface); --sunk: var(--p-sunk); --ink: var(--p-ink); --muted: var(--p-muted); --line: var(--p-line);
+  --gold: var(--p-gold); --gold-soft: var(--p-gold-soft); --good: var(--p-good); --warn: var(--p-warn); --bad: var(--p-bad);
+  color: var(--ink); }
 .panel, .party, .gitem, .msum, .mrow, .ecard, dialog, .grid > .card, .list > .card {
-  border-color: var(--line); box-shadow: inset 0 0 0 3px var(--surface), inset 0 0 0 4px var(--frame); }
+  --cb: color-mix(in srgb, var(--gold) 80%, transparent);
+  background-color: var(--surface); border-color: var(--line);
+  box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px color-mix(in srgb, var(--gold) 35%, transparent), 0 6px 18px rgb(0 0 0 / .28);
+  background-image:
+    linear-gradient(var(--cb), var(--cb)), linear-gradient(var(--cb), var(--cb)),
+    linear-gradient(var(--cb), var(--cb)), linear-gradient(var(--cb), var(--cb)),
+    linear-gradient(var(--cb), var(--cb)), linear-gradient(var(--cb), var(--cb)),
+    linear-gradient(var(--cb), var(--cb)), linear-gradient(var(--cb), var(--cb));
+  background-size: 14px 2px, 2px 14px, 14px 2px, 2px 14px, 14px 2px, 2px 14px, 14px 2px, 2px 14px;
+  background-position: 4px 4px, 4px 4px, calc(100% - 4px) 4px, calc(100% - 4px) 4px, 4px calc(100% - 4px), 4px calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) calc(100% - 4px);
+  background-repeat: no-repeat; }
+.notice, .ccard .info { background: var(--surface); }
+.tabs, .sitenav { scrollbar-width: none; }
+dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 .grade { box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px currentColor; font-weight: 900; }
 .gitem .no { font-weight: 900; }
-
+.bar h2::before, .sec-h::before { content: "◆"; color: var(--gold); font-size: .55em; margin-right: 8px; vertical-align: .25em; }
+.toast { background: #ECE5D8; color: #3B4255; box-shadow: 0 0 0 1px #fff8, 0 6px 18px rgb(0 0 0 / .4); }
 @media (max-width: 760px) {
   .party { grid-template-columns: 1fr; }
   .seal { flex-direction: row; justify-content: flex-start; gap: 12px; }
@@ -355,8 +401,8 @@ input, select, textarea { border-radius: 8px; }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261023d"></script>
-<script src="weapons.js?v=20261023d"></script>
+<script src="builds.js?v=20261023e"></script>
+<script src="weapons.js?v=20261023e"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
