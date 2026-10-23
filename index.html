@@ -127,6 +127,13 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .cost { font-size: 12px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); }
 .cost.lo { color: var(--good); } .cost.md { color: var(--warn); } .cost.hi { color: var(--bad); }
 .legend { font-size: 13px; color: var(--muted); margin: -6px 0 14px; max-width: 72ch; }
+.sync { align-self: center; font-size: 12.5px; color: var(--muted); }
+.sync[data-tone="ok"] { color: var(--good); } .sync[data-tone="bad"] { color: var(--bad); }
+.idle-box { margin-top: 22px; }
+.idle-box summary { cursor: pointer; font-weight: 600; color: var(--muted); padding: 6px 0; }
+.idle-box .legend { margin: 6px 0 10px; }
+.idle-box .gitem { opacity: 0.75; }
+.idle-box .gain { color: var(--muted); font-size: 15px; }
 
 /* meta teams */
 .dps-line { margin: 10px 0 0; font-size: 13px; }
@@ -207,6 +214,7 @@ textarea { font-family: var(--f-mono); font-size: 12px; min-height: 160px; }
       <a class="btn ghost sm" href="rate.html">성유물 감정</a>
       <a class="btn ghost sm" href="guide.html">성유물 추천</a>
       <a class="btn ghost sm" href="stats.html">종결 스탯 도감</a>
+      <span class="sync" id="sync" role="status"></span>
       <button class="btn ghost sm" id="btn-backup" type="button">백업 · 불러오기</button>
     </div>
   </header>
@@ -308,7 +316,7 @@ textarea { font-family: var(--f-mono); font-size: 12px; min-height: 160px; }
 <dialog id="dlg-backup">
   <div class="dlg">
     <div class="dlg-head"><h2>백업 · 불러오기</h2><button class="btn ghost sm" type="button" data-close>닫기</button></div>
-    <p class="muted" style="margin:0">데이터는 이 브라우저에만 저장됩니다. 아래 내용을 복사해 두었다가 다른 기기에서 붙여넣고 불러오세요.</p>
+    <p class="muted" style="margin:0">claude.ai에 로그인한 상태로 열면 데이터가 계정에 자동 저장되어 다른 기기에서도 그대로 보입니다. 로그인하지 않고 쓸 때나 다른 계정으로 옮길 때만 아래 내용을 복사해 두었다가 붙여넣고 불러오세요.</p>
     <textarea id="bk-text" spellcheck="false"></textarea>
     <div class="dlg-foot">
       <button class="btn" type="button" id="bk-copy">복사</button>
@@ -543,7 +551,8 @@ function sampleState() {
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
 if (!S || !S.roster || !S.parties) S = sampleState();
-function save() { S.sample = false; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+// 브라우저에 바로 저장하고, 계정 연결이 되어 있으면 잠시 뒤 계정에도 올림(savedAt으로 기기 간 최신 판단)
+function save() { S.sample = false; S.savedAt = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} queuePush(); }
 
 // ───────── 계산 ─────────
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
@@ -875,25 +884,35 @@ function actionsFor(id) {
   if (c.key < kt * 0.85) add(`${d.name} ${SCALE[d.scale].n} 보강`, `${c.key.toLocaleString()} → ${Math.round(kt * 0.95).toLocaleString()}`, 500, n => n.key = Math.round(kt * 0.95));
   return out;
 }
-function growthList(ranked) {
-  const weightOf = new Map(ranked.map((r, i) => [r.p.pid, i < 2 ? 1 : 0.7]));
-  const all = [];
+// 파티에 들어간 캐릭터만 순위에 올리고(여러 파티에 겹치면 효과가 합산됨), 파티 밖 캐릭터는 참고 목록으로 따로 둠
+// only: 특정 파티 pid만 보기(그 파티 가중치 1)
+function growthList(ranked, only) {
+  const weightOf = new Map(ranked.map((r, i) => [r.p.pid, only || i < 2 ? 1 : 0.7]));
+  const parties = only ? S.parties.filter(p => p.pid === only) : S.parties;
+  const inParty = [], idle = [];
   for (const id of Object.keys(S.roster)) {
-    const inParties = S.parties.filter(p => p.m.includes(id));
+    const mine = parties.filter(p => p.m.includes(id));
+    if (only && !mine.length) continue;
+    const isIdle = !S.parties.some(p => p.m.includes(id));
     for (const a of actionsFor(id)) {
+      if (isIdle) {
+        const gain = (charCalc(a.next).score - charCalc(S.roster[id]).score) * 0.15;
+        if (gain >= 0.05) idle.push({ ...a, gain, touched: [], idle: true, rank: gain / Math.sqrt(a.cost) });
+        continue;
+      }
       let gain = 0;
       const touched = [];
-      for (const p of inParties) {
+      for (const p of mine) {
         const before = ranked.find(r => r.p.pid === p.pid).e.value;
         const g = (evalParty(p, a.next).value - before) * weightOf.get(p.pid);
         if (g > 0.01) { gain += g; touched.push(p.name); }
       }
-      if (!inParties.length) gain = (charCalc(a.next).score - charCalc(S.roster[id]).score) * 0.15;
       if (gain < 0.05) continue;
-      all.push({ ...a, gain, touched, idle: !inParties.length, rank: gain / Math.sqrt(a.cost) });
+      inParty.push({ ...a, gain, touched, idle: false, rank: gain / Math.sqrt(a.cost) });
     }
   }
-  return all.sort((x, y) => y.rank - x.rank);
+  const byRank = (x, y) => y.rank - x.rank;
+  return { inParty: inParty.sort(byRank), idle: idle.sort(byRank) };
 }
 
 // ───────── 렌더 ─────────
@@ -967,8 +986,9 @@ function renderRoster() {
 }
 
 // ───────── 메타 파티 실측 딜량 ─────────
-// genshin.im 'Measured Team DPS' (원신 7.1, 2026년 10월 열람): 허수아비 대상 3~6사이클 실측, 돌파·무기 조건은 미표기.
+// genshin.im 'Measured Team DPS' (원신 7.1, 2026-10-22 갱신판): 허수아비 대상 3~6사이클 실측, 돌파·무기 조건은 미표기.
 // [팀 DPS, 출처 표기, 멤버(첫째가 메인)] — est: 출처에서 '추정치'로 표시 / vesna·mizuki·얼음 여행자는 출처에 멤버가 없어 다른 자료의 대표 조합을 붙임
+// wanderer는 10-22 갱신판에서 멤버가 빠져, 직전 genshin.im 표의 조합을 붙임
 const META = [
   [247000, '', ['sandrone','yae','escoffier','odette']],
   [223000, 'team:GamsGo', ['vesna','vodyanitsa','odette','faruzan']],
@@ -985,10 +1005,10 @@ const META = [
   [166000, 'est', ['cyno','odette','nicole','yae']],
   [164000, '', ['columbina','ineffa','lauma','aino']],
   [164000, '', ['roen','escoffier','mona','vodyanitsa']],
+  [164000, '', ['varesa','iansan','durin','chevreuse']],
   [159000, '', ['barca','prune','durin','nicole']],
+  [158000, 'est', ['clorinde','durin','chevreuse','fischl']],
   [156000, '', ['kinich','iansan','durin','nicole']],
-  [155000, '', ['varesa','nicole','durin','iansan']],
-  [146000, 'est', ['clorinde','durin','chevreuse','fischl']],
   [138000, '', ['sucrose','ineffa','columbina','linnea']],
   [137000, '', ['linnea','chiori','columbina','ineffa']],
   [136000, '', ['neuvillette','furina','vodyanitsa','escoffier']],
@@ -996,26 +1016,30 @@ const META = [
   [131000, '', ['navia','columbina','ineffa','linnea']],
   [127000, '', ['klee','nicole','emilie','durin']],
   [127000, '', ['venti','durin','faruzan','nicole']],
+  [123000, 'team:genshin.im 이전 표', ['wanderer','faruzan','durin','nicole']],
   [121000, '', ['durin','fischl','chevreuse','bennett']],
   [121000, '', ['hutao','fischl','yelan','mona']],
-  [120000, '', ['diluc','bennett','xianyun','citlali']],
   [119000, '', ['noelle','columbina','ineffa','linnea']],
   [118000, '', ['razor','chevreuse','durin','nicole']],
   [118000, '', ['itto','columbina','illuga','linnea']],
   [115000, '', ['yelan','columbina','ineffa','sucrose']],
   [112000, '', ['raiden','chevreuse','durin','nicole']],
+  [112000, '', ['diluc','bennett','xianyun','citlali']],
   [110000, '', ['gaming','bennett','xianyun','citlali']],
   [110000, 'est', ['lyney','fischl','chevreuse','durin']],
   [110000, 'est', ['ifa','ineffa','columbina','durin']],
   [110000, '', ['eula','yae','odette','nicole']],
+  [107000, '', ['sethos','columbina','ineffa','sucrose']],
   [105000, '', ['lauma','xingqiu','raiden','yelan']],
   [103000, '', ['zhongli','columbina','xilonen','ineffa']],
-  [103000, '', ['wanderer','faruzan','durin','nicole']],
   [103000, '', ['xiao','faruzan','durin','nicole']],
+  [103000, '', ['keqing','columbina','ineffa','sucrose']],
   [102000, '', ['ganyu','durin','emilie','nicole']],
   [97000, '', ['yoimiya','durin','chevreuse','fischl']],
   [90000, '', ['alhaitham','lauma','columbina','shinobu']],
   [90000, '', ['ayato','ineffa','columbina','sucrose']],
+  [81000, '', ['tighnari','columbina','lauma','shinobu']],
+  [80000, '', ['kaveh','lauma','columbina','shinobu']],
   [77000, '', ['tartaglia','furina','escoffier','vodyanitsa']],
   [65000, '', ['yanfei','durin','fischl','chevreuse']],
 ].map(([dps, note, ids]) => ({ dps, note, ids }));
@@ -1118,26 +1142,40 @@ function renderMeta() {
         <span class="mono mval">${kfmt(r.dps)}</span></div>
       <div class="mfoot">${r.missing.length ? `<span class="muted">보유 ${4 - r.missing.length}/4 · 부족: ${esc(r.missing.map(id => DB[id].name).join(', '))}</span>` : `<span>내 계정 추정 <b class="mono">~${kfmt(r.est)}/초</b> <span class="muted">(육성 배율 ×${(r.est / r.dps).toFixed(2)})</span></span>`}</div>
     </div>`).join('')}</div>
-    <p class="foot-note">출처: <a href="https://genshin.im/measured-dps" target="_blank" rel="noopener">genshin.im Measured Team DPS (7.1)</a>. 베스나 파티 멤버는 <a href="https://www.gamsgo.com/ko/blog/%EC%9B%90%EC%8B%A0-%ED%8B%B0%EC%96%B4%ED%91%9C" target="_blank" rel="noopener">GamsGo 7.1 가이드</a>, 미즈키·얼음 여행자 파티 멤버는 <a href="https://allthings.how/genshin-impact-dps-tier-list/" target="_blank" rel="noopener">AllThings.How 7.0 딜량 순위</a>의 조합입니다. 출처에 멤버가 없는 아야카·응광·코코미·불 여행자는 제외했습니다.</p>`;
+    <p class="foot-note">출처: <a href="https://genshin.im/measured-dps" target="_blank" rel="noopener">genshin.im Measured Team DPS (7.1, 2026-10-22 갱신)</a>. 방랑자 파티 멤버는 갱신판에서 빠져 직전 genshin.im 표의 조합을 그대로 두었고, 베스나 파티 멤버는 <a href="https://www.gamsgo.com/ko/blog/%EC%9B%90%EC%8B%A0-%ED%8B%B0%EC%96%B4%ED%91%9C" target="_blank" rel="noopener">GamsGo 7.1 가이드</a>, 미즈키·얼음 여행자 파티 멤버는 <a href="https://allthings.how/genshin-impact-dps-tier-list/" target="_blank" rel="noopener">AllThings.How 7.0 딜량 순위</a>의 조합입니다. 출처에 멤버가 없는 아야카·응광·코코미·리넷·헤이조·프레미네·불 여행자는 제외했습니다.</p>`;
   $('#meta-filter').value = metaFilter;
   $('#meta-filter').addEventListener('change', e => { metaFilter = e.target.value; try { localStorage.setItem(KEY + ':meta', metaFilter); } catch (er) {} renderMeta(); });
 }
 
+let growthParty = 'all';
+try { growthParty = localStorage.getItem(KEY + ':gp') || 'all'; } catch (e) {}
 function renderGrowth(ranked) {
   const v = $('#view-growth');
-  const list = growthList(ranked);
-  const head = `<div class="bar"><h2>성장 우선순위</h2></div>
-    <p class="legend">각 육성 항목을 적용했을 때 파티 가치가 얼마나 오르는지 계산해, 들인 레진 대비 효과가 큰 순서로 정렬했습니다. 파티 가치의 절반이 추정 딜량이므로, 실측 딜량이 높은 파티의 핵심 멤버를 키울수록 위로 올라옵니다. 상위 2개 파티(나선 비경 전·후반)는 가중치 1, 나머지는 0.7입니다. 레벨·특성·무기 목표는 위에 입력한 모험 등급에서 실제로 올릴 수 있는 값까지만 추천합니다.</p>`;
-  if (!list.length) { v.innerHTML = head + `<div class="empty-state"><p>추천할 육성 항목이 없습니다. 파티에 캐릭터를 배치했는지 확인하세요.</p></div>`; return; }
-  v.innerHTML = head + `<div class="glist">` + list.slice(0, 20).map((a, i) => {
+  if (growthParty !== 'all' && !S.parties.some(p => p.pid === growthParty)) growthParty = 'all';
+  const only = growthParty === 'all' ? null : growthParty;
+  const { inParty, idle } = growthList(ranked, only);
+  const sel = S.parties.length ? `<div class="actions"><label class="inline-sel" for="growth-party">파티 <select id="growth-party">
+      <option value="all">모든 파티</option>${ranked.map(({ p }, i) => `<option value="${p.pid}">#${i + 1} ${esc(p.name)}</option>`).join('')}
+    </select></label></div>` : '';
+  const head = `<div class="bar"><h2>성장 우선순위</h2>${sel}</div>
+    <p class="legend">파티에 들어간 캐릭터만 순위에 올립니다. 각 육성 항목을 적용했을 때 파티 가치가 얼마나 오르는지 계산해, 들인 레진 대비 효과가 큰 순서로 정렬했습니다. 여러 파티에 들어간 캐릭터는 효과가 합산되어 위로 올라오고, 상위 2개 파티(나선 비경 전·후반)는 가중치 1, 나머지는 0.7입니다. 파티를 고르면 그 파티 멤버만 봅니다. 레벨·특성·무기 목표는 위에 입력한 모험 등급에서 실제로 올릴 수 있는 값까지만 추천합니다.</p>`;
+  const item = (a, i) => {
     const d = DB[a.id];
     const tier = a.cost < 200 ? ['lo', '저비용'] : a.cost < 500 ? ['md', '중간'] : ['hi', '장기 파밍'];
     const where = a.idle ? '현재 어느 파티에도 없음' : a.touched.join(', ');
     return `<div class="gitem"><span class="no">${i + 1}</span>
       <div style="min-width:0"><div class="what"><span class="dot" style="--c:${elc(d.el)};display:inline-block;margin-right:6px"></span>${esc(a.what)}</div>
       <div class="why">${esc(a.why)} · ${esc(where)}</div></div>
-      <div class="nums"><div class="gain">+${a.gain.toFixed(2)}</div><span class="cost ${tier[0]}">${tier[1]} · 약 ${a.cost} 레진</span></div></div>`;
-  }).join('') + `</div>`;
+      <div class="nums"><div class="gain">${a.idle ? '참고 ' : '+'}${a.gain.toFixed(2)}</div><span class="cost ${tier[0]}">${tier[1]} · 약 ${a.cost} 레진</span></div></div>`;
+  };
+  const main = inParty.length ? `<div class="glist">${inParty.slice(0, 20).map(item).join('')}</div>`
+    : `<div class="empty-state"><p>${S.parties.length ? '파티 멤버 중 더 키울 항목이 없습니다.' : '파티가 없습니다. 파티를 만들고 캐릭터를 배치하면 그 멤버들 위주로 추천합니다.'}</p></div>`;
+  const rest = !only && idle.length ? `<details class="idle-box"><summary>파티에 없는 캐릭터 (참고) · ${new Set(idle.map(a => a.id)).size}명</summary>
+      <p class="legend">어느 파티에도 없어서 파티 가치가 오르지 않는 항목입니다. 파티에 넣을 계획이 있을 때만 키우세요.</p>
+      <div class="glist">${idle.slice(0, 8).map(item).join('')}</div></details>` : '';
+  v.innerHTML = head + main + rest;
+  const gs = $('#growth-party');
+  if (gs) { gs.value = growthParty; gs.addEventListener('change', e => { growthParty = e.target.value; try { localStorage.setItem(KEY + ':gp', growthParty); } catch (er) {} renderGrowth(rankedParties()); }); }
 }
 
 function render() {
@@ -1160,7 +1198,7 @@ function renderAccount() {
     + (nx ? ` · 모험 등급 ${nx}에서 Lv.${lvCapOf(nx)} 해금` : '');
 }
 // 설정 변경은 예시 데이터 여부를 바꾸지 않도록 sample 표시를 건드리지 않고 저장
-function saveSettings() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function saveSettings() { S.savedAt = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} queuePush(); }
 $('#a-ar').addEventListener('change', () => { S.ar = clamp(Math.round(Number($('#a-ar').value) || 1), 1, 60); saveSettings(); render(); });
 $('#a-wl').addEventListener('change', () => { const v = $('#a-wl').value; S.wl = v === 'auto' ? null : Number(v); saveSettings(); render(); });
 
@@ -1389,9 +1427,64 @@ function toast(msg) {
   clearTimeout(tt); tt = setTimeout(() => el.hidden = true, 2200);
 }
 
+// ───────── 계정 동기화 ─────────
+// claude.ai에 로그인해 열면 그 계정 전용 비공개 공간(data/users/<id>/state)에 저장. 로그인하지 않았으면 브라우저 저장만 씀
+let cloud = null, cloudAt = 0, pushing = false, pushAgain = false, pushTimer = null;
+function setSync(text, tone = '') { const el = $('#sync'); el.textContent = text; el.dataset.tone = tone; }
+const stateBlob = () => JSON.stringify({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties });
+function adopt(json, at) {
+  let j; try { j = JSON.parse(json); } catch (e) { return false; }
+  if (!j || !j.roster || !Array.isArray(j.parties)) return false;
+  for (const id of Object.keys(j.roster)) if (!DB[id]) delete j.roster[id];
+  S = { sample: false, ar: j.ar ?? 60, wl: j.wl ?? null, roster: j.roster, parties: j.parties, savedAt: at };
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  cloudAt = at; render();
+  return true;
+}
+function queuePush() {
+  if (!cloud || S.sample) return;
+  clearTimeout(pushTimer); setSync('계정에 저장 중…');
+  pushTimer = setTimeout(push, 1200);
+}
+async function push(retried) {
+  if (pushing) { pushAgain = true; return; }
+  pushing = true;
+  const at = S.savedAt || Date.now();
+  try { await cloud.set({ json: stateBlob(), at }); cloudAt = at; setSync('☁ 계정에 저장됨', 'ok'); }
+  catch (e) {
+    if (e && e.code === 'unavailable' && !retried) { pushing = false; setTimeout(() => push(true), 1500 + Math.random() * 1500); return; }
+    setSync(e && e.code === 'quota_exceeded' ? '계정 저장 공간이 가득 참 — 이 브라우저에만 저장됨' : '계정 저장 실패 — 이 브라우저에만 저장됨', 'bad');
+  }
+  pushing = false;
+  if (pushAgain) { pushAgain = false; push(); }
+}
+async function initSync() {
+  const use = window.claude && window.claude.use;
+  if (!use) { setSync('이 브라우저에만 저장'); return; }
+  setSync('계정 연결 중…');
+  const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+  const uid = user ? await user.id() : null;
+  if (!db || !uid) { setSync('로그인하지 않아 이 브라우저에만 저장'); return; }
+  const ref = db.doc(`data/users/${uid}/state`);
+  let snap;
+  try { snap = await ref.get(); } catch (e) { setSync('계정 연결 실패 — 이 브라우저에만 저장', 'bad'); return; }
+  cloud = ref;
+  const d = snap.exists ? snap.data() : null;
+  // 계정 쪽이 더 최신이거나 이 브라우저가 예시 데이터면 계정 것을, 아니면 이 브라우저 것을 계정에 올림
+  if (d && d.json && (S.sample || (d.at || 0) >= (S.savedAt || 0))) { if (adopt(d.json, d.at || 0)) { setSync('☁ 계정에서 불러옴', 'ok'); toast('계정에 저장된 데이터를 불러왔습니다'); } }
+  else if (!S.sample) { S.savedAt = S.savedAt || Date.now(); push(); }
+  else setSync('☁ 계정 연결됨 — 저장하면 계정에 보관', 'ok');
+  // 다른 기기에서 저장하면 실시간으로 반영
+  ref.onSnapshot(s => {
+    const x = s.exists && s.data();
+    if (!x || !x.json || s.metadata.hasPendingWrites || (x.at || 0) <= cloudAt) return;
+    if (adopt(x.json, x.at)) setSync('☁ 다른 기기의 변경을 불러옴', 'ok');
+  }, () => setSync('계정 실시간 연결 끊김 — 새로고침하면 다시 연결', 'bad'));
+}
+
 render();
+initSync();
 setTab(tab);
 </script>
-
 
 </body></html>
