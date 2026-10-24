@@ -184,6 +184,36 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .epill.ok { color: var(--good); } .epill.near { color: var(--warn); } .epill.far { color: var(--muted); }
 .edesc { margin: 0; font-size: 12.5px; color: var(--muted); }
 
+/* ai 상담 */
+.bn-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 10px; margin-bottom: 8px; }
+.bn { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.bn-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.bn-head b { font-size: 15px; }
+.bn-date { font-size: 12.5px; color: var(--muted); }
+.bn-st { margin-left: auto; font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.bn-st.live { color: var(--good); } .bn-st.official { color: var(--hydro); } .bn-st.leak { color: var(--warn); }
+.bn-who { display: flex; flex-wrap: wrap; gap: 6px; }
+.bn-who .mchip.r5 { color: var(--ink); border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); border-style: solid; }
+.bn-note { margin: 0; font-size: 12.5px; color: var(--muted); }
+.res { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: end; margin-bottom: 14px; }
+.res label:not(.check) input { width: 110px; }
+.res label.check { padding-bottom: 8px; }
+.qchips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.qchip { font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.qchip:hover { border-color: var(--gold); }
+.chat { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.msg { max-width: min(720px, 100%); padding: 10px 14px; border-radius: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.msg.me { align-self: flex-end; background: var(--ink); color: var(--bg); border-bottom-right-radius: 4px; white-space: pre-wrap; }
+.msg.ai { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.msg.ai p { margin: 0 0 8px; } .msg.ai p:last-child { margin-bottom: 0; }
+.msg.ai ul, .msg.ai ol { margin: 0 0 8px; padding-left: 20px; }
+.msg.ai h4 { margin: 8px 0 4px; font-size: 14px; }
+.msg.wait { color: var(--muted); }
+.msg .err { color: var(--bad); font-size: 13px; margin-top: 6px; }
+.ask { display: flex; flex-direction: column; gap: 8px; }
+.ask textarea { font-family: var(--f-body); font-size: 14px; min-height: 0; resize: vertical; }
+.ask-btns { display: flex; justify-content: flex-end; gap: 8px; }
+
 /* dialog */
 dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); padding: 0; width: min(640px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); }
 dialog::backdrop { background: rgb(10 12 24 / 0.5); }
@@ -321,6 +351,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
     <button class="tab" role="tab" data-tab="roster" id="tab-roster">내 캐릭터<span class="n" id="cnt-r"></span></button>
     <button class="tab" role="tab" data-tab="growth" id="tab-growth">성장 우선순위</button>
     <button class="tab" role="tab" data-tab="meta" id="tab-meta">메타 · 엔진</button>
+    <button class="tab" role="tab" data-tab="ai" id="tab-ai">AI 상담</button>
   </nav>
 
   <div class="acct">
@@ -338,6 +369,29 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   <section id="view-roster" role="tabpanel" hidden></section>
   <section id="view-growth" role="tabpanel" hidden></section>
   <section id="view-meta" role="tabpanel" hidden></section>
+  <section id="view-ai" role="tabpanel" hidden>
+    <div class="bar"><h2>픽업 일정</h2><span class="muted" id="bn-at"></span></div>
+    <div class="bn-list" id="bn-list"></div>
+    <div class="bar" style="margin-top:26px"><h2>AI 상담</h2><span class="muted">Claude가 답합니다</span></div>
+    <p class="legend">내 캐릭터·파티·성장 우선순위와 위 픽업 일정(유출 포함)을 함께 보고 무엇을 뽑고 무엇을 키울지 상담해 줍니다. 유출은 바뀔 수 있으니 참고만 하세요.</p>
+    <div class="res">
+      <label for="r-primo">원석<input id="r-primo" type="number" min="0" inputmode="numeric"></label>
+      <label for="r-fate">뒤얽힌 인연<input id="r-fate" type="number" min="0" inputmode="numeric"></label>
+      <label for="r-pity">캐릭터 스택<input id="r-pity" type="number" min="0" max="89" inputmode="numeric"></label>
+      <label class="check" for="r-guar"><input id="r-guar" type="checkbox"> 다음 5성 픽업 확정</label>
+      <label class="check" for="r-welkin"><input id="r-welkin" type="checkbox"> 공월 축복</label>
+      <span class="muted" id="r-sum"></span>
+    </div>
+    <div id="ai-off" class="notice" hidden><p>AI 상담은 claude.ai에서 연 앱에서만 쓸 수 있습니다. <a href="https://claude.ai/artifact/XtnB8FRdbqba4gtFcr5WLr" target="_blank" rel="noopener">claude.ai에서 열기</a> (Google 동기화와는 별개라, 그쪽에는 캐릭터를 따로 입력하거나 백업으로 옮겨야 합니다)</p></div>
+    <div id="ai-box">
+      <div class="qchips" id="ai-q"></div>
+      <div class="chat" id="ai-log" aria-live="polite"></div>
+      <form class="ask" id="ai-form">
+        <textarea id="ai-in" rows="2" placeholder="예: 미탸 뽑을까요, 원석 아껴서 다음 버전 기다릴까요?" aria-label="질문"></textarea>
+        <div class="ask-btns"><button class="btn ghost sm" type="button" id="ai-reset">새 상담</button><button class="btn ghost sm" type="button" id="ai-stop" hidden>멈춤</button><button class="btn primary" type="submit" id="ai-send">보내기</button></div>
+      </form>
+    </div>
+  </section>
 
   <p class="foot-note">점수는 커뮤니티에서 통용되는 육성 기준(레벨 90, 주력 특성 8–9, 치명 비율 1:2, 캐릭터별 원충 목표 등)을 단순화한 추정치입니다. 레진 비용은 대략적인 상대값입니다. 파티 가치 = 딜량 50% + 육성 25% + 시너지 25%이며, 딜량은 가장 비슷한 실측 파티(genshin.im 7.1 허수아비 실측)의 DPS × 대체 멤버 배율(내 동료 평균 성능 ÷ 실측 동료 평균 성능의 제곱, 최대 1) × 육성 배율(육성 점수/85)로 추정하고 실측 1위(247k)를 100점으로 봅니다. 같은 메인의 실측 파티가 없으면 캐릭터 성능 점수로 보수적으로 추정합니다(최대 실측 1위의 75%). 캐릭터 성능 점수(T0–T4)는 GamsGo 원신 7.1 종합 티어표(2026년 9월, SS=92 · S=84 · A+=76 · A=68 · B=56 · C=44 · D=30)를 60%, 나무위키 각 캐릭터 문서의 '평가' 항목(2026년 10월 열람)을 읽고 매긴 값을 40% 섞은 것이며, 캐릭터 편집 화면에서 직접 바꿀 수 있습니다. 레벨 점수는 모험 등급이 허용하는 최대 레벨 대비 방어 계수 × 기초 스탯 곡선으로 계산하고, Lv.60 전에는 두 번째 고유 특성이 잠긴 만큼 감점합니다. 특성은 돌파 단계별 상한(2·4·6·8·10단계 돌파 시 2·4·6·8·10)을 넘을 수 없습니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러오며, 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
 </div>
@@ -1337,7 +1391,7 @@ function renderGrowth(ranked) {
 
 function render() {
   const ranked = rankedParties();
-  renderParties(ranked); renderRoster(); renderGrowth(ranked); renderMeta();
+  renderParties(ranked); renderRoster(); renderGrowth(ranked); renderMeta(); renderBanners(); renderRes();
   $('#cnt-p').textContent = S.parties.length;
   $('#cnt-r').textContent = Object.keys(S.roster).length;
   $('#sample-note').hidden = !S.sample;
@@ -1359,13 +1413,147 @@ function saveSettings() { S.savedAt = Date.now(); try { localStorage.setItem(KEY
 $('#a-ar').addEventListener('change', () => { S.ar = clamp(Math.round(Number($('#a-ar').value) || 1), 1, 60); saveSettings(); render(); });
 $('#a-wl').addEventListener('change', () => { const v = $('#a-wl').value; S.wl = v === 'auto' ? null : Number(v); saveSettings(); render(); });
 
+// ───────── 픽업 일정 · AI 상담 ─────────
+// 픽업 일정(매주 업데이트에서 갱신). st: live 진행 중 | official 공식 발표 | leak 유출·추정(확정 아님)
+const BANNERS_AT = '2026-10-24';
+const BANNERS = [
+  { v: '7.1 후반', from: '2026-10-13', to: '2026-11-03', st: 'live', five: ['skirk', 'escoffier'], four: ['dahlia', 'candace', 'mika'], weapons: ['창백한 섬광', '맛의 지휘자'] },
+  { v: '7.2 전반', from: '2026-11-04', to: '2026-11-24', st: 'leak', five: ['mitya', 'furina'], four: ['valery'], weapons: ['미탸 전용 법구', '고요히 샘솟는 빛'], note: '미탸(5성 번개 법구)·발레리(4성 번개 한손검)는 공식 공개, 페이즈 배치와 복각은 베타 유출' },
+  { v: '7.2 후반', from: '2026-11-25', to: '2026-12-15', st: 'leak', five: ['zibai', 'linnea'], four: [], weapons: ['신월의 달빛', '서리 맺힌 금빛 가지'], note: '복각 유출, 순서 미확정' },
+  { v: '7.3', from: '2026-12-16', to: null, st: 'leak', five: [], four: [], names: ['차리차(얼음 신)', '다니카'], note: '유출끼리 엇갈림(산드로네·로엔 등 다른 이름도 거론). 시작일도 추정' },
+];
+const BN_ST = { live: '진행 중', official: '공식', leak: '유출 · 추정' };
+const md = d => d ? `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}` : '';
+function renderBanners() {
+  $('#bn-at').textContent = `${md(BANNERS_AT)} 기준`;
+  const who = (ids, r) => ids.filter(id => DB[id]).map(id => `<span class="mchip${r === 5 ? ' r5' : ''}${S.roster[id] ? ' own' : ''}">${av(id, 'sm')}${esc(DB[id].name)}${S.roster[id] ? ` · ${S.roster[id].cons}돌` : ''}</span>`).join('');
+  $('#bn-list').innerHTML = BANNERS.map(b => `<div class="bn"><div class="bn-head"><b>${esc(b.v)}</b><span class="bn-date">${md(b.from)}${b.to ? ' – ' + md(b.to) : ' ~'}</span><span class="bn-st ${b.st}">${BN_ST[b.st]}</span></div>
+    <div class="bn-who">${who(b.five, 5)}${(b.names || []).map(n => `<span class="mchip r5">${esc(n)}</span>`).join('')}${who(b.four, 4)}</div>
+    ${b.weapons && b.weapons.length ? `<p class="bn-note">무기: ${b.weapons.map(esc).join(', ')}</p>` : ''}${b.note ? `<p class="bn-note">${esc(b.note)}</p>` : ''}</div>`).join('');
+}
+
+// 보유 재화(계정 데이터와 함께 동기화)
+const resOf = () => S.res || (S.res = { primo: 0, fate: 0, pity: 0, guar: false, welkin: false });
+const pullsOf = r => Math.floor((r.primo || 0) / 160) + (r.fate || 0);
+function renderRes() {
+  const r = resOf();
+  $('#r-primo').value = r.primo || ''; $('#r-fate').value = r.fate || ''; $('#r-pity').value = r.pity || '';
+  $('#r-guar').checked = !!r.guar; $('#r-welkin').checked = !!r.welkin;
+  $('#r-sum').textContent = `지금 ${pullsOf(r)}뽑`;
+}
+for (const [id, k] of [['r-primo', 'primo'], ['r-fate', 'fate'], ['r-pity', 'pity']])
+  $('#' + id).addEventListener('change', e => { resOf()[k] = clamp(Math.round(Number(e.target.value) || 0), 0, k === 'pity' ? 89 : 1e6); saveSettings(); renderRes(); });
+for (const [id, k] of [['r-guar', 'guar'], ['r-welkin', 'welkin']])
+  $('#' + id).addEventListener('change', e => { resOf()[k] = e.target.checked; saveSettings(); renderRes(); });
+
+// AI에게 넘길 계정 요약
+const nm = id => DB[id] ? DB[id].name : id;
+function accountBrief() {
+  const ranked = rankedParties(), r = resOf();
+  const chars = Object.values(S.roster).filter(c => DB[c.id]).map(c => {
+    const d = DB[c.id];
+    return `- ${d.name} (${d.r}성 ${EL[d.el]} ${WPN[d.wp] || ''} ${ROLE[d.roles[0]]}, 성능 ${TIER(d.perf)}) Lv.${c.lv} ${c.cons}돌 특성 ${c.t.join('/')} 무기 ${c.wn || '미입력'} 세트 ${c.sa || '미입력'} 육성 ${Math.round(charCalc(c).score)}점`;
+  }).join('\n');
+  const parties = ranked.map(({ p, e }, i) => `- #${i + 1} ${p.name}: ${p.m.map(nm).join(', ')} → ${e.grade} ${e.value.toFixed(1)}점 (딜 ${e.dpsScore.toFixed(0)}, 육성 ${e.build.toFixed(0)}, 시너지 ${e.syn.toFixed(0)})${e.issues.length ? ' / 문제: ' + e.issues.slice(0, 3).map(x => x[1]).join('; ') : ''}`).join('\n');
+  const growth = growthList(ranked, null).inParty.slice(0, 8).map((a, i) => `${i + 1}. ${a.what} — ${a.why} (약 ${a.cost} 레진)`).join('\n');
+  const own = id => S.roster[id] ? `보유 ${S.roster[id].cons}돌` : '미보유';
+  const five = id => DB[id] ? `${nm(id)}(${DB[id].r}성 ${EL[DB[id].el]} ${ROLE[DB[id].roles[0]]}, 성능 ${TIER(DB[id].perf)}, ${own(id)})` : id;
+  const banners = BANNERS.map(b => `- ${b.v} ${b.from}~${b.to || '?'} [${BN_ST[b.st]}] 5성: ${[...b.five.map(five), ...(b.names || [])].join(', ') || '미상'}`
+    + (b.four.length ? ` / 4성: ${b.four.map(id => `${nm(id)}(${own(id)})`).join(', ')}` : '')
+    + (b.weapons ? ` / 무기: ${b.weapons.join(', ')}` : '') + (b.note ? ` / ${b.note}` : '')).join('\n');
+  return `오늘: ${new Date().toISOString().slice(0, 10)}
+모험 등급 ${ar()}, 세계 레벨 ${wl()}${S.sample ? ' (주의: 아직 예시 데이터)' : ''}
+재화: 원석 ${r.primo || 0}, 뒤얽힌 인연 ${r.fate || 0} → ${pullsOf(r)}뽑 / 캐릭터 스택 ${r.pity || 0} / ${r.guar ? '다음 5성 픽업 확정' : '반천장(50:50) 상태'} / 공월 축복 ${r.welkin ? '사용' : '미사용'}
+
+[보유 캐릭터]
+${chars || '없음'}
+
+[파티 (가치 순)]
+${parties || '없음'}
+
+[성장 우선순위 상위]
+${growth || '없음'}
+
+[픽업 일정 (${BANNERS_AT} 기준)]
+${banners}`;
+}
+const AI_RULES = `너는 원신(Genshin Impact) 계정 상담가다. 아래 계정 정보와 픽업 일정을 근거로 한국어로 답한다.
+- 무엇을 뽑을지/거를지, 원석을 언제 쓸지, 무엇을 먼저 키울지 구체적으로 권한다. 캐릭터 이름은 한국어 이름으로 쓴다.
+- 결론을 먼저 한두 줄로, 그다음 이유를 짧은 목록으로. 전체는 대개 15줄 이내.
+- 픽업 일정 중 '유출 · 추정'은 확정이 아니라고 분명히 말하고, 유출에 기대는 결정이면 그 위험을 함께 적는다.
+- 뽑기 계산: 캐릭터 기원 천장 90뽑(74뽑부터 확률 급상승, 평균 약 62뽑에 5성), 50:50에서 지면 다음 5성은 픽업 확정. 최악은 픽업까지 180뽑. 무기 기원은 80뽑 천장.
+- 수입은 대략치로만: 무과금 기준 한 버전(약 6주)에 약 60~80뽑, 공월 축복이면 버전당 약 20뽑 더. 숫자를 단정하지 말고 '약'을 붙인다.
+- 계정에 없는 정보(성유물 세부 등)는 추측하지 말고 필요하면 물어본다. 데이터가 예시면 그 점을 알린다.
+- 마크다운은 굵게(**), 목록(-, 1.), 소제목(###)만 쓴다.
+
+[계정 정보]
+`;
+const AI_QUICK = ['다음 픽업 뽑을까, 거를까?', '앞으로 3개월 원석 계획 짜 줘', '지금 레진은 어디에 쓰는 게 제일 좋아?', '내 계정에 부족한 역할·원소는?', '나선 비경 파티 두 개 추천해 줘'];
+let aiTurns = [], aiCtl = null, sampleFn = null;
+// 아주 작은 마크다운: 소제목·목록·굵게만
+function mdLite(t) {
+  let out = '', list = null;
+  const close = () => { if (list) { out += `</${list}>`; list = null; } };
+  for (const ln of esc(t).split('\n')) {
+    const b = ln.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+    let m;
+    if ((m = b.match(/^#{1,4}\s+(.*)/))) { close(); out += `<h4>${m[1]}</h4>`; }
+    else if ((m = b.match(/^\s*[-*•]\s+(.*)/))) { if (list !== 'ul') { close(); out += '<ul>'; list = 'ul'; } out += `<li>${m[1]}</li>`; }
+    else if ((m = b.match(/^\s*\d+[.)]\s+(.*)/))) { if (list !== 'ol') { close(); out += '<ol>'; list = 'ol'; } out += `<li>${m[1]}</li>`; }
+    else if (!b.trim()) close();
+    else { close(); out += `<p>${b}</p>`; }
+  }
+  close(); return out;
+}
+const AI_ERR = { rate_limited: '요청이 너무 많거나 사용량 한도에 닿았습니다. 잠시 뒤 다시 보내 주세요.', session_expired: 'claude.ai에 다시 로그인해 주세요.', refused: '이 질문에는 답할 수 없었습니다. 질문을 바꿔 보세요.', prompt_too_large: '계정 정보가 너무 길어 보낼 수 없습니다.', empty_completion: '답이 비어 있습니다. 질문을 바꿔 보세요.' };
+const AI_OFF = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'];
+function aiMsg(cls, html) { const d = document.createElement('div'); d.className = 'msg ' + cls; d.innerHTML = html; $('#ai-log').append(d); return d; }
+function aiBusy(on) { $('#ai-send').disabled = on || !sampleFn; $('#ai-stop').hidden = !on; for (const b of document.querySelectorAll('.qchip')) b.disabled = on || !sampleFn; }
+function aiOff() { $('#ai-off').hidden = false; $('#ai-box').hidden = true; }
+async function aiAsk(q) {
+  q = q.trim(); if (!q || !sampleFn || aiCtl) return;
+  aiMsg('me', esc(q));
+  aiTurns.push({ role: 'user', content: q });
+  const out = aiMsg('ai wait', '생각하는 중…');
+  out.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  aiCtl = new AbortController(); aiBusy(true);
+  // 계정 정보는 매번 최신으로 첫 턴에 넣고, 대화는 최근 12턴만
+  const hist = aiTurns.slice(-12); if (hist[0].role === 'assistant') hist.shift();
+  const input = [{ role: 'user', content: AI_RULES + accountBrief() + '\n\n이 정보를 바탕으로 아래 질문에 답해 줘.' }, ...hist];
+  try {
+    const { text, truncated } = await sampleFn(input, { cache: false, signal: aiCtl.signal, onText: ({ text }) => { out.classList.remove('wait'); out.innerHTML = mdLite(text); } });
+    out.classList.remove('wait'); out.innerHTML = mdLite(text) + (truncated ? '<div class="err">답이 길어 중간에 끊겼습니다.</div>' : '');
+    aiTurns.push({ role: 'assistant', content: text });
+  } catch (e) {
+    const code = e && e.code, kept = code !== 'refused' && e && e.text;
+    out.classList.remove('wait');
+    if (AI_OFF.includes(code)) { out.remove(); aiTurns.pop(); aiOff(); }
+    else {
+      out.innerHTML = (kept ? mdLite(kept) : '') + `<div class="err">${code === 'cancelled' ? '멈췄습니다.' : AI_ERR[code] || '연결이 끊겼습니다. 다시 보내 주세요.'}</div>`;
+      if (kept) aiTurns.push({ role: 'assistant', content: kept });
+    }
+  } finally { aiCtl = null; aiBusy(false); }
+}
+$('#ai-q').innerHTML = AI_QUICK.map(q => `<button type="button" class="qchip">${esc(q)}</button>`).join('');
+$('#ai-q').addEventListener('click', e => { const b = e.target.closest('.qchip'); if (b) aiAsk(b.textContent); });
+$('#ai-form').addEventListener('submit', e => { e.preventDefault(); const v = $('#ai-in').value; if (!v.trim() || aiCtl || !sampleFn) return; $('#ai-in').value = ''; aiAsk(v); });
+$('#ai-in').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#ai-form').requestSubmit(); } });
+$('#ai-stop').addEventListener('click', () => aiCtl && aiCtl.abort());
+$('#ai-reset').addEventListener('click', () => { if (aiCtl) aiCtl.abort(); aiTurns = []; $('#ai-log').innerHTML = ''; });
+aiBusy(false);
+(async () => {
+  const s = window.claude && window.claude.use ? await window.claude.use('sample').catch(() => null) : null;
+  if (!s) return aiOff();
+  sampleFn = s; aiBusy(false);
+})();
+
 // ───────── 탭 ─────────
 let tab = 'parties';
 try { tab = localStorage.getItem(KEY + ':tab') || 'parties'; } catch (e) {}
 function setTab(t) {
   tab = t;
   for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', b.dataset.tab === t);
-  for (const n of ['parties', 'roster', 'growth', 'meta']) $('#view-' + n).hidden = n !== t;
+  for (const n of ['parties', 'roster', 'growth', 'meta', 'ai']) $('#view-' + n).hidden = n !== t;
   try { localStorage.setItem(KEY + ':tab', t); } catch (e) {}
 }
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) setTab(b.dataset.tab); });
@@ -1564,7 +1752,7 @@ document.addEventListener('click', e => {
   if (act === 'edit-party') openParty(a.dataset.id);
 });
 $('#btn-clear').addEventListener('click', () => { S = { sample: false, ar: S.ar, wl: S.wl, roster: {}, parties: [] }; save(); render(); setTab('roster'); toast('예시 데이터를 비웠습니다'); });
-$('#btn-backup').addEventListener('click', () => { $('#bk-text').value = JSON.stringify({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties }); $('#dlg-backup').showModal(); });
+$('#btn-backup').addEventListener('click', () => { $('#bk-text').value = JSON.stringify({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties, res: S.res }); $('#dlg-backup').showModal(); });
 $('#bk-copy').addEventListener('click', () => {
   const t = $('#bk-text');
   navigator.clipboard.writeText(t.value).then(() => toast('복사됨'), () => { t.select(); toast('텍스트를 선택했습니다. Ctrl+C로 복사하세요'); });
@@ -1590,12 +1778,12 @@ function toast(msg) {
 // claude.ai에 로그인해 열면 그 계정 전용 비공개 공간(data/users/<id>/state)에 저장. 로그인하지 않았으면 브라우저 저장만 씀
 let cloud = null, cloudAt = 0, pushing = false, pushAgain = false, pushTimer = null;
 function setSync(text, tone = '') { const el = $('#sync'); el.textContent = text; el.dataset.tone = tone; }
-const stateBlob = () => JSON.stringify({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties });
+const stateBlob = () => JSON.stringify({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties, res: S.res });
 function adopt(json, at) {
   let j; try { j = JSON.parse(json); } catch (e) { return false; }
   if (!j || !j.roster || !Array.isArray(j.parties)) return false;
   for (const id of Object.keys(j.roster)) if (!DB[id]) delete j.roster[id];
-  S = { sample: false, ar: j.ar ?? 60, wl: j.wl ?? null, roster: j.roster, parties: j.parties, savedAt: at };
+  S = { sample: false, ar: j.ar ?? 60, wl: j.wl ?? null, roster: j.roster, parties: j.parties, res: j.res || S.res, savedAt: at };
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
   cloudAt = at; render();
   return true;
