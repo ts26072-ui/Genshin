@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>지도 · 원신 파티 감정소</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="common.css?v=20261027a">
+<style>
+.mapbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.mapbar p { margin: 0; font-size: 13px; color: var(--muted); flex: 1 1 320px; }
+.mapframe { width: 100%; height: max(480px, calc(100dvh - 230px)); border: 1px solid var(--line); border-radius: 14px; background: var(--sunk); display: block; }
+.fallback { padding: 28px 16px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap" style="max-width:1400px">
+  <header class="top">
+    <h1><span class="star">✦</span> 테이와트 지도</h1>
+    <p class="sub">HoYoLAB 공식 인터랙티브 지도입니다. 왼쪽 메뉴에서 재료·보물상자·순간이동 포인트 등을 골라 표시하세요.</p>
+  </header>
+  <nav class="sitenav" aria-label="페이지">
+    <a href="index.html">파티 감정소</a>
+    <a href="tier.html">티어표</a>
+    <a href="farm.html">재료 파밍</a>
+    <a href="map.html" aria-current="page">지도</a>
+    <a href="rate.html">성유물 감정</a>
+    <a href="guide.html">성유물 추천</a>
+    <a href="stats.html">종결 스탯 도감</a>
+  </nav>
+  <div class="mapbar">
+    <p>지도에서 찍은 표시(수집 완료 체크 등)는 HoYoLAB에 로그인해야 저장됩니다. 화면이 좁거나 지도가 안 보이면 새 창에서 여세요.</p>
+    <a class="btn primary" id="open" href="https://act.hoyolab.com/ys/app/interactive-map/index.html?lang=ko-kr" target="_blank" rel="noopener">새 창에서 열기</a>
+  </div>
+  <iframe class="mapframe" id="map" title="원신 인터랙티브 지도 (HoYoLAB)" src="https://act.hoyolab.com/ys/app/interactive-map/index.html?lang=ko-kr" allow="fullscreen; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  <p class="foot-note">지도 © HoYoverse — HoYoLAB의 공식 지도를 그대로 불러옵니다. 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다. 재료별로 어디서 모으면 좋은지는 <a href="farm.html">재료 파밍</a>에 정리했습니다.</p>
+</div>
+</body>
+</html>

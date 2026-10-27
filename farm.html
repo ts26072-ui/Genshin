@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>재료 파밍 · 원신 파티 감정소</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="common.css?v=20261027a">
+<style>
+.today { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 18px; }
+.today b { margin-right: 4px; }
+.ctrl { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; margin-bottom: 16px; }
+.ctrl select { width: auto; max-width: 100%; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { font: inherit; font-size: 13px; border: 0; background: var(--surface); color: var(--muted); padding: 6px 14px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.group { margin-bottom: 22px; }
+.group h2 { font-size: 17px; margin-bottom: 4px; }
+.group .gsub { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+.mats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 10px; }
+.mat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 4px 12px; min-width: 0; }
+.mat .ic { width: 48px; height: 48px; border-radius: 10px; background: var(--sunk); grid-row: span 3; overflow: hidden; }
+.mat.r2 .ic { background: linear-gradient(160deg, #4f6a5a, #6f9a7a); } .mat.r3 .ic { background: linear-gradient(160deg, #4a5f8a, #6a8ac4); }
+.mat.r4 .ic { background: linear-gradient(160deg, #5a4a8a, #8a6ac4); } .mat.r5 .ic { background: linear-gradient(160deg, #8a5a2b, #c48a3f); }
+.mat .ic img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.mat .top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.mat .nm { font-weight: 700; }
+.mat .cnt { font-weight: 900; font-size: 18px; color: var(--gold); white-space: nowrap; }
+.mat .who { font-size: 12.5px; color: var(--muted); }
+.mat .route { font-size: 13px; line-height: 1.5; }
+.mat .route b { font-weight: 600; }
+.mat .acts { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.chip.on { color: var(--good); border-color: currentColor; }
+.empty b { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1><span class="star">✦</span> 재료 파밍</h1>
+    <p class="sub">내 캐릭터를 목표까지 키우는 데 남은 돌파·특성 재료를 모아, 재료마다 어디서 어떻게 모으면 좋은지 알려 줍니다.</p>
+  </header>
+  <nav class="sitenav" aria-label="페이지">
+    <a href="index.html">파티 감정소</a>
+    <a href="tier.html">티어표</a>
+    <a href="farm.html" aria-current="page">재료 파밍</a>
+    <a href="map.html">지도</a>
+    <a href="rate.html">성유물 감정</a>
+    <a href="guide.html">성유물 추천</a>
+    <a href="stats.html">종결 스탯 도감</a>
+  </nav>
+
+  <div class="today" id="today"></div>
+  <div class="ctrl">
+    <div class="seg" role="group" aria-label="보기">
+      <button type="button" data-mode="mine">내 캐릭터 남은 재료</button>
+      <button type="button" data-mode="one">캐릭터 하나</button>
+    </div>
+    <label for="scope" id="scope-l">범위 <select id="scope"></select></label>
+    <label for="who" id="who-l">캐릭터 <select id="who"></select></label>
+    <label for="tal">특성 목표 <select id="tal"><option value="6">6</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></label>
+  </div>
+  <div id="out"></div>
+
+  <p class="foot-note">재료와 수량은 genshin-db(게임 데이터, 2026년 10월)를 기준으로 Lv.90까지의 돌파 6단계와 특성 3개를 목표 레벨까지 올리는 데 드는 양입니다(모라·지식의 왕관 제외). 남은 양은 파티 감정소에 입력한 레벨·돌파 여부·특성 레벨로 계산하며, 이미 가진 재료는 빼지 않습니다. 하위 재료 3개는 합성대에서 상위 재료 1개로 바꿀 수 있습니다. 레진은 비경 20 · 필드 보스 40 · 주간 보스 30(주 3회 할인, 이후 60)입니다. 지역 특산물은 채집 후 48시간 뒤 다시 생깁니다. 아이콘 © HoYoverse (enka.network). 지도는 HoYoLAB 공식 지도로 연결됩니다.</p>
+</div>
+
+<script src="chars.js?v=20261027a"></script>
+<script src="farm.js?v=20261027a"></script>
+<script>
+const $ = s => document.querySelector(s);
+const MAP_URL = 'https://act.hoyolab.com/ys/app/interactive-map/index.html?lang=ko-kr';
+let state = {};
+try { state = JSON.parse(localStorage.getItem(GP.KEY)) || {}; } catch (e) {}
+const own = state.roster || {}, parties = state.parties || [];
+const PREF = GP.KEY + ':farm';
+let st = { mode: Object.keys(own).length ? 'mine' : 'one', scope: 'all', who: '', tal: 9 };
+try { st = { ...st, ...JSON.parse(localStorage.getItem(PREF)) }; } catch (e) {}
+if (!Object.keys(own).length) st.mode = 'one';
+
+// 돌파 단계: 파티 감정소와 같은 규칙(경계 레벨에서 "아직 돌파 전"이면 한 단계 낮음)
+const ascOf = lv => lv >= 80 ? 6 : lv >= 70 ? 5 : lv >= 60 ? 4 : lv >= 50 ? 3 : lv >= 40 ? 2 : lv >= 20 ? 1 : 0;
+const ascOfC = c => ascOf(c.lv) - (c.ap && [20, 40, 50, 60, 70, 80].includes(c.lv) ? 1 : 0);
+const DAYS = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+// 게임 하루는 아시아 서버(UTC+8) 오전 4시(한국 오전 5시)에 바뀜 — 그 기준으로 오늘 요일 계산
+const serverDay = () => DAYS[new Date(Date.now() + 8 * 3600e3 - 4 * 3600e3).getUTCDay()];
+
+// 재료 종류: 지역 특산물 / 몬스터 재료 / 원소 원석 / 필드 보스 / 특성 책 / 주간 보스
+function kindOf(id) {
+  const m = FARM_MAT[id]; if (!m) return 'etc';
+  const [, type, r, , dom] = m;
+  if (type.endsWith('지역 특산물')) return 'spec';
+  if (type === '캐릭터 돌파 소재') return 'gem';
+  if (type === '캐릭터 특성 소재' && dom) return 'book';
+  if (type === '캐릭터와 무기 육성 소재') return 'mob';
+  if (type === '캐릭터 육성 소재') return r >= 5 ? 'weekly' : 'boss';
+  return 'etc';
+}
+const KINDS = [
+  ['book', '특성 책', '숙달 비경(레진 20)에서 요일별로 나옵니다. 일요일은 모든 책이 열립니다.'],
+  ['weekly', '주간 보스 재료', '주간 보스 처치 보상입니다. 주 3회까지 레진 30으로 할인됩니다.'],
+  ['boss', '필드 보스 재료', '필드 보스(레진 40)를 잡아 모읍니다. 하루 몇 번이든 다시 도전할 수 있습니다.'],
+  ['gem', '원소 원석', '같은 원소의 필드 보스·주간 보스에서 함께 나옵니다. 합성대 전환으로 다른 원소 원석을 바꿀 수도 있습니다.'],
+  ['spec', '지역 특산물', '필드에서 채집하며 48시간 뒤 다시 생깁니다. 지도에서 그 특산물 표시를 켜고 한 바퀴 도는 순서로 모으세요.'],
+  ['mob', '몬스터 재료', '일반 몬스터가 떨굽니다. 같은 몬스터 무리가 몰린 곳을 순서대로 돌면 빠르고, 하위 3개를 상위 1개로 합성할 수 있습니다.'],
+  ['etc', '기타', ''],
+];
+const clean = s => s.filter(x => !/슬롯-합성|^채집$|모험 핸드북|패키지 상점|기념품 상점|스타더스트|^합성/.test(x));
+// 재료 하나의 추천 루트 문장
+function route(id) {
+  const m = FARM_MAT[id], k = kindOf(id); if (!m) return '';
+  const [name, type, , src, dom, days] = m;
+  const s = clean(src);
+  if (k === 'book') return `<b>${GP.esc(dom)}</b> · ${days.filter(d => d !== '일요일').map(d => d[0]).join('·')}·일요일${days.includes(serverDay()) || serverDay() === '일요일' ? ' <span class="chip on">오늘 열림</span>' : ''}`;
+  if (k === 'spec') {
+    const rec = s.filter(x => x.startsWith('추천:')).map(x => x.replace(/^추천:\s*/, '').replace(/\s*채집$/, ''));
+    const other = s.filter(x => !x.startsWith('추천:') && !/주전자/.test(x)).map(x => x.replace(/\s*채집$/, ''));
+    const where = rec.length ? `추천 장소: <b>${rec.map(GP.esc).join(', ')}</b>` : other.length ? `주로 <b>${other.map(GP.esc).join(', ')}</b>` : `${GP.esc(type.replace(' 지역 특산물', ''))} 일대`;
+    return `${where}${rec.length && other.length ? ` · 그 밖에 ${other.map(GP.esc).join(', ')}` : ''}${src.some(x => /주전자/.test(x)) ? ' · 속세의 주전자에 심으면 매일 조금씩' : ''}`;
+  }
+  if (k === 'mob') {
+    const foes = s.map(x => x.replace(/^Lv\.\d+ 이상\s*/, '').replace(/\s*드랍$/, ''));
+    return foes.length ? `<b>${foes.slice(0, 4).map(GP.esc).join(', ')}</b>${foes.length > 4 ? ' 등' : ''} 처치` : '';
+  }
+  if (k === 'boss' || k === 'weekly' || k === 'gem') {
+    const foes = s.map(x => x.replace(/^Lv\.\d+ 이상\s*/, '').replace(/\s*(드랍|도전 보상)$/, ''));
+    return foes.length ? `<b>${foes.slice(0, 3).map(GP.esc).join(', ')}</b>${foes.length > 3 ? ' 등' : ''}` : '';
+  }
+  return s.map(GP.esc).join(', ');
+}
+
+// 남은 재료: {재료 id: {n, who:Set}}
+function need(ids, fromZero) {
+  const out = {};
+  const add = (mid, n, id) => { (out[mid] ||= { n: 0, who: new Set() }).n += n; out[mid].who.add(id); };
+  for (const id of ids) {
+    const f = FARM_CHAR[id]; if (!f) continue;
+    const c = fromZero ? null : own[id];
+    const asc = c ? ascOfC(c) : 0;
+    for (let p = asc; p < 6; p++) for (const [mid, n] of f.a[p] || []) add(mid, n, id);
+    const tl = c && Array.isArray(c.t) ? c.t : [1, 1, 1];
+    for (let i = 0; i < 3; i++) for (let lv = Math.max(1, tl[i] || 1) + 1; lv <= st.tal; lv++) for (const [mid, n] of f.t[lv - 2] || []) add(mid, n, id);
+  }
+  return out;
+}
+
+const names = id => GP.DB[id] ? GP.DB[id].name : id;
+function matCard(mid, { n, who }, showWho) {
+  const m = FARM_MAT[mid] || [String(mid), '', 0, [], '', [], ''];
+  const icon = m[6] ? `https://enka.network/ui/${m[6]}.png` : '';
+  const k = kindOf(mid);
+  return `<div class="mat r${m[2] || 1}"><span class="ic">${icon ? `<img src="${icon}" alt="" loading="lazy" decoding="async">` : ''}</span>
+    <div class="top"><span class="nm">${GP.esc(m[0])}</span><span class="cnt">${n.toLocaleString()}개</span></div>
+    ${showWho ? `<div class="who">${[...who].map(names).map(GP.esc).join(', ')}</div>` : `<div class="who">${GP.esc(m[1])}</div>`}
+    <div class="route">${route(mid)}</div>
+    ${k === 'spec' || k === 'mob' || k === 'boss' ? `<div class="acts"><a class="btn sm" href="${MAP_URL}" target="_blank" rel="noopener">지도에서 위치 보기</a></div>` : ''}</div>`;
+}
+function renderToday() {
+  const day = serverDay();
+  const ids = Object.keys(own).filter(id => FARM_CHAR[id]);
+  const books = new Map();
+  for (const [mid, v] of Object.entries(need(ids, false))) {
+    const m = FARM_MAT[mid];
+    if (kindOf(mid) !== 'book' || !(m[5].includes(day) || day === '일요일')) continue;
+    const key = m[4]; (books.get(key) || books.set(key, new Set()).get(key));
+    for (const w of v.who) books.get(key).add(w);
+  }
+  $('#today').innerHTML = `<b>오늘(${day}) 갈 비경</b>` + (books.size
+    ? [...books].map(([dom, who]) => `<span class="chip on" title="${GP.esc([...who].map(names).join(', '))}">${GP.esc(dom.replace('숙달 비경: ', ''))} · ${[...who].map(names).slice(0, 4).map(GP.esc).join(', ')}${who.size > 4 ? ' 외' : ''}</span>`).join('')
+    : `<span class="muted">${Object.keys(own).length ? '오늘 열린 비경 중 내 캐릭터에게 필요한 특성 책이 없습니다.' : '파티 감정소에 캐릭터를 등록하면 오늘 갈 비경을 알려 줍니다.'}</span>`);
+}
+function render() {
+  try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {}
+  for (const b of document.querySelectorAll('.seg button')) b.setAttribute('aria-pressed', b.dataset.mode === st.mode);
+  $('#scope-l').hidden = st.mode !== 'mine'; $('#who-l').hidden = st.mode !== 'one';
+  $('#tal').value = String(st.tal);
+  let ids, fromZero = false;
+  if (st.mode === 'mine') {
+    const p = parties.find(p => p.pid === st.scope);
+    if (!p) st.scope = 'all';
+    ids = p ? p.m.filter(id => own[id]) : Object.keys(own);
+    $('#scope').value = st.scope;
+  } else {
+    if (!GP.DB[st.who]) st.who = Object.keys(own)[0] || 'raiden';
+    $('#who').value = st.who;
+    ids = [st.who]; fromZero = !own[st.who];
+  }
+  const miss = ids.filter(id => !FARM_CHAR[id]);
+  const all = need(ids, fromZero);
+  const html = KINDS.map(([k, title, sub]) => {
+    const list = Object.entries(all).filter(([mid]) => kindOf(mid) === k).sort((a, b) => (FARM_MAT[b[0]]?.[2] || 0) - (FARM_MAT[a[0]]?.[2] || 0) || b[1].n - a[1].n);
+    if (!list.length) return '';
+    return `<section class="group"><h2>${title}</h2>${sub ? `<p class="gsub">${sub}</p>` : ''}<div class="mats">${list.map(([mid, v]) => matCard(mid, v, st.mode === 'mine')).join('')}</div></section>`;
+  }).join('');
+  const lead = st.mode === 'one' ? `<p class="gsub" style="margin:0 0 14px">${GP.esc(names(st.who))} — ${own[st.who] ? `내 캐릭터(Lv.${own[st.who].lv}, 특성 ${(own[st.who].t || []).join('/')})에서 Lv.90 · 특성 ${st.tal}까지 남은 양` : 'Lv.1에서 Lv.90 · 특성 ' + st.tal + '까지 전체'}</p>` : '';
+  $('#out').innerHTML = (html ? lead + html : `<div class="empty">${ids.length ? '<b>더 모을 재료가 없습니다.</b> 목표까지 다 키웠어요.' : '파티 감정소에 등록한 캐릭터가 없습니다. <b>캐릭터 하나</b> 보기로 원하는 캐릭터의 재료를 확인하세요.'}</div>`)
+    + (miss.length ? `<p class="gsub">아직 재료 자료가 없는 캐릭터: ${miss.map(names).map(GP.esc).join(', ')}</p>` : '');
+}
+$('#scope').innerHTML = `<option value="all">내 캐릭터 전체</option>` + parties.map(p => `<option value="${GP.esc(p.pid)}">${GP.esc(p.name)} 파티</option>`).join('');
+const sorted = Object.values(GP.DB).sort((a, b) => (own[b.id] ? 1 : 0) - (own[a.id] ? 1 : 0) || a.name.localeCompare(b.name, 'ko'));
+$('#who').innerHTML = sorted.map(d => `<option value="${d.id}">${own[d.id] ? '★ ' : ''}${GP.esc(d.name)}</option>`).join('');
+document.querySelector('.seg').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { st.mode = b.dataset.mode; render(); } });
+$('#scope').addEventListener('change', e => { st.scope = e.target.value; render(); });
+$('#who').addEventListener('change', e => { st.who = e.target.value; render(); });
+$('#tal').addEventListener('change', e => { st.tal = Number(e.target.value); render(); renderToday(); });
+document.addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.remove(); }, true);
+// 다른 페이지에서 #캐릭터로 들어오면 그 캐릭터 보기
+const hashId = decodeURIComponent(location.hash.slice(1));
+if (GP.DB[hashId]) { st.mode = 'one'; st.who = hashId; }
+renderToday(); render();
+</script>
+</body>
+</html>
