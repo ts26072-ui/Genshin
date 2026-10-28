@@ -1,7 +1,7 @@
 # HoYoLAB 공식 지도(테이와트, map_id 2)의 지도 그림과 특산물·광물·워프 위치를 받아 이 사이트에 올림.
 # 일부 네트워크에서 HoYoverse 이미지 서버가 막혀 공식 지도가 안 보이므로, 지도 조각을 GitHub Pages에서 직접 내보냄.
 # GitHub Actions(.github/workflows/map.yml)에서 실행. 결과: map/tiles/{z}/{x}_{y}.webp, map/icons/{label}.png, map/mapdata.js
-import io, json, os, sys, urllib.request
+import io, json, os, shutil, sys, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
 
@@ -27,14 +27,18 @@ tree = api('label/tree')['tree']; points = api('point/list')['point_list']
 
 # 1) 지도 조각 → 타일 피라미드
 slices = detail['slices']
+shutil.rmtree(f'{OUT}/tiles', ignore_errors=True)
 os.makedirs(f'{OUT}/tiles/{ZMAX}', exist_ok=True)
+# 조각 그림의 실제 크기와 상관없이, 지도 전체(total_size)의 1/2 크기에 맞춰 늘이거나 줄임
+SW = detail['total_size'][0] // len(slices[0]) // 2; SH = detail['total_size'][1] // len(slices) // 2
 def do_slice(rc):
     r, c = rc
     im = Image.open(io.BytesIO(get(slices[r][c]['url']))).convert('RGBA')
-    w, h = im.size
-    im = im.resize((w // 2, h // 2), Image.LANCZOS)
-    per = (w // 2) // TILE
-    for ty in range((h // 2 + TILE - 1) // TILE):
+    w, h = SW, SH
+    if (r, c) == (0, 0): print('slice size', im.size, '→', (w, h))
+    if im.size != (w, h): im = im.resize((w, h), Image.LANCZOS)
+    per = w // TILE
+    for ty in range((h + TILE - 1) // TILE):
         for tx in range(per):
             t = im.crop((tx * TILE, ty * TILE, tx * TILE + TILE, ty * TILE + TILE))
             if t.getextrema()[3][1] == 0: continue  # 완전히 투명한 조각은 저장 안 함
