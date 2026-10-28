@@ -214,6 +214,16 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .ask textarea { font-family: var(--f-body); font-size: 14px; min-height: 0; resize: vertical; }
 .ask-btns { display: flex; justify-content: flex-end; gap: 8px; }
 
+/* 파티 사이클 */
+.rot { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 10px; }
+.rot h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.rlist li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13.5px; }
+.rlist .rno { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 900; background: var(--ink); color: var(--bg); flex: none; }
+.rlist .ract { font-weight: 600; color: var(--gold); }
+.rlist .rnote { flex-basis: 100%; padding-left: 28px; font-size: 12px; color: var(--muted); }
+.rtip { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+
 /* dialog */
 dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); padding: 0; width: min(640px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); }
 dialog::backdrop { background: rgb(10 12 24 / 0.5); }
@@ -480,8 +490,9 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261028a"></script>
-<script src="weapons.js?v=20261028a"></script>
+<script src="builds.js?v=20261028d"></script>
+<script src="weapons.js?v=20261028d"></script>
+<script src="rot.js?v=20261028d"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -1133,6 +1144,16 @@ function rankedParties() {
   return S.parties.map(p => ({ p, e: evalParty(p) })).sort((a, b) => b.e.value - a.e.value);
 }
 
+// 파티 사이클: 실전 사이클(rot.js의 TEAM_ROT)이 있으면 그것, 없으면 캐릭터별 행동을 단계 순으로 조립
+function rotBlock(ids) {
+  if (typeof partyRotation !== 'function' || ids.length < 2) return '';
+  const r = partyRotation(ids, DB);
+  if (!r) return '';
+  const steps = r.steps.map((st, i) => `<li><span class="rno">${i + 1}</span>${av(st.id, 'sm')}<b>${esc(DB[st.id] ? DB[st.id].name : st.id)}</b><span class="ract">${esc(st.act)}</span>${st.note ? `<span class="rnote">${esc(st.note)}</span>` : ''}</li>`).join('');
+  return `<div class="rot"><h3>사이클 굴리는 법 <span class="chip">${r.exact ? '실전 사이클 · ' + esc(r.src) : '역할로 짠 기본 순서'}</span></h3>
+    <ol class="rlist">${steps}</ol>
+    <p class="rtip">${r.exact ? '' : '보호막·장판 → 후방 딜 → 버프 → 필드 딜러 순입니다. '}한 바퀴가 끝나면, 깔아 둔 효과가 사라지기 전에 1번부터 다시 돌립니다. E = 원소전투 스킬, Q = 원소폭발.</p></div>`;
+}
 function renderParties(ranked) {
   const v = $('#view-parties');
   const head = `<div class="bar"><h2>파티 순위</h2><div class="actions"><button class="btn primary" type="button" data-act="new-party">+ 새 파티</button></div></div>`;
@@ -1170,6 +1191,7 @@ function renderParties(ranked) {
         ${dpsLine(e)}
       </div>
       <div class="diag"><h3>부족한 점</h3><ul class="issues">${iss}</ul></div>
+      ${rotBlock(p.m.filter(id => id && S.roster[id]))}
       <div class="pfoot"><button class="btn sm" type="button" data-act="edit-party" data-id="${p.pid}">편집</button></div>
     </div></details>`;
   }).join('') + `</div>`;

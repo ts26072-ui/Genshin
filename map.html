@@ -6,7 +6,7 @@
 <title>지도 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="common.css?v=20261028c">
+<link rel="stylesheet" href="common.css?v=20261028d">
 <style>
 /* 왼쪽: 재료 고르기 + 추천 루트 목록 / 오른쪽: 지도. 좁은 화면은 위아래로 */
 .mapwrap { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 12px; align-items: start; }
@@ -31,6 +31,8 @@
 .pin { width: 26px; height: 26px; border-radius: 50%; background: rgb(20 24 36 / .85); box-shadow: 0 0 0 2px var(--rc, #ECE5D8); display: grid; place-items: center; }
 .pin img { width: 22px; height: 22px; }
 .pin b { position: absolute; top: -9px; right: -9px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px; background: var(--rc, #ECE5D8); color: #fff; font-size: 10px; line-height: 16px; text-align: center; font-family: var(--f-body); }
+.pin.done { opacity: .45; box-shadow: 0 0 0 2px #7BCB9A; }
+.pin.done b { background: #7BCB9A; }
 .warp { width: 18px; height: 18px; }
 .warp img { width: 18px; height: 18px; opacity: .9; }
 .hint { font-size: 12.5px; color: var(--muted); margin: 0; }
@@ -46,7 +48,7 @@
 <div class="wrap" style="max-width:1400px">
   <header class="top">
     <h1><span class="star">✦</span> 테이와트 지도</h1>
-    <p class="sub">재료를 고르면 지도에 위치를 찍고, 가까운 것끼리 묶어 워프 포인트에서 출발하는 추천 루트를 그려 줍니다.</p>
+    <p class="sub">재료나 신의 눈동자를 고르면 지도에 위치를 찍고, 가까운 것끼리 묶어 워프 포인트에서 출발하는 추천 루트를 그려 줍니다.</p>
   </header>
   <nav class="sitenav" aria-label="페이지">
     <a href="index.html">파티 감정소</a>
@@ -69,13 +71,13 @@
     <div id="map" role="region" aria-label="테이와트 지도"></div>
   </div>
 
-  <p class="foot-note">지도 그림과 위치는 HoYoLAB 공식 인터랙티브 지도(테이와트) 자료를 이 사이트에 옮겨 둔 것이며 매주 갱신됩니다(일부 네트워크에서 HoYoverse 이미지 서버가 막혀 공식 지도가 안 보이는 문제 때문). 추천 루트는 가까운 위치(지도 그림 기준 약 450픽셀 안)끼리 묶고, 묶음마다 가장 가까운 워프 포인트에서 출발해 최단 거리에 가깝게 도는 순서를 계산한 것입니다. 지형(절벽·물)과 높낮이는 고려하지 않으니 실제로는 길을 조금 돌아가야 할 수 있습니다. 지역 특산물은 채집 후 48시간 뒤 다시 생깁니다. 지도·아이콘 © HoYoverse — 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
+  <p class="foot-note">지도 그림과 위치는 HoYoLAB 공식 인터랙티브 지도(테이와트) 자료를 이 사이트에 옮겨 둔 것이며 매주 갱신됩니다(일부 네트워크에서 HoYoverse 이미지 서버가 막혀 공식 지도가 안 보이는 문제 때문). 추천 루트는 가까운 위치(지도 기준 약 450픽셀, 신의 눈동자는 300픽셀 안)끼리 묶어 한 루트에 15개까지 나누고, 묶음마다 가장 가까운 워프 포인트에서 출발해 최단 거리에 가깝게 도는 순서를 계산한 것입니다. 지형(절벽·물)과 높낮이는 고려하지 않으니 실제로는 길을 조금 돌아가야 할 수 있습니다. 지역 특산물은 채집 후 48시간 뒤 다시 생깁니다. 지도·아이콘 © HoYoverse — 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
 </div>
 
 <script src="vendor/leaflet.js"></script>
-<script src="chars.js?v=20261028c"></script>
-<script src="farm.js?v=20261028c"></script>
-<script src="map/mapdata.js?v=20261028c"></script>
+<script src="chars.js?v=20261028d"></script>
+<script src="farm.js?v=20261028d"></script>
+<script src="map/mapdata.js?v=20261028d"></script>
 <script>
 const $ = s => document.querySelector(s);
 // GitHub Pages에서는 같은 사이트의 지도 조각을, 그 밖(claude.ai 앱 등)에서는 GitHub Pages 주소를 씀
@@ -110,9 +112,9 @@ map.on('zoomend', () => { if (st.warps) map.getZoom() >= WARP_ZOOM ? warpLayer.a
 // ───────── 추천 루트 ─────────
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 const LINK = 450;   // 이 거리(원본 픽셀) 안의 위치끼리 한 묶음
-function clusters(ps) {
+function clusters(ps, link = LINK) {
   const parent = ps.map((_, i) => i), f = i => parent[i] === i ? i : (parent[i] = f(parent[i]));
-  for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (dist(ps[i], ps[j]) < LINK) parent[f(i)] = f(j);
+  for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (dist(ps[i], ps[j]) < link) parent[f(i)] = f(j);
   const g = {}; ps.forEach((p, i) => (g[f(i)] ||= []).push(p));
   return Object.values(g);
 }
@@ -135,20 +137,39 @@ function tour(ps) {
 }
 const RC = ['#E8B65C', '#6FB7F2', '#7BCB9A', '#F08A7E', '#C59BEA', '#5BD1C9', '#F2A65C', '#A8C66C'];
 let routes = [];
-function showLabel(id) {
+// 신의 눈동자는 주운 것을 표시해 두면 남은 것만으로 루트를 다시 그림(이 브라우저에 저장)
+let got = new Set();
+try { got = new Set(JSON.parse(localStorage.getItem(PREF + ':got')) || []); } catch (e) {}
+const gotKey = (id, p) => `${id}:${p[0]},${p[1]}`;
+const isOculus = id => D.labels[id] && D.labels[id][1] === 'oculus';
+function toggleGot(id, p) {
+  const k = gotKey(id, p); got.has(k) ? got.delete(k) : got.add(k);
+  try { localStorage.setItem(PREF + ':got', JSON.stringify([...got])); } catch (e) {}
+  showLabel(id, true);
+}
+function showLabel(id, keepView) {
   matLayer.clearLayers(); routeLayer.clearLayers(); routes = [];
-  const ps = (D.points[id] || []);
-  if (!ps.length) { renderSide(); return; }
-  routes = clusters(ps).map(c => tour(c)).sort((a, b) => b.length - a.length);
+  const all = (D.points[id] || []);
+  const ps = isOculus(id) ? all.filter(p => !got.has(gotKey(id, p))) : all;
+  if (isOculus(id)) for (const p of all.filter(p => got.has(gotKey(id, p))))
+    L.marker(ll(p), { icon: L.divIcon({ className: '', html: `<div class="pin done"><img src="${icon(id)}" alt=""><b>✓</b></div>`, iconSize: [26, 26] }) })
+      .bindTooltip('주운 것 · 누르면 취소').on('click', () => toggleGot(id, p)).addTo(matLayer);
+  if (!ps.length) { if (all.length && !keepView) map.fitBounds(L.latLngBounds(all.map(ll)).pad(0.15)); renderSide(); return; }
+  // 한 루트가 너무 길면 15개씩 끊고, 끊은 조각마다 가장 가까운 워프에서 다시 출발
+  const CAP = 15;
+  routes = clusters(ps, isOculus(id) ? 300 : LINK).map(c => tour(c))
+    .flatMap(r => r.length <= CAP ? [r] : Array.from({ length: Math.ceil(r.length / CAP) }, (_, k) => tour(r.slice(k * CAP, k * CAP + CAP))))
+    .sort((a, b) => b.length - a.length);
   routes.forEach((r, ri) => {
     const c = RC[ri % RC.length], w = nearestWarp(r[0]);
     const line = (w.w && w.d < LINK * 4 ? [w.w.p, ...r] : r).map(ll);
     if (r.length > 1 || w.w) L.polyline(line, { color: c, weight: 4, opacity: .95, dashArray: ri < 8 ? null : '4 6' }).addTo(routeLayer);
     if (w.w && w.d < LINK * 4) L.circleMarker(ll(w.w.p), { radius: 9, color: c, weight: 3, fillOpacity: 0 }).bindTooltip(`루트 ${ri + 1} 출발 워프`).addTo(routeLayer);
     r.forEach((p, i) => L.marker(ll(p), { icon: L.divIcon({ className: '', html: `<div class="pin" style="--rc:${c}"><img src="${icon(id)}" alt="">${ri < 8 ? `<b>${i + 1}</b>` : ''}</div>`, iconSize: [26, 26] }) })
-      .bindTooltip(`${GP.esc(D.labels[id][0])} · 루트 ${ri + 1}의 ${i + 1}번째`).addTo(matLayer));
+      .bindTooltip(`${GP.esc(D.labels[id][0])} · 루트 ${ri + 1}의 ${i + 1}번째${isOculus(id) ? ' · 누르면 주움 표시' : ''}`)
+      .on('click', () => { if (isOculus(id)) toggleGot(id, p); }).addTo(matLayer));
   });
-  map.fitBounds(L.latLngBounds(ps.map(ll)).pad(0.15));
+  if (!keepView) map.fitBounds(L.latLngBounds(ps.map(ll)).pad(0.15));
   renderSide();
 }
 
@@ -171,18 +192,22 @@ function renderSide() {
   const btn = ([id, [n]]) => `<button type="button" class="mbtn${needName[n] ? ' need' : ''}" data-id="${id}" aria-pressed="${st.label === id}" title="${needName[n] ? GP.esc('필요: ' + [...needName[n]].join(', ')) : ''}"><img src="${icon(id)}" alt="" loading="lazy">${GP.esc(n)}<span class="n">${D.points[id].length}</span></button>`;
   const groups = [...REGIONS.map(r => [r + ' 특산물', items.filter(([, [n, g]]) => g === 'spec' && regionOf[n] === r)]),
     ['그 밖의 특산물', items.filter(([, [n, g]]) => g === 'spec' && !regionOf[n])], ['광물', items.filter(([, [, g]]) => g === 'ore')]];
+  groups.unshift(['신의 눈동자', items.filter(([, [, g]]) => g === 'oculus')]);
   $('#mats').innerHTML = groups.filter(([, l]) => l.length).map(([t, l]) => `<div><h3>${t}</h3><div class="mlist">${l.map(btn).join('')}</div></div>`).join('')
     || `<p class="hint">${st.need ? '돌파가 남은 내 캐릭터에게 필요한 특산물이 없습니다.' : '검색 결과가 없습니다.'}</p>`;
   const id = st.label;
   if (!id || !D.labels[id]) { $('#sel').innerHTML = '<p class="hint">아래에서 재료를 고르세요. 숫자는 지도에 있는 개수입니다.</p>'; return; }
   const n = D.labels[id][0], total = routes.reduce((s, r) => s + r.length, 0);
-  $('#sel').innerHTML = `<h3>${GP.esc(n)} · ${total}개 · 루트 ${routes.length}개</h3>
+  const gotN = isOculus(id) ? D.points[id].filter(p => got.has(gotKey(id, p))).length : 0;
+  $('#sel').innerHTML = `<h3>${GP.esc(n)} · ${isOculus(id) ? `남은 ${total} / 전체 ${D.points[id].length}개` : `${total}개`} · 루트 ${routes.length}개</h3>
+    ${isOculus(id) ? `<p class="hint">지도에서 눈동자를 누르면 주운 것으로 표시되고, 남은 것만으로 루트를 다시 그립니다.${gotN ? ` <button type="button" class="btn sm" id="got-reset">주운 표시 지우기 (${gotN})</button>` : ''}</p>` : ''}
     ${needName[n] ? `<p class="hint">돌파에 필요: ${[...needName[n]].map(GP.esc).join(', ')} (재료 파밍에서 남은 수량 확인)</p>` : ''}
     <div class="routes">${routes.slice(0, 12).map((r, i) => { const w = nearestWarp(r[0]); return `<button type="button" class="rt" data-r="${i}" style="--rc:${RC[i % RC.length]}"><span class="no">${i + 1}</span><span class="t">${r.length}개 모으기</span><span class="s">${w.w && w.d < LINK * 4 ? (w.w.id === '2' ? '일곱신상' : '워프 포인트') + '에서 출발' : '근처 워프에서 걸어서'}</span></button>`; }).join('')}</div>
     ${routes.length > 12 ? `<p class="hint">그 밖에 ${routes.length - 12}곳에 ${routes.slice(12).reduce((s, r) => s + r.length, 0)}개가 흩어져 있습니다.</p>` : ''}
     ${D.routes[id] ? `<a class="btn sm" href="${GP.esc(D.routes[id])}" target="_blank" rel="noopener">HoYoLAB 공식 추천 경로(새 창)</a>` : ''}`;
 }
 $('#mats').addEventListener('click', e => { const b = e.target.closest('.mbtn'); if (!b) return; st.label = b.dataset.id; save(); showLabel(st.label); history.replaceState(null, '', '#' + encodeURIComponent(D.labels[st.label][0])); });
+$('#sel').addEventListener('click', e => { if (e.target.id === 'got-reset' && confirm('이 눈동자의 주운 표시를 모두 지울까요?')) { for (const p of D.points[st.label]) got.delete(gotKey(st.label, p)); try { localStorage.setItem(PREF + ':got', JSON.stringify([...got])); } catch (er) {} showLabel(st.label, true); } });
 $('#sel').addEventListener('click', e => { const b = e.target.closest('.rt'); if (!b) return; const r = routes[+b.dataset.r]; for (const x of document.querySelectorAll('.rt')) x.classList.toggle('on', x === b); map.fitBounds(L.latLngBounds(r.map(ll)).pad(0.4), { maxZoom: D.zmax + 1 }); if (innerWidth < 860) $('#map').scrollIntoView({ behavior: 'smooth' }); });
 $('#q').addEventListener('input', e => { st.q = e.target.value; save(); renderSide(); });
 $('#need').addEventListener('change', e => { st.need = e.target.checked; save(); renderSide(); });
