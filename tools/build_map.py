@@ -73,8 +73,8 @@ def do_icon(lid):
     except Exception as e: print('icon fail', lid, e)
 with ThreadPoolExecutor(8) as ex: list(ex.map(do_icon, labels))
 
-# 3) 위치: 지도 그림 기준 원본 픽셀 좌표(= 좌표 + origin)
-ox, oy = detail['origin']
+# 3) 위치: 지도 그림 기준 원본 픽셀 좌표(= 좌표 + origin + padding)
+ox, oy = detail['origin'][0] + detail['padding'][0], detail['origin'][1] + detail['padding'][1]
 pts = {}
 for p in points:
     if p['label_id'] in labels:
