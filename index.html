@@ -213,11 +213,6 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .ask { display: flex; flex-direction: column; gap: 8px; }
 .ask textarea { font-family: var(--f-body); font-size: 14px; min-height: 0; resize: vertical; }
 .ask-btns { display: flex; justify-content: flex-end; gap: 8px; }
-.ai-key { flex-direction: column; align-items: stretch; }
-.keyrow { display: flex; flex-wrap: wrap; gap: 8px; }
-.keyrow select { flex: 0 1 auto; }
-.keyrow input { flex: 1 1 200px; min-width: 0; }
-#ai-who .linkbtn { font: inherit; background: none; border: 0; padding: 0; color: var(--gold); cursor: pointer; text-decoration: underline; }
 
 /* 파티 사이클 */
 .rot { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 10px; }
@@ -390,7 +385,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   <section id="view-ai" role="tabpanel" hidden>
     <div class="bar"><h2>픽업 일정</h2><span class="muted" id="bn-at"></span></div>
     <div class="bn-list" id="bn-list"></div>
-    <div class="bar" style="margin-top:26px"><h2>AI 상담</h2><span class="muted" id="ai-who"></span></div>
+    <div class="bar" style="margin-top:26px"><h2>AI 상담</h2><span class="muted">Claude가 답합니다</span></div>
     <p class="legend">원신에 관한 건 뭐든 물어보세요. 뽑기·육성·파티는 물론 성유물, 공략, 스토리·설정, 이벤트, 최신 소식까지 답하고, 필요하면 내 캐릭터·파티와 위 픽업 일정(유출 포함)을 참고합니다. 유출은 바뀔 수 있으니 참고만 하세요.</p>
     <div class="res">
       <label for="r-primo">원석<input id="r-primo" type="number" min="0" inputmode="numeric"></label>
@@ -400,15 +395,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
       <label class="check" for="r-welkin"><input id="r-welkin" type="checkbox"> 공월 축복</label>
       <span class="muted" id="r-sum"></span>
     </div>
-    <div id="ai-off" class="notice ai-key" hidden>
-      <p><b>웹에서 AI 상담 쓰기</b> — claude.ai 밖에서는 AI 키가 하나 필요합니다. 키는 이 브라우저에만 저장됩니다. 질문과 계정 요약(캐릭터·파티·재화)은 고른 AI 회사로만 보내집니다.</p>
-      <div class="keyrow">
-        <select id="ai-prov" aria-label="AI 종류"><option value="gemini">Google Gemini (무료 키)</option><option value="claude">Claude (유료 API 키)</option></select>
-        <input id="ai-keyin" type="password" autocomplete="off" spellcheck="false" placeholder="API 키 붙여넣기" aria-label="API 키">
-        <button class="btn primary sm" type="button" id="ai-keysave">저장</button>
-      </div>
-      <p class="muted" style="font-size:13px" id="ai-keyhelp"></p>
-    </div>
+    <div id="ai-off" class="notice" hidden><p>AI 상담은 claude.ai에서 연 앱에서만 쓸 수 있습니다. <a href="https://claude.ai/artifact/XtnB8FRdbqba4gtFcr5WLr" target="_blank" rel="noopener">claude.ai에서 열기</a> (Google 동기화와는 별개라, 그쪽에는 캐릭터를 따로 입력하거나 백업으로 옮겨야 합니다)</p></div>
     <div id="ai-box" hidden>
       <div class="qchips" id="ai-q"></div>
       <div class="chat" id="ai-log" aria-live="polite"></div>
@@ -503,9 +490,9 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261028g"></script>
-<script src="weapons.js?v=20261028g"></script>
-<script src="rot.js?v=20261028g"></script>
+<script src="builds.js?v=20261028h"></script>
+<script src="weapons.js?v=20261028h"></script>
+<script src="rot.js?v=20261028h"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -1536,97 +1523,6 @@ const AI_RULES = `너는 원신(Genshin Impact)을 잘 아는 친근한 상담 �
 const AI_QUICK = ['다음 픽업 뽑을까, 거를까?', '앞으로 3개월 원석 계획 짜 줘', '지금 레진은 어디에 쓰는 게 제일 좋아?', '내 계정에 부족한 역할·원소는?', '나선 비경 파티 두 개 추천해 줘', '지금 쓸 수 있는 리딤 코드 있어?', '이번 버전 이벤트 뭐 챙겨야 돼?'];
 let aiTurns = [], aiCtl = null, sampleFn = null;
 
-// ───────── 웹(github.io 등)에서 쓰는 AI: 사용자가 넣은 키로 브라우저에서 바로 호출 ─────────
-// 키는 localStorage에만 두고 해당 회사 API로만 보냄. Gemini는 무료 키가 있어 기본값
-const GEM_TRIES = [['gemini-flash-latest', true], ['gemini-2.5-flash', true], ['gemini-flash-latest', false], ['gemini-2.5-flash', false], ['gemini-flash-lite-latest', false], ['gemini-2.0-flash', false]];
-const AI_PROV = {
-  gemini: { name: 'Gemini', help: '<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>에서 Google 계정으로 로그인하면 무료 키를 바로 만들 수 있습니다(무료 한도 안에서 사용, 최신 정보는 Google 검색으로 찾아 답함).' },
-  claude: { name: 'Claude', help: '<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Anthropic Console</a>에서 만든 API 키(유료, 쓴 만큼 과금). 최신 정보는 웹 검색으로 찾아 답합니다.' },
-};
-const AI_KEY = KEY + ':aikey';
-let aiCfg = null;
-try { aiCfg = JSON.parse(localStorage.getItem(AI_KEY) || 'null'); } catch (e) {}
-// 서버가 보내는 SSE(data: {...}) 줄을 JSON으로 하나씩 꺼냄
-async function* sseJson(res) {
-  const rd = res.body.getReader(), dec = new TextDecoder();
-  let buf = '';
-  for (;;) {
-    const { value, done } = await rd.read();
-    if (done) break;
-    buf += dec.decode(value, { stream: true });
-    let i;
-    while ((i = buf.indexOf('\n')) >= 0) {
-      const ln = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
-      if (ln.startsWith('data:')) { const s = ln.slice(5).trim(); if (s && s !== '[DONE]') try { yield JSON.parse(s); } catch (e) {} }
-    }
-  }
-}
-function aiHttpErr(res, msg) {
-  const e = new Error(msg || res.statusText);
-  e.code = res.status === 401 || res.status === 403 || res.status === 400 && /key/i.test(msg || '') ? 'bad_key' : res.status === 429 ? 'rate_limited' : res.status >= 500 || res.status === 529 ? 'busy' : 'http';
-  e.detail = msg; return e;
-}
-// sample과 같은 모양: (messages, {signal, onText}) → {text, truncated}. 첫 메시지(지침+계정 정보)는 system으로 뺌
-function keySampler(cfg) {
-  return async (input, { signal, onText }) => {
-    const system = input[0].content, msgs = input.slice(1);
-    let text = '', truncated = false;
-    const push = t => { if (!t) return; text += t; onText && onText({ text }); };
-    if (cfg.prov === 'claude') {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', signal,
-        headers: { 'content-type': 'application/json', 'x-api-key': cfg.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4096, stream: true, system, messages: msgs,
-          tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }] }),
-      });
-      if (!res.ok) { const j = await res.json().catch(() => ({})); throw aiHttpErr(res, j.error && j.error.message); }
-      for await (const ev of sseJson(res)) {
-        // 웹 검색 인용이 있으면 한 문장도 여러 text 블록으로 나뉘어 오므로 그대로 이어 붙임
-        if (ev.type === 'content_block_delta' && ev.delta.type === 'text_delta') push(ev.delta.text);
-        else if (ev.type === 'message_delta' && ev.delta.stop_reason === 'max_tokens') truncated = true;
-        else if (ev.type === 'error') throw Object.assign(new Error(ev.error.message), { code: 'busy' });
-      }
-    } else {
-      // 무료 키는 모델·검색 허용 범위가 계정마다 달라, 안 되면 다음 조합으로 넘어감(키 오류·멈춤은 바로 끝냄)
-      const contents = msgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
-      let res = null, last = null;
-      for (const [model, search] of GEM_TRIES) {
-        res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`, {
-          method: 'POST', signal,
-          headers: { 'content-type': 'application/json', 'x-goog-api-key': cfg.key },
-          body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, ...(search ? { tools: [{ google_search: {} }] } : {}) }),
-        });
-        if (res.ok) break;
-        const j = await res.json().catch(() => ({}));
-        last = aiHttpErr(res, j.error && j.error.message);
-        if (last.code === 'bad_key') throw last;
-        res = null;
-      }
-      if (!res) throw last;
-      for await (const ev of sseJson(res)) {
-        const c = ev.candidates && ev.candidates[0];
-        if (!c) continue;
-        for (const p of (c.content && c.content.parts) || []) if (!p.thought) push(p.text);
-        if (c.finishReason === 'MAX_TOKENS') truncated = true;
-      }
-    }
-    if (signal && signal.aborted) throw Object.assign(new Error('cancelled'), { code: 'cancelled', text });
-    if (!text.trim()) throw Object.assign(new Error('empty'), { code: 'empty_completion' });
-    return { text, truncated };
-  };
-}
-function aiKeyHelp() {
-  const p = AI_PROV[$('#ai-prov').value];
-  $('#ai-keyhelp').innerHTML = p.help;
-  $('#ai-keyin').hidden = !!p.nokey;
-  $('#ai-keysave').textContent = p.nokey ? '바로 쓰기' : '저장';
-}
-function aiUseKey(cfg) {
-  aiCfg = cfg; sampleFn = keySampler(cfg);
-  $('#ai-off').hidden = true; $('#ai-box').hidden = false;
-  $('#ai-who').innerHTML = `${AI_PROV[cfg.prov].name}${AI_PROV[cfg.prov].nokey ? '' : ' 키'}로 연결됨 · <button type="button" class="linkbtn" id="ai-keychg">AI 바꾸기</button>`;
-  aiBusy(false);
-}
 // 아주 작은 마크다운: 소제목·목록·굵게·링크(http/https만)
 function mdLite(t) {
   let out = '', list = null;
@@ -1643,18 +1539,11 @@ function mdLite(t) {
   }
   close(); return out;
 }
-const AI_ERR = { rate_limited: '요청이 너무 많거나 사용량 한도에 닿았습니다. 잠시 뒤 다시 보내 주세요.', session_expired: 'claude.ai에 다시 로그인해 주세요.', refused: '이 질문에는 답할 수 없었습니다. 질문을 바꿔 보세요.', prompt_too_large: '계정 정보가 너무 길어 보낼 수 없습니다.', empty_completion: '답이 비어 있습니다. 질문을 바꿔 보세요.',
-  bad_key: 'API 키가 맞지 않거나 권한이 없습니다. 위 "AI 바꾸기"를 눌러 키를 다시 넣어 주세요(앞뒤 공백 없이 AIza…로 시작하는 키 전체).', busy: 'AI 서버가 바쁩니다. 잠시 뒤 다시 보내 주세요.' };
+const AI_ERR = { rate_limited: '요청이 너무 많거나 사용량 한도에 닿았습니다. 잠시 뒤 다시 보내 주세요.', session_expired: 'claude.ai에 다시 로그인해 주세요.', refused: '이 질문에는 답할 수 없었습니다. 질문을 바꿔 보세요.', prompt_too_large: '계정 정보가 너무 길어 보낼 수 없습니다.', empty_completion: '답이 비어 있습니다. 질문을 바꿔 보세요.' };
 const AI_OFF = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'];
 function aiMsg(cls, html) { const d = document.createElement('div'); d.className = 'msg ' + cls; d.innerHTML = html; $('#ai-log').append(d); return d; }
 function aiBusy(on) { $('#ai-send').disabled = on || !sampleFn; $('#ai-stop').hidden = !on; for (const b of document.querySelectorAll('.qchip')) b.disabled = on || !sampleFn; }
-// claude.ai 밖이면 키 입력 화면을 보여 줌
-function aiOff() {
-  sampleFn = null;
-  $('#ai-off').hidden = false; $('#ai-box').hidden = true; $('#ai-who').textContent = '';
-  if (aiCfg) $('#ai-prov').value = aiCfg.prov;
-  aiKeyHelp();
-}
+function aiOff() { $('#ai-off').hidden = false; $('#ai-box').hidden = true; }
 async function aiAsk(q) {
   q = q.trim(); if (!q || !sampleFn || aiCtl) return;
   aiMsg('me', esc(q));
@@ -1686,27 +1575,11 @@ $('#ai-form').addEventListener('submit', e => { e.preventDefault(); const v = $(
 $('#ai-in').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#ai-form').requestSubmit(); } });
 $('#ai-stop').addEventListener('click', () => aiCtl && aiCtl.abort());
 $('#ai-reset').addEventListener('click', () => { if (aiCtl) aiCtl.abort(); aiTurns = []; $('#ai-log').innerHTML = ''; });
-$('#ai-prov').addEventListener('change', aiKeyHelp);
-$('#ai-keysave').addEventListener('click', () => {
-  const prov = $('#ai-prov').value, key = AI_PROV[prov].nokey ? '' : $('#ai-keyin').value.trim();
-  if (!AI_PROV[prov].nokey && key.length < 20) { $('#ai-keyin').focus(); return; }
-  try { localStorage.setItem(AI_KEY, JSON.stringify({ prov, key })); } catch (e) {}
-  $('#ai-keyin').value = '';
-  aiUseKey({ prov, key });
-});
-$('#ai-keyin').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#ai-keysave').click(); } });
-$('#ai-who').addEventListener('click', e => {
-  if (!e.target.closest('#ai-keychg')) return;
-  if (aiCtl) aiCtl.abort();
-  try { localStorage.removeItem(AI_KEY); } catch (err) {}
-  aiOff(); $('#ai-keyin').focus();
-});
 aiBusy(false);
 (async () => {
   const s = window.claude && window.claude.use ? await window.claude.use('sample').catch(() => null) : null;
-  if (s) { sampleFn = s; $('#ai-box').hidden = false; $('#ai-who').textContent = 'Claude가 답합니다'; return aiBusy(false); }
-  if (aiCfg && AI_PROV[aiCfg.prov] && (aiCfg.key || AI_PROV[aiCfg.prov].nokey)) return aiUseKey(aiCfg);
-  aiOff();
+  if (!s) return aiOff();
+  sampleFn = s; $('#ai-box').hidden = false; aiBusy(false);
 })();
 
 // ───────── 탭 ─────────
