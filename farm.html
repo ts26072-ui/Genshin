@@ -153,7 +153,8 @@ function matCard(mid, { n, who }, showWho) {
     <div class="top"><span class="nm">${GP.esc(m[0])}</span><span class="cnt">${n.toLocaleString()}개</span></div>
     ${showWho ? `<div class="who">${[...who].map(names).map(GP.esc).join(', ')}</div>` : `<div class="who">${GP.esc(m[1])}</div>`}
     <div class="route">${route(mid)}</div>
-    ${k === 'spec' || k === 'mob' || k === 'boss' ? `<div class="acts"><a class="btn sm" href="${MAP_URL}" target="_blank" rel="noopener">지도에서 위치 보기</a></div>` : ''}</div>`;
+    ${k === 'spec' ? `<div class="acts"><a class="btn sm" href="map.html#${encodeURIComponent(m[0])}">지도에서 추천 루트 보기</a></div>`
+      : k === 'mob' || k === 'boss' ? `<div class="acts"><a class="btn sm" href="${MAP_URL}" target="_blank" rel="noopener">공식 지도(새 창)</a></div>` : ''}</div>`;
 }
 function renderToday() {
   const day = serverDay();

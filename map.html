@@ -5,31 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>지도 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261028a">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="common.css?v=20261028c">
 <style>
-/* 지도 바로가기 + 지역별 특산물 안내 */
-.maps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; margin-bottom: 26px; }
-.mapcard { display: flex; flex-direction: column; gap: 8px; }
-.mapcard h2 { font-size: 17px; }
-.mapcard p { margin: 0; font-size: 13px; color: var(--muted); }
-.mapcard .btn { align-self: flex-start; margin-top: 4px; }
-.regions { display: flex; flex-direction: column; gap: 14px; }
-.region h2 { font-size: 17px; margin-bottom: 8px; }
-.specs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 8px; }
-.spec { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 2px 10px; align-items: start; padding: 8px 10px; border-radius: 10px; background: var(--sunk); }
-.spec .ic { width: 40px; height: 40px; border-radius: 8px; overflow: hidden; grid-row: span 2; background: linear-gradient(160deg, #4f6a5a, #6f9a7a); }
-.spec .ic img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.spec .nm { font-weight: 700; font-size: 14px; display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
-.spec .where { font-size: 12.5px; color: var(--muted); }
-.spec.need { box-shadow: inset 0 0 0 1px var(--gold); }
-.filters { margin-bottom: 12px; }
+/* 왼쪽: 재료 고르기 + 추천 루트 목록 / 오른쪽: 지도. 좁은 화면은 위아래로 */
+.mapwrap { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 12px; align-items: start; }
+.side { display: flex; flex-direction: column; gap: 10px; max-height: calc(100dvh - 210px); overflow: auto; }
+.side input[type="search"] { width: 100%; }
+.side h3 { margin: 4px 0 4px; }
+.mlist { display: flex; flex-wrap: wrap; gap: 5px; }
+.mbtn { font: inherit; font-size: 12.5px; display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px 3px 4px; border-radius: 999px; border: 1px solid var(--line); background: var(--sunk); color: var(--ink); cursor: pointer; }
+.mbtn img { width: 20px; height: 20px; }
+.mbtn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.mbtn.need { box-shadow: inset 0 0 0 1px var(--gold); }
+.mbtn .n { color: var(--muted); font-size: 11px; }
+.mbtn[aria-pressed="true"] .n { color: inherit; opacity: .7; }
+#map { height: calc(100dvh - 210px); min-height: 420px; border-radius: 14px; border: 1px solid var(--line); background: #1b2030; }
+.leaflet-container { font-family: var(--f-body); }
+.routes { display: flex; flex-direction: column; gap: 6px; }
+.rt { font: inherit; text-align: left; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 2px 8px; align-items: center; padding: 7px 9px; border-radius: 10px; border: 1px solid var(--line); background: var(--sunk); color: var(--ink); cursor: pointer; }
+.rt:hover, .rt.on { border-color: var(--gold); }
+.rt .no { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 12px; color: #fff; background: var(--rc); grid-row: span 2; }
+.rt .t { font-weight: 700; font-size: 13.5px; }
+.rt .s { font-size: 12px; color: var(--muted); }
+.pin { width: 26px; height: 26px; border-radius: 50%; background: rgb(20 24 36 / .85); box-shadow: 0 0 0 2px var(--rc, #ECE5D8); display: grid; place-items: center; }
+.pin img { width: 22px; height: 22px; }
+.pin b { position: absolute; top: -9px; right: -9px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 8px; background: var(--rc, #ECE5D8); color: #fff; font-size: 10px; line-height: 16px; text-align: center; font-family: var(--f-body); }
+.warp { width: 18px; height: 18px; }
+.warp img { width: 18px; height: 18px; opacity: .9; }
+.hint { font-size: 12.5px; color: var(--muted); margin: 0; }
+.notice { padding: 10px 12px; border-radius: 10px; font-size: 13px; }
+@media (max-width: 860px) {
+  .mapwrap { grid-template-columns: 1fr; }
+  .side { max-height: none; }
+  #map { height: 70dvh; }
+}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" style="max-width:1400px">
   <header class="top">
     <h1><span class="star">✦</span> 테이와트 지도</h1>
-    <p class="sub">공식 인터랙티브 지도를 바로 열고, 지역마다 어떤 특산물이 어디서 나는지 함께 봅니다.</p>
+    <p class="sub">재료를 고르면 지도에 위치를 찍고, 가까운 것끼리 묶어 워프 포인트에서 출발하는 추천 루트를 그려 줍니다.</p>
   </header>
   <nav class="sitenav" aria-label="페이지">
     <a href="index.html">파티 감정소</a>
@@ -41,71 +58,147 @@
     <a href="stats.html">종결 스탯 도감</a>
   </nav>
 
-  <div class="maps">
-    <div class="panel mapcard">
-      <h2>HoYoLAB 공식 지도 (한국어)</h2>
-      <p>보물상자·순간이동 포인트·특산물·몬스터 위치를 모두 표시할 수 있고, HoYoLAB에 로그인하면 수집 체크가 저장됩니다. 공식 지도는 다른 사이트 안에 넣으면 열리지 않아 새 창으로 엽니다.</p>
-      <a class="btn primary" href="https://act.hoyolab.com/ys/app/interactive-map/index.html?lang=ko-kr" target="_blank" rel="noopener">공식 지도 열기</a>
-    </div>
-    <div class="panel mapcard">
-      <h2>Map Genie (영어)</h2>
-      <p>공식 지도가 안 열릴 때 쓰는 대안입니다. 영어지만 아이템 검색과 진행도 체크가 됩니다(광고 있음).</p>
-      <a class="btn" href="https://mapgenie.io/genshin-impact/maps/teyvat" target="_blank" rel="noopener">Map Genie 열기</a>
-    </div>
+  <div class="mapwrap">
+    <aside class="panel side">
+      <input type="search" id="q" placeholder="재료 이름 검색" aria-label="재료 검색">
+      <label class="check" for="need"><input type="checkbox" id="need"> 내 캐릭터에게 필요한 것만</label>
+      <label class="check" for="warps"><input type="checkbox" id="warps" checked> 워프 포인트·신상 표시</label>
+      <div id="sel"></div>
+      <div id="mats"></div>
+    </aside>
+    <div id="map" role="region" aria-label="테이와트 지도"></div>
   </div>
 
-  <div class="bar"><h2>지역별 특산물</h2></div>
-  <div class="filters">
-    <label class="check" for="need"><input type="checkbox" id="need"> 내 캐릭터에게 필요한 것만</label>
-    <span class="count" id="count"></span>
-  </div>
-  <div class="regions" id="regions"></div>
-
-  <p class="foot-note">특산물 위치는 게임 데이터(genshin-db, 2026년 10월)의 '추천 채집 장소'입니다. 채집 후 48시간 뒤 다시 생기며, 일부는 속세의 주전자에 심을 수 있습니다. 내 캐릭터가 아직 돌파를 다 못 했으면 그 특산물에 금색 테두리와 캐릭터 이름이 붙습니다. 캐릭터별 남은 수량은 <a href="farm.html">재료 파밍</a>에서 볼 수 있습니다. 지도·아이콘 © HoYoverse — 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
+  <p class="foot-note">지도 그림과 위치는 HoYoLAB 공식 인터랙티브 지도(테이와트) 자료를 이 사이트에 옮겨 둔 것이며 매주 갱신됩니다(일부 네트워크에서 HoYoverse 이미지 서버가 막혀 공식 지도가 안 보이는 문제 때문). 추천 루트는 가까운 위치(지도 그림 기준 약 450픽셀 안)끼리 묶고, 묶음마다 가장 가까운 워프 포인트에서 출발해 최단 거리에 가깝게 도는 순서를 계산한 것입니다. 지형(절벽·물)과 높낮이는 고려하지 않으니 실제로는 길을 조금 돌아가야 할 수 있습니다. 지역 특산물은 채집 후 48시간 뒤 다시 생깁니다. 지도·아이콘 © HoYoverse — 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
 </div>
 
-<script src="chars.js?v=20261028a"></script>
-<script src="farm.js?v=20261028a"></script>
+<script src="vendor/leaflet.js"></script>
+<script src="chars.js?v=20261028c"></script>
+<script src="farm.js?v=20261028c"></script>
+<script src="map/mapdata.js?v=20261028c"></script>
 <script>
 const $ = s => document.querySelector(s);
-const own = GP.roster();
+// GitHub Pages에서는 같은 사이트의 지도 조각을, 그 밖(claude.ai 앱 등)에서는 GitHub Pages 주소를 씀
+const BASE = /github\.io$/.test(location.hostname) || /^(localhost|127\.)/.test(location.hostname) ? 'map' : 'https://ts26072-ui.github.io/Genshin/map';
+const D = window.MAPDATA || (typeof MAPDATA !== 'undefined' ? MAPDATA : null);
 const PREF = GP.KEY + ':map';
-let st = { need: false };
+let st = { q: '', need: false, warps: true, label: null };
 try { st = { ...st, ...JSON.parse(localStorage.getItem(PREF)) }; } catch (e) {}
-const REGIONS = ['몬드', '리월', '이나즈마', '수메르', '폰타인', '나타', '노드크라이', '스네즈나야'];
+const save = () => { try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {} };
+
+// ───────── 지도 ─────────
+// 지도 그림 원본 픽셀(px, py) ↔ Leaflet 좌표. 타일 최대 줌(zmax)이 원본의 1/2 크기
+const K = D ? 2 ** (D.zmax + 1) : 64;
+const ll = ([x, y]) => L.latLng(-y / K, x / K);
+const map = L.map('map', { crs: L.CRS.Simple, minZoom: -3, maxZoom: (D ? D.zmax : 5) + 2, zoomSnap: 0.5, attributionControl: false, preferCanvas: false });
+if (D) {
+  const bounds = L.latLngBounds(ll([0, D.size[1]]), ll([D.size[0], 0]));
+  L.tileLayer(`${BASE}/tiles/{z}/{x}_{y}.webp?v=${D.version.slice(0, 8)}`, { tileSize: 256, maxNativeZoom: D.zmax, minNativeZoom: 0, minZoom: -3, noWrap: true, bounds,
+    errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==' }).addTo(map);
+  map.setMaxBounds(bounds.pad(0.2));
+  map.fitBounds(bounds);
+}
+const icon = id => `${BASE}/icons/${id}.png`;
+const WARP_ZOOM = D ? D.zmax - 0.5 : 2;  // 이보다 멀리 보면 워프 표시는 너무 촘촘해서 숨김
+const warpLayer = L.layerGroup(), matLayer = L.layerGroup().addTo(map), routeLayer = L.layerGroup().addTo(map);
+const WARPS = D ? Object.entries(D.labels).filter(([, v]) => v[1] === 'warp').flatMap(([id]) => (D.points[id] || []).map(p => ({ p, id }))) : [];
+for (const w of WARPS) L.marker(ll(w.p), { icon: L.divIcon({ className: 'warp', html: `<img src="${icon(w.id)}" alt="">`, iconSize: [18, 18] }), interactive: false, keyboard: false }).addTo(warpLayer);
+function setWarps() { st.warps ? warpLayer.addTo(map) : warpLayer.remove(); }
+// 줌이 멀면 워프는 너무 촘촘하니 숨김
+map.on('zoomend', () => { if (st.warps) map.getZoom() >= WARP_ZOOM ? warpLayer.addTo(map) : warpLayer.remove(); });
+
+// ───────── 추천 루트 ─────────
+const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+const LINK = 450;   // 이 거리(원본 픽셀) 안의 위치끼리 한 묶음
+function clusters(ps) {
+  const parent = ps.map((_, i) => i), f = i => parent[i] === i ? i : (parent[i] = f(parent[i]));
+  for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) if (dist(ps[i], ps[j]) < LINK) parent[f(i)] = f(j);
+  const g = {}; ps.forEach((p, i) => (g[f(i)] ||= []).push(p));
+  return Object.values(g);
+}
+const nearestWarp = p => WARPS.filter(w => w.id !== '154').reduce((b, w) => { const d = dist(p, w.p); return d < b.d ? { w, d } : b; }, { w: null, d: Infinity });
+// 가장 가까운 이웃 순서 → 2-opt로 꼬인 구간 풀기
+function tour(ps) {
+  let start = 0, best = Infinity;
+  ps.forEach((p, i) => { const d = nearestWarp(p).d; if (d < best) { best = d; start = i; } });
+  const left = ps.slice(), order = [left.splice(start, 1)[0]];
+  while (left.length) { const last = order[order.length - 1]; let k = 0; left.forEach((p, i) => { if (dist(p, last) < dist(left[k], last)) k = i; }); order.push(left.splice(k, 1)[0]); }
+  for (let pass = 0, improved = true; improved && pass < 30; pass++) {
+    improved = false;
+    for (let i = 1; i < order.length - 2; i++) for (let j = i + 1; j < order.length - 1; j++) {
+      if (dist(order[i - 1], order[j]) + dist(order[i], order[j + 1]) < dist(order[i - 1], order[i]) + dist(order[j], order[j + 1]) - 0.01) {
+        order.splice(i, j - i + 1, ...order.slice(i, j + 1).reverse()); improved = true;
+      }
+    }
+  }
+  return order;
+}
+const RC = ['#E8B65C', '#6FB7F2', '#7BCB9A', '#F08A7E', '#C59BEA', '#5BD1C9', '#F2A65C', '#A8C66C'];
+let routes = [];
+function showLabel(id) {
+  matLayer.clearLayers(); routeLayer.clearLayers(); routes = [];
+  const ps = (D.points[id] || []);
+  if (!ps.length) { renderSide(); return; }
+  routes = clusters(ps).map(c => tour(c)).sort((a, b) => b.length - a.length);
+  routes.forEach((r, ri) => {
+    const c = RC[ri % RC.length], w = nearestWarp(r[0]);
+    const line = (w.w && w.d < LINK * 4 ? [w.w.p, ...r] : r).map(ll);
+    if (r.length > 1 || w.w) L.polyline(line, { color: c, weight: 4, opacity: .95, dashArray: ri < 8 ? null : '4 6' }).addTo(routeLayer);
+    if (w.w && w.d < LINK * 4) L.circleMarker(ll(w.w.p), { radius: 9, color: c, weight: 3, fillOpacity: 0 }).bindTooltip(`루트 ${ri + 1} 출발 워프`).addTo(routeLayer);
+    r.forEach((p, i) => L.marker(ll(p), { icon: L.divIcon({ className: '', html: `<div class="pin" style="--rc:${c}"><img src="${icon(id)}" alt="">${ri < 8 ? `<b>${i + 1}</b>` : ''}</div>`, iconSize: [26, 26] }) })
+      .bindTooltip(`${GP.esc(D.labels[id][0])} · 루트 ${ri + 1}의 ${i + 1}번째`).addTo(matLayer));
+  });
+  map.fitBounds(L.latLngBounds(ps.map(ll)).pad(0.15));
+  renderSide();
+}
+
+// ───────── 왼쪽 패널 ─────────
+// 내 캐릭터가 돌파에 쓰는 특산물(farm.js 이름으로 맞춤)
+const own = GP.roster();
 const ascOf = lv => lv >= 80 ? 6 : lv >= 70 ? 5 : lv >= 60 ? 4 : lv >= 50 ? 3 : lv >= 40 ? 2 : lv >= 20 ? 1 : 0;
 const ascOfC = c => ascOf(c.lv) - (c.ap && [20, 40, 50, 60, 70, 80].includes(c.lv) ? 1 : 0);
-// 특산물 id → 아직 돌파가 남아 그 특산물이 필요한 내 캐릭터들
-const needBy = {};
+const needName = {}, regionOf = {};
+for (const m of Object.values(FARM_MAT)) if (m[1].endsWith('지역 특산물')) regionOf[m[0]] = m[1].replace(' 지역 특산물', '');
 for (const [id, c] of Object.entries(own)) {
   const f = FARM_CHAR[id]; if (!f) continue;
-  for (let p = ascOfC(c); p < 6; p++) for (const [mid] of f.a[p] || []) (needBy[mid] ||= new Set()).add(id);
+  for (let p = ascOfC(c); p < 6; p++) for (const [mid] of f.a[p] || []) { const m = FARM_MAT[mid]; if (m && m[1].endsWith('지역 특산물')) (needName[m[0]] ||= new Set()).add(GP.DB[id] ? GP.DB[id].name : id); }
 }
-const specs = Object.entries(FARM_MAT).filter(([, m]) => m[1].endsWith('지역 특산물'));
-function where(m) {
-  const s = m[3].filter(x => !/^채집$|주전자/.test(x)).map(x => x.replace(/^추천:\s*/, '').replace(/\s*채집$/, ''));
-  return (s.length ? s.join(', ') : '지역 곳곳') + (m[3].some(x => /주전자/.test(x)) ? ' · 주전자 재배 가능' : '');
+const REGIONS = ['몬드', '리월', '이나즈마', '수메르', '폰타인', '나타', '노드크라이', '스네즈나야'];
+function renderSide() {
+  if (!D) return;
+  const q = st.q.trim();
+  const items = Object.entries(D.labels).filter(([id, [n, g]]) => g !== 'warp' && (D.points[id] || []).length && (!q || n.includes(q)) && (!st.need || needName[n]));
+  const btn = ([id, [n]]) => `<button type="button" class="mbtn${needName[n] ? ' need' : ''}" data-id="${id}" aria-pressed="${st.label === id}" title="${needName[n] ? GP.esc('필요: ' + [...needName[n]].join(', ')) : ''}"><img src="${icon(id)}" alt="" loading="lazy">${GP.esc(n)}<span class="n">${D.points[id].length}</span></button>`;
+  const groups = [...REGIONS.map(r => [r + ' 특산물', items.filter(([, [n, g]]) => g === 'spec' && regionOf[n] === r)]),
+    ['그 밖의 특산물', items.filter(([, [n, g]]) => g === 'spec' && !regionOf[n])], ['광물', items.filter(([, [, g]]) => g === 'ore')]];
+  $('#mats').innerHTML = groups.filter(([, l]) => l.length).map(([t, l]) => `<div><h3>${t}</h3><div class="mlist">${l.map(btn).join('')}</div></div>`).join('')
+    || `<p class="hint">${st.need ? '돌파가 남은 내 캐릭터에게 필요한 특산물이 없습니다.' : '검색 결과가 없습니다.'}</p>`;
+  const id = st.label;
+  if (!id || !D.labels[id]) { $('#sel').innerHTML = '<p class="hint">아래에서 재료를 고르세요. 숫자는 지도에 있는 개수입니다.</p>'; return; }
+  const n = D.labels[id][0], total = routes.reduce((s, r) => s + r.length, 0);
+  $('#sel').innerHTML = `<h3>${GP.esc(n)} · ${total}개 · 루트 ${routes.length}개</h3>
+    ${needName[n] ? `<p class="hint">돌파에 필요: ${[...needName[n]].map(GP.esc).join(', ')} (재료 파밍에서 남은 수량 확인)</p>` : ''}
+    <div class="routes">${routes.slice(0, 12).map((r, i) => { const w = nearestWarp(r[0]); return `<button type="button" class="rt" data-r="${i}" style="--rc:${RC[i % RC.length]}"><span class="no">${i + 1}</span><span class="t">${r.length}개 모으기</span><span class="s">${w.w && w.d < LINK * 4 ? (w.w.id === '2' ? '일곱신상' : '워프 포인트') + '에서 출발' : '근처 워프에서 걸어서'}</span></button>`; }).join('')}</div>
+    ${routes.length > 12 ? `<p class="hint">그 밖에 ${routes.length - 12}곳에 ${routes.slice(12).reduce((s, r) => s + r.length, 0)}개가 흩어져 있습니다.</p>` : ''}
+    ${D.routes[id] ? `<a class="btn sm" href="${GP.esc(D.routes[id])}" target="_blank" rel="noopener">HoYoLAB 공식 추천 경로(새 창)</a>` : ''}`;
 }
-function render() {
-  try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {}
-  $('#need').checked = st.need; $('#need').disabled = !Object.keys(own).length;
-  let shown = 0;
-  $('#regions').innerHTML = REGIONS.map(r => {
-    const list = specs.filter(([, m]) => m[1].startsWith(r + ' ')).filter(([mid]) => !st.need || needBy[mid]);
-    shown += list.length;
-    if (!list.length) return '';
-    return `<section class="panel region"><h2>${r}</h2><div class="specs">${list.map(([mid, m]) => {
-      const who = needBy[mid] ? [...needBy[mid]].map(id => GP.DB[id] ? GP.DB[id].name : id) : [];
-      return `<div class="spec${who.length ? ' need' : ''}"><span class="ic">${m[6] ? `<img src="https://enka.network/ui/${m[6]}.png" alt="" loading="lazy" decoding="async">` : ''}</span>
-        <div class="nm">${GP.esc(m[0])}${who.length ? `<span class="chip own">${who.slice(0, 3).map(GP.esc).join(', ')}${who.length > 3 ? ' 외' : ''}</span>` : ''}</div>
-        <div class="where">${GP.esc(where(m))}</div></div>`;
-    }).join('')}</div></section>`;
-  }).join('') || `<div class="empty">${st.need ? '돌파가 남은 내 캐릭터에게 필요한 특산물이 없습니다.' : '특산물 자료가 없습니다.'}</div>`;
-  $('#count').textContent = `${shown}종`;
+$('#mats').addEventListener('click', e => { const b = e.target.closest('.mbtn'); if (!b) return; st.label = b.dataset.id; save(); showLabel(st.label); history.replaceState(null, '', '#' + encodeURIComponent(D.labels[st.label][0])); });
+$('#sel').addEventListener('click', e => { const b = e.target.closest('.rt'); if (!b) return; const r = routes[+b.dataset.r]; for (const x of document.querySelectorAll('.rt')) x.classList.toggle('on', x === b); map.fitBounds(L.latLngBounds(r.map(ll)).pad(0.4), { maxZoom: D.zmax + 1 }); if (innerWidth < 860) $('#map').scrollIntoView({ behavior: 'smooth' }); });
+$('#q').addEventListener('input', e => { st.q = e.target.value; save(); renderSide(); });
+$('#need').addEventListener('change', e => { st.need = e.target.checked; save(); renderSide(); });
+$('#warps').addEventListener('change', e => { st.warps = e.target.checked; save(); setWarps(); });
+document.addEventListener('error', e => { if (e.target.tagName === 'IMG' && e.target.closest('.mbtn')) e.target.remove(); }, true);
+
+if (!D) $('#mats').innerHTML = '<p class="hint">지도 자료를 불러오지 못했습니다. 새로고침해 보세요.</p>';
+else {
+  $('#q').value = st.q; $('#need').checked = st.need; $('#need').disabled = !Object.keys(own).length; $('#warps').checked = st.warps;
+  // #재료이름 으로 들어오면 그 재료를 바로 보여 줌(재료 파밍의 지도 버튼)
+  const h = decodeURIComponent(location.hash.slice(1));
+  const fromHash = h && Object.keys(D.labels).find(id => D.labels[id][0] === h);
+  if (fromHash) { st.label = fromHash; st.q = ''; $('#q').value = ''; }
+  setWarps(); if (map.getZoom() < WARP_ZOOM) warpLayer.remove();
+  if (st.label && D.labels[st.label]) showLabel(st.label); else renderSide();
 }
-$('#need').addEventListener('change', e => { st.need = e.target.checked; render(); });
-document.addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.remove(); }, true);
-render();
 </script>
 </body>
 </html>

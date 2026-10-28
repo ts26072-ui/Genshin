@@ -23,6 +23,26 @@
 .tt.dim { opacity: .35; }
 .tt:hover .pic { outline: 2px solid var(--gold); outline-offset: 1px; }
 .empty-cell { color: var(--muted); font-size: 12px; align-self: center; }
+button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+/* 점수 창 */
+#dlg { width: min(400px, calc(100vw - 24px)); padding: 0; border-radius: 16px; }
+.sc { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.sc-head { display: flex; gap: 12px; align-items: center; }
+.sc-head .pic { width: 64px; height: 64px; border-radius: 12px; overflow: hidden; flex: none; background: var(--rar); box-shadow: inset 0 -3px 0 var(--c); }
+.sc-head .pic.r5 { --rar: linear-gradient(160deg, #8a5a2b, #c48a3f); } .sc-head .pic.r4 { --rar: linear-gradient(160deg, #5a4a8a, #8a6ac4); }
+.sc-head .pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sc-head .nm { font-weight: 900; font-size: 19px; }
+.sc-head .meta { font-size: 12.5px; color: var(--muted); }
+.sc-head .btn { margin-left: auto; align-self: start; white-space: nowrap; flex: none; }
+.big { display: flex; align-items: center; gap: 14px; }
+.big .grade { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 22px; color: #fff; background: var(--tc); flex: none; }
+.big .pts { font-size: 30px; font-weight: 900; line-height: 1; }
+.big .pts small { font-size: 14px; font-weight: 500; color: var(--muted); }
+.parts { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; align-items: center; font-size: 13px; }
+.parts .pbar { height: 6px; border-radius: 3px; background: var(--sunk); overflow: hidden; }
+.parts .pbar i { display: block; height: 100%; background: var(--gold); }
+.parts .v { font-weight: 700; text-align: right; white-space: nowrap; }
+.sc .links { display: flex; flex-wrap: wrap; gap: 6px; }
 @media (max-width: 760px) {
   .tgrid { grid-template-columns: 1fr; gap: 6px; }
   .thead { display: none; }
@@ -37,7 +57,7 @@
 <div class="wrap" style="max-width:1200px">
   <header class="top">
     <h1><span class="star">✦</span> 캐릭터 티어표</h1>
-    <p class="sub">원신 7.1 기준 캐릭터 성능 등급을 포지션별로 나눴습니다. 내 캐릭터는 돌파 수가 붙고, 캐릭터를 누르면 종결 스탯 도감이 열립니다.</p>
+    <p class="sub">원신 7.1 기준 캐릭터 성능 등급을 포지션별로 나눴습니다. 내 캐릭터는 돌파 수가 붙고, 캐릭터를 누르면 점수와 그 근거가 나옵니다.</p>
   </header>
   <nav class="sitenav" aria-label="페이지">
     <a href="index.html">파티 감정소</a>
@@ -55,6 +75,7 @@
     <span class="count" id="count"></span>
   </div>
   <div class="tgrid" id="tiers"></div>
+  <dialog id="dlg" aria-label="캐릭터 점수"></dialog>
 
   <p class="foot-note">등급은 캐릭터 성능 점수 하나로 매깁니다: GamsGo 원신 7.1 종합 티어표(2026년 9월, SS 92 · S 84 · A+ 76 · A 68 · B 56 · C 44 · D 30점) 60% + 나무위키 각 캐릭터 문서의 '평가'를 읽고 매긴 점수 40%. 파티 감정소의 캐릭터 성능 점수와 같은 값이며, 한쪽 평가만 있으면 그 값을 씁니다. SS 85점 이상 · S 72점 이상 · A 58점 이상 · B 45점 이상 · C 그 아래. 포지션은 캐릭터의 주 역할 기준이고, 같은 칸 안에서는 점수가 높은 순입니다. 매주 목요일 자동 업데이트에서 갱신됩니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
 </div>
@@ -77,10 +98,35 @@ $('#mine').disabled = !Object.keys(own).length;
 
 function tile(d) {
   const u = GP.iconUrl(d.id), o = own[d.id];
-  return `<a class="tt r${d.r}${st.mine && !o ? ' dim' : ''}" href="stats.html#${d.id}" title="${GP.esc(d.name)} · ${GP.EL[d.el]} · ${d.roles.map(r => GP.ROLE[r]).join('/')} · ${d.perf}점${d.guess ? ' (역할 추정)' : ''}" style="--c:var(--${d.el})">
+  return `<button type="button" class="tt r${d.r}${st.mine && !o ? ' dim' : ''}" data-id="${d.id}" title="${GP.esc(d.name)} · ${d.perf}점" style="--c:var(--${d.el})">
     <span class="pic">${u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : ''}</span>
-    <span class="n">${GP.esc(d.name)}</span>${o ? `<span class="own">${o.cons}돌</span>` : ''}</a>`;
+    <span class="n">${GP.esc(d.name)}</span>${o ? `<span class="own">${o.cons}돌</span>` : ''}</button>`;
 }
+// 캐릭터를 누르면 뜨는 점수 창: 종합 점수와 그 근거(GamsGo 등급 점수·나무위키 평가 점수)
+function scoreCard(id) {
+  const d = GP.DB[id], o = own[id], row = ROWS.find(r => r[0] === rowOf(d));
+  const g = GG[id], gs = g ? GG_SCORE[g] : null, n = PERF_NAMU[id] ?? null;
+  const part = (k, v, label) => `<span>${k}</span><span class="pbar"><i style="width:${v ?? 0}%"></i></span><span class="v">${label}</span>`;
+  const how = gs != null && n != null ? 'GamsGo 60% + 나무위키 40%' : gs != null ? 'GamsGo 등급만 있음' : n != null ? '나무위키 평가만 있음' : '평가 없음 — 기본값';
+  const rank = Object.values(GP.DB).filter(x => posOf(x) === posOf(d)).sort((a, b) => b.perf - a.perf).findIndex(x => x.id === id) + 1;
+  const total = Object.values(GP.DB).filter(x => posOf(x) === posOf(d)).length;
+  return `<div class="sc" style="--c:var(--${d.el})">
+    <div class="sc-head"><div class="pic r${d.r}">${GP.iconUrl(id) ? `<img src="${GP.iconUrl(id)}" alt="">` : ''}</div>
+      <div><div class="nm">${GP.esc(d.name)}</div><div class="meta">${'★'.repeat(d.r)} · ${GP.EL[d.el]}${d.wp ? ' · ' + GP.WPN[d.wp] : ''} · ${d.roles.map(r => GP.ROLE[r]).join(' / ')}${d.guess ? ' (역할 추정)' : ''}</div>
+      ${o ? `<div class="meta">내 캐릭터 · Lv.${o.lv} · ${o.cons}돌파</div>` : ''}</div>
+      <button type="button" class="btn sm" data-close>닫기</button></div>
+    <div class="big"><span class="grade" style="--tc:${row[1]}">${row[0]}</span>
+      <div><div class="pts">${d.perf}<small> / 100점</small></div><div class="meta muted" style="font-size:12.5px">${POS.find(p => p[0] === posOf(d))[1]} ${total}명 중 ${rank}위 · ${how}</div></div></div>
+    <div class="parts">
+      ${part('GamsGo 티어', gs, g ? `${g} · ${gs}점` : '없음')}
+      ${part('나무위키 평가', n, n != null ? `${n}점` : '없음')}
+    </div>
+    <div class="links"><a class="btn sm" href="stats.html#${id}">종결 스탯</a><a class="btn sm" href="guide.html#${id}">추천 성유물</a><a class="btn sm" href="farm.html#${id}">육성 재료</a></div>
+  </div>`;
+}
+const dlg = document.getElementById('dlg');
+$('#tiers').addEventListener('click', e => { const b = e.target.closest('.tt'); if (!b) return; dlg.innerHTML = scoreCard(b.dataset.id); dlg.showModal(); });
+dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); });
 function render() {
   try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {}
   for (const b of document.querySelectorAll('.elchip')) b.setAttribute('aria-pressed', b.dataset.el === st.el);
