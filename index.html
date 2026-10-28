@@ -406,7 +406,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
     </div>
   </section>
 
-  <p class="foot-note">점수는 커뮤니티에서 통용되는 육성 기준(레벨 90, 주력 특성 8–9, 치명 비율 1:2, 캐릭터별 원충 목표 등)을 단순화한 추정치입니다. 레진 비용은 대략적인 상대값입니다. 파티 가치 = 딜량 50% + 육성 25% + 시너지 25%이며, 딜량은 가장 비슷한 실측 파티(genshin.im 7.1 허수아비 실측)의 DPS × 대체 멤버 배율(내 동료 평균 성능 ÷ 실측 동료 평균 성능의 제곱, 최대 1) × 육성 배율(육성 점수/85)로 추정하고 실측 1위(247k)를 100점으로 봅니다. 같은 메인의 실측 파티가 없으면 캐릭터 성능 점수로 보수적으로 추정합니다(최대 실측 1위의 75%). 캐릭터 성능 점수(T0–T4)는 GamsGo 원신 7.1 종합 티어표(2026년 9월, SS=92 · S=84 · A+=76 · A=68 · B=56 · C=44 · D=30)를 60%, 나무위키 각 캐릭터 문서의 '평가' 항목(2026년 10월 열람)을 읽고 매긴 값을 40% 섞은 것이며, 캐릭터 편집 화면에서 직접 바꿀 수 있습니다. 레벨 점수는 모험 등급이 허용하는 최대 레벨 대비 방어 계수 × 기초 스탯 곡선으로 계산하고, Lv.60 전에는 두 번째 고유 특성이 잠긴 만큼 감점합니다. 특성은 돌파 단계별 상한(2·4·6·8·10단계 돌파 시 2·4·6·8·10)을 넘을 수 없습니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러오며, 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
+  <p class="foot-note">점수는 커뮤니티에서 통용되는 육성 기준(레벨 90, 주력 특성 8–9, 치명 비율 1:2, 캐릭터별 원충 목표 등)을 단순화한 추정치입니다. 레진 비용은 대략적인 상대값입니다. 파티 가치 = 딜량 50% + 육성 25% + 시너지 25%이며, 딜량은 가장 비슷한 실측 파티(genshin.im 7.1 허수아비 실측)의 DPS × 대체 멤버 배율(내 동료 평균 성능 ÷ 실측 동료 평균 성능의 제곱, 최대 1) × 육성 배율(육성 점수/85)로 추정하고 실측 1위(247k)를 100점으로 봅니다. 같은 메인의 실측 파티가 없으면 캐릭터 성능 점수로 보수적으로 추정합니다(최대 실측 1위의 75%). 캐릭터 성능 점수(T0–T4)는 GamsGo 원신 7.1 종합 티어표(2026년 9월, SS=92 · S=84 · A+=76 · A=68 · B=56 · C=44 · D=30)를 60%, 나무위키 각 캐릭터 문서의 '평가' 항목(2026년 10월 열람)을 읽고 매긴 값을 40% 섞은 것이며, 캐릭터 편집 화면에서 직접 바꿀 수 있습니다. 레벨 점수는 모험 등급이 허용하는 최대 레벨 대비 방어 계수 × 기초 스탯 곡선으로 계산하고, Lv.60 전에는 두 번째 고유 특성이 잠긴 만큼 감점합니다. 레벨이 낮으면 무기·성유물이 좋아도 기초 스탯이 낮아 제 힘을 못 내므로, 레벨 점수의 제곱근을 육성 점수 전체에 곱합니다(Lv.80 약 ×0.94, Lv.50 약 ×0.7, Lv.1 약 ×0.3). 특성은 돌파 단계별 상한(2·4·6·8·10단계 돌파 시 2·4·6·8·10)을 넘을 수 없습니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러오며, 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
 </div>
 
 <dialog id="dlg-char">
@@ -490,9 +490,9 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261028d"></script>
-<script src="weapons.js?v=20261028d"></script>
-<script src="rot.js?v=20261028d"></script>
+<script src="builds.js?v=20261028e"></script>
+<script src="weapons.js?v=20261028e"></script>
+<script src="rot.js?v=20261028e"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -820,9 +820,10 @@ function setInfo(c) {
 function charCalc(c) {
   const d = prof(c);
   // 레벨: 모험 등급이 허용하는 목표 레벨 대비 피해 비율(방어 계수 × 기초 스탯), Lv.60 전에는 두 번째 고유 특성이 잠겨 감점
+  // 기초 공격력·HP·방어력은 레벨에 거의 비례(Lv.1 ≈ Lv.90의 1/12)해 저레벨이면 무기·성유물이 좋아도 피해가 크게 줄어듦
   const T = lvTarget();
-  const L = effLv(c);
-  let lv = clamp((defMult(L) / defMult(T)) * (0.5 + 0.5 * baseRatio(L) / baseRatio(T)));
+  const L = Math.max(1, effLv(c));
+  let lv = clamp((defMult(L) / defMult(T)) * (0.25 + 0.75 * clamp(L / T)));
   if (ascOfC(c) < 4 && T >= 60) lv *= 0.8;
   if (ascOfC(c) < 1 && T >= 20) lv *= 0.8;
   const tg = talTarget(d);
@@ -842,15 +843,20 @@ function charCalc(c) {
     : 0.25 * setS + 0.1 * mainS + 0.25 * erS + 0.4 * keyS;
   const con = d.r === 5 ? [0, .35, .55, .65, .75, .85, 1][c.cons] : c.cons / 6;
   const parts = { lv, tal, wep, art, con };
-  const score = 15 * lv + 15 * tal + 20 * wep + 40 * art + 10 * con;
-  return { score, parts, setS, critS, erS, keyS };
+  // 레벨이 낮으면 나머지 육성도 제 힘을 못 내므로 전체 점수에 곱함(Lv.80 ≈ ×0.94, Lv.50 ≈ ×0.7, Lv.1 ≈ ×0.3)
+  const lvMult = Math.sqrt(lv);
+  const score = (15 * lv + 15 * tal + 20 * wep + 40 * art + 10 * con) * lvMult;
+  return { score, parts, lvMult, setS, critS, erS, keyS };
 }
 
 function charIssues(c) {
   const d = prof(c), out = [];
   const tg = talTarget(d), T = lvTarget(), cap = talCapOf(c);
   if (c.lv > T) out.push(['md', `레벨 ${c.lv} — 모험 등급 ${ar()}의 최대 레벨 ${T}보다 높음, 모험 등급을 확인하세요`]);
-  else if (c.lv < T) out.push([T - c.lv >= 20 ? 'hi' : T - c.lv >= 10 ? 'md' : 'lo', `레벨 ${c.lv} — 목표 ${T}`]);
+  else if (c.lv < T) {
+    const m = charCalc(c).lvMult;
+    out.push([T - c.lv >= 20 ? 'hi' : T - c.lv >= 10 ? 'md' : 'lo', `레벨 ${c.lv} — 목표 ${T}` + (m < 0.9 ? ` · 레벨 때문에 육성 점수 ×${m.toFixed(2)}` : '')]);
+  }
   if (pendingAsc(c)) out.push([ascOf(c.lv) >= 4 ? 'hi' : 'md', `Lv.${c.lv} ${ascOf(c.lv)}단계 돌파 전 — 돌파해야 레벨과 특성(상한 ${TAL_CAP[ascOf(c.lv)]})을 올릴 수 있음`]);
   if (ascOfC(c) < 4 && T >= 60) out.push(['md', 'Lv.60(4단계 돌파) 전이라 두 번째 고유 특성이 잠겨 있음']);
   const low = d.tal.filter(i => c.t[i] < tg);
