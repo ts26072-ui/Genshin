@@ -213,6 +213,11 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .ask { display: flex; flex-direction: column; gap: 8px; }
 .ask textarea { font-family: var(--f-body); font-size: 14px; min-height: 0; resize: vertical; }
 .ask-btns { display: flex; justify-content: flex-end; gap: 8px; }
+.ai-key { flex-direction: column; align-items: stretch; }
+.keyrow { display: flex; flex-wrap: wrap; gap: 8px; }
+.keyrow select { flex: 0 1 auto; }
+.keyrow input { flex: 1 1 200px; min-width: 0; }
+#ai-who .linkbtn { font: inherit; background: none; border: 0; padding: 0; color: var(--gold); cursor: pointer; text-decoration: underline; }
 
 /* 파티 사이클 */
 .rot { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 10px; }
@@ -385,8 +390,8 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   <section id="view-ai" role="tabpanel" hidden>
     <div class="bar"><h2>픽업 일정</h2><span class="muted" id="bn-at"></span></div>
     <div class="bn-list" id="bn-list"></div>
-    <div class="bar" style="margin-top:26px"><h2>AI 상담</h2><span class="muted">Claude가 답합니다</span></div>
-    <p class="legend">내 캐릭터·파티·성장 우선순위와 위 픽업 일정(유출 포함)을 함께 보고 무엇을 뽑고 무엇을 키울지 상담해 줍니다. 유출은 바뀔 수 있으니 참고만 하세요.</p>
+    <div class="bar" style="margin-top:26px"><h2>AI 상담</h2><span class="muted" id="ai-who"></span></div>
+    <p class="legend">원신에 관한 건 뭐든 물어보세요. 뽑기·육성·파티는 물론 성유물, 공략, 스토리·설정, 이벤트, 최신 소식까지 답하고, 필요하면 내 캐릭터·파티와 위 픽업 일정(유출 포함)을 참고합니다. 유출은 바뀔 수 있으니 참고만 하세요.</p>
     <div class="res">
       <label for="r-primo">원석<input id="r-primo" type="number" min="0" inputmode="numeric"></label>
       <label for="r-fate">뒤얽힌 인연<input id="r-fate" type="number" min="0" inputmode="numeric"></label>
@@ -395,12 +400,20 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
       <label class="check" for="r-welkin"><input id="r-welkin" type="checkbox"> 공월 축복</label>
       <span class="muted" id="r-sum"></span>
     </div>
-    <div id="ai-off" class="notice" hidden><p>AI 상담은 claude.ai에서 연 앱에서만 쓸 수 있습니다. <a href="https://claude.ai/artifact/XtnB8FRdbqba4gtFcr5WLr" target="_blank" rel="noopener">claude.ai에서 열기</a> (Google 동기화와는 별개라, 그쪽에는 캐릭터를 따로 입력하거나 백업으로 옮겨야 합니다)</p></div>
-    <div id="ai-box">
+    <div id="ai-off" class="notice ai-key" hidden>
+      <p><b>웹에서 AI 상담 쓰기</b> — claude.ai 밖에서는 AI 키가 하나 필요합니다. 키는 이 브라우저에만 저장됩니다. 질문과 계정 요약(캐릭터·파티·재화)은 고른 AI 회사로만 보내집니다.</p>
+      <div class="keyrow">
+        <select id="ai-prov" aria-label="AI 종류"><option value="gemini">Google Gemini (무료 키)</option><option value="claude">Claude (유료 API 키)</option></select>
+        <input id="ai-keyin" type="password" autocomplete="off" spellcheck="false" placeholder="API 키 붙여넣기" aria-label="API 키">
+        <button class="btn primary sm" type="button" id="ai-keysave">저장</button>
+      </div>
+      <p class="muted" style="font-size:13px" id="ai-keyhelp"></p>
+    </div>
+    <div id="ai-box" hidden>
       <div class="qchips" id="ai-q"></div>
       <div class="chat" id="ai-log" aria-live="polite"></div>
       <form class="ask" id="ai-form">
-        <textarea id="ai-in" rows="2" placeholder="예: 미탸 뽑을까요, 원석 아껴서 다음 버전 기다릴까요?" aria-label="질문"></textarea>
+        <textarea id="ai-in" rows="2" placeholder="뭐든 물어보세요. 예: 미탸 뽑을까요? / 느비예트 성유물 부옵 뭐 봐요? / 이번 이벤트 보상 뭐 있어요?" aria-label="질문"></textarea>
         <div class="ask-btns"><button class="btn ghost sm" type="button" id="ai-reset">새 상담</button><button class="btn ghost sm" type="button" id="ai-stop" hidden>멈춤</button><button class="btn primary" type="submit" id="ai-send">보내기</button></div>
       </form>
     </div>
@@ -490,9 +503,9 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261028e"></script>
-<script src="weapons.js?v=20261028e"></script>
-<script src="rot.js?v=20261028e"></script>
+<script src="builds.js?v=20261028f"></script>
+<script src="weapons.js?v=20261028f"></script>
+<script src="rot.js?v=20261028f"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -1508,25 +1521,105 @@ ${growth || '없음'}
 [픽업 일정 (${BANNERS_AT} 기준)]
 ${banners}`;
 }
-const AI_RULES = `너는 원신(Genshin Impact) 계정 상담가다. 아래 계정 정보와 픽업 일정을 근거로 한국어로 답한다.
-- 무엇을 뽑을지/거를지, 원석을 언제 쓸지, 무엇을 먼저 키울지 구체적으로 권한다. 캐릭터 이름은 한국어 이름으로 쓴다.
-- 결론을 먼저 한두 줄로, 그다음 이유를 짧은 목록으로. 전체는 대개 15줄 이내.
-- 픽업 일정 중 '유출 · 추정'은 확정이 아니라고 분명히 말하고, 유출에 기대는 결정이면 그 위험을 함께 적는다.
-- 뽑기 계산: 캐릭터 기원 천장 90뽑(74뽑부터 확률 급상승, 평균 약 62뽑에 5성), 50:50에서 지면 다음 5성은 픽업 확정. 최악은 픽업까지 180뽑. 무기 기원은 80뽑 천장.
-- 수입은 대략치로만: 무과금 기준 한 버전(약 6주)에 약 60~80뽑, 공월 축복이면 버전당 약 20뽑 더. 숫자를 단정하지 말고 '약'을 붙인다.
-- 계정에 없는 정보(성유물 세부 등)는 추측하지 말고 필요하면 물어본다. 데이터가 예시면 그 점을 알린다.
-- 마크다운은 굵게(**), 목록(-, 1.), 소제목(###)만 쓴다.
+const AI_RULES = `너는 원신(Genshin Impact)을 잘 아는 친근한 상담 상대다. 한국어로 답한다.
+- 원신에 관한 것이면 무엇이든 자유롭게 답한다: 뽑기·원석 계획, 육성 순서, 파티·사이클, 성유물·무기, 공략·퍼즐·업적, 스토리·설정, 이벤트, 메타, 잡담까지. 원신 밖 질문에도 편하게 답한다.
+- 아래 계정 정보와 픽업 일정은 질문과 관련 있을 때만 근거로 쓴다. 관계없는 질문에 계정 이야기를 억지로 붙이지 않는다.
+- 길이는 질문에 맞춘다. 짧은 질문엔 짧게, 자세히 묻거나 계획을 짜 달라면 충분히 길게. 판단이 필요한 질문은 결론을 먼저 말한다.
+- 캐릭터·무기·성유물 이름은 한국어 이름으로 쓴다.
+- 검색 도구가 있으면 최신 버전·이벤트·유출·리딤 코드·확실하지 않은 사실은 검색해서 답하고, 참고한 곳을 [이름](주소) 링크로 남긴다. 모르는 건 지어내지 말고 모른다고 한다.
+- 픽업 일정 중 '유출 · 추정'은 확정이 아니라고 분명히 말한다.
+- 뽑기 계산: 캐릭터 기원 천장 90뽑(74뽑부터 확률 급상승, 평균 약 62뽑에 5성), 50:50에서 지면 다음 5성은 픽업 확정. 최악은 픽업까지 180뽑. 무기 기원은 80뽑 천장. 무과금 수입은 버전(약 6주)당 약 60~80뽑, 공월 축복이면 약 20뽑 더.
+- 마크다운은 굵게(**), 목록(-, 1.), 소제목(###), 링크([글](주소))만 쓴다.
 
 [계정 정보]
 `;
-const AI_QUICK = ['다음 픽업 뽑을까, 거를까?', '앞으로 3개월 원석 계획 짜 줘', '지금 레진은 어디에 쓰는 게 제일 좋아?', '내 계정에 부족한 역할·원소는?', '나선 비경 파티 두 개 추천해 줘'];
+const AI_QUICK = ['다음 픽업 뽑을까, 거를까?', '앞으로 3개월 원석 계획 짜 줘', '지금 레진은 어디에 쓰는 게 제일 좋아?', '내 계정에 부족한 역할·원소는?', '나선 비경 파티 두 개 추천해 줘', '지금 쓸 수 있는 리딤 코드 있어?', '이번 버전 이벤트 뭐 챙겨야 돼?'];
 let aiTurns = [], aiCtl = null, sampleFn = null;
-// 아주 작은 마크다운: 소제목·목록·굵게만
+
+// ───────── 웹(github.io 등)에서 쓰는 AI: 사용자가 넣은 키로 브라우저에서 바로 호출 ─────────
+// 키는 localStorage에만 두고 해당 회사 API로만 보냄. Gemini는 무료 키가 있어 기본값
+const AI_PROV = {
+  gemini: { name: 'Gemini', help: '<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>에서 Google 계정으로 로그인하면 무료 키를 바로 만들 수 있습니다(무료 한도 안에서 사용, 최신 정보는 Google 검색으로 찾아 답함).' },
+  claude: { name: 'Claude', help: '<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Anthropic Console</a>에서 만든 API 키(유료, 쓴 만큼 과금). 최신 정보는 웹 검색으로 찾아 답합니다.' },
+};
+const AI_KEY = KEY + ':aikey';
+let aiCfg = null;
+try { aiCfg = JSON.parse(localStorage.getItem(AI_KEY) || 'null'); } catch (e) {}
+// 서버가 보내는 SSE(data: {...}) 줄을 JSON으로 하나씩 꺼냄
+async function* sseJson(res) {
+  const rd = res.body.getReader(), dec = new TextDecoder();
+  let buf = '';
+  for (;;) {
+    const { value, done } = await rd.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf('\n')) >= 0) {
+      const ln = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+      if (ln.startsWith('data:')) { const s = ln.slice(5).trim(); if (s && s !== '[DONE]') try { yield JSON.parse(s); } catch (e) {} }
+    }
+  }
+}
+function aiHttpErr(res, msg) {
+  const e = new Error(msg || res.statusText);
+  e.code = res.status === 401 || res.status === 403 || res.status === 400 && /key/i.test(msg || '') ? 'bad_key' : res.status === 429 ? 'rate_limited' : res.status >= 500 || res.status === 529 ? 'busy' : 'http';
+  e.detail = msg; return e;
+}
+// sample과 같은 모양: (messages, {signal, onText}) → {text, truncated}. 첫 메시지(지침+계정 정보)는 system으로 뺌
+function keySampler(cfg) {
+  return async (input, { signal, onText }) => {
+    const system = input[0].content, msgs = input.slice(1);
+    let text = '', truncated = false;
+    const push = t => { if (!t) return; text += t; onText && onText({ text }); };
+    if (cfg.prov === 'claude') {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST', signal,
+        headers: { 'content-type': 'application/json', 'x-api-key': cfg.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4096, stream: true, system, messages: msgs,
+          tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }] }),
+      });
+      if (!res.ok) { const j = await res.json().catch(() => ({})); throw aiHttpErr(res, j.error && j.error.message); }
+      for await (const ev of sseJson(res)) {
+        // 웹 검색 인용이 있으면 한 문장도 여러 text 블록으로 나뉘어 오므로 그대로 이어 붙임
+        if (ev.type === 'content_block_delta' && ev.delta.type === 'text_delta') push(ev.delta.text);
+        else if (ev.type === 'message_delta' && ev.delta.stop_reason === 'max_tokens') truncated = true;
+        else if (ev.type === 'error') throw Object.assign(new Error(ev.error.message), { code: 'busy' });
+      }
+    } else {
+      const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent?alt=sse', {
+        method: 'POST', signal,
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': cfg.key },
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] },
+          contents: msgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+          tools: [{ google_search: {} }] }),
+      });
+      if (!res.ok) { const j = await res.json().catch(() => ({})); throw aiHttpErr(res, j.error && j.error.message); }
+      for await (const ev of sseJson(res)) {
+        const c = ev.candidates && ev.candidates[0];
+        if (!c) continue;
+        for (const p of (c.content && c.content.parts) || []) if (!p.thought) push(p.text);
+        if (c.finishReason === 'MAX_TOKENS') truncated = true;
+      }
+    }
+    if (signal && signal.aborted) throw Object.assign(new Error('cancelled'), { code: 'cancelled', text });
+    if (!text.trim()) throw Object.assign(new Error('empty'), { code: 'empty_completion' });
+    return { text, truncated };
+  };
+}
+function aiKeyHelp() { $('#ai-keyhelp').innerHTML = AI_PROV[$('#ai-prov').value].help; }
+function aiUseKey(cfg) {
+  aiCfg = cfg; sampleFn = keySampler(cfg);
+  $('#ai-off').hidden = true; $('#ai-box').hidden = false;
+  $('#ai-who').innerHTML = `${AI_PROV[cfg.prov].name} 키로 연결됨 · <button type="button" class="linkbtn" id="ai-keychg">키 바꾸기</button>`;
+  aiBusy(false);
+}
+// 아주 작은 마크다운: 소제목·목록·굵게·링크(http/https만)
 function mdLite(t) {
   let out = '', list = null;
   const close = () => { if (list) { out += `</${list}>`; list = null; } };
   for (const ln of esc(t).split('\n')) {
-    const b = ln.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+    const b = ln.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)"]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
     let m;
     if ((m = b.match(/^#{1,4}\s+(.*)/))) { close(); out += `<h4>${m[1]}</h4>`; }
     else if ((m = b.match(/^\s*[-*•]\s+(.*)/))) { if (list !== 'ul') { close(); out += '<ul>'; list = 'ul'; } out += `<li>${m[1]}</li>`; }
@@ -1536,11 +1629,18 @@ function mdLite(t) {
   }
   close(); return out;
 }
-const AI_ERR = { rate_limited: '요청이 너무 많거나 사용량 한도에 닿았습니다. 잠시 뒤 다시 보내 주세요.', session_expired: 'claude.ai에 다시 로그인해 주세요.', refused: '이 질문에는 답할 수 없었습니다. 질문을 바꿔 보세요.', prompt_too_large: '계정 정보가 너무 길어 보낼 수 없습니다.', empty_completion: '답이 비어 있습니다. 질문을 바꿔 보세요.' };
+const AI_ERR = { rate_limited: '요청이 너무 많거나 사용량 한도에 닿았습니다. 잠시 뒤 다시 보내 주세요.', session_expired: 'claude.ai에 다시 로그인해 주세요.', refused: '이 질문에는 답할 수 없었습니다. 질문을 바꿔 보세요.', prompt_too_large: '계정 정보가 너무 길어 보낼 수 없습니다.', empty_completion: '답이 비어 있습니다. 질문을 바꿔 보세요.',
+  bad_key: 'API 키가 맞지 않거나 권한이 없습니다. 위 "키 바꾸기"로 다시 넣어 주세요.', busy: 'AI 서버가 바쁩니다. 잠시 뒤 다시 보내 주세요.' };
 const AI_OFF = ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'];
 function aiMsg(cls, html) { const d = document.createElement('div'); d.className = 'msg ' + cls; d.innerHTML = html; $('#ai-log').append(d); return d; }
 function aiBusy(on) { $('#ai-send').disabled = on || !sampleFn; $('#ai-stop').hidden = !on; for (const b of document.querySelectorAll('.qchip')) b.disabled = on || !sampleFn; }
-function aiOff() { $('#ai-off').hidden = false; $('#ai-box').hidden = true; }
+// claude.ai 밖이면 키 입력 화면을 보여 줌
+function aiOff() {
+  sampleFn = null;
+  $('#ai-off').hidden = false; $('#ai-box').hidden = true; $('#ai-who').textContent = '';
+  if (aiCfg) $('#ai-prov').value = aiCfg.prov;
+  aiKeyHelp();
+}
 async function aiAsk(q) {
   q = q.trim(); if (!q || !sampleFn || aiCtl) return;
   aiMsg('me', esc(q));
@@ -1548,20 +1648,21 @@ async function aiAsk(q) {
   const out = aiMsg('ai wait', '생각하는 중…');
   out.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   aiCtl = new AbortController(); aiBusy(true);
-  // 계정 정보는 매번 최신으로 첫 턴에 넣고, 대화는 최근 12턴만
-  const hist = aiTurns.slice(-12); if (hist[0].role === 'assistant') hist.shift();
-  const input = [{ role: 'user', content: AI_RULES + accountBrief() + '\n\n이 정보를 바탕으로 아래 질문에 답해 줘.' }, ...hist];
+  // 계정 정보는 매번 최신으로 첫 턴에 넣고, 대화는 최근 20턴만
+  const hist = aiTurns.slice(-20); if (hist[0].role === 'assistant') hist.shift();
+  const input = [{ role: 'user', content: AI_RULES + accountBrief() + '\n\n위 지침과 정보를 참고해 다음 대화에 답해 줘.' }, ...hist];
+  let shown = '';
   try {
-    const { text, truncated } = await sampleFn(input, { cache: false, signal: aiCtl.signal, onText: ({ text }) => { out.classList.remove('wait'); out.innerHTML = mdLite(text); } });
+    const { text, truncated } = await sampleFn(input, { cache: false, signal: aiCtl.signal, onText: ({ text }) => { shown = text; out.classList.remove('wait'); out.innerHTML = mdLite(text); } });
     out.classList.remove('wait'); out.innerHTML = mdLite(text) + (truncated ? '<div class="err">답이 길어 중간에 끊겼습니다.</div>' : '');
     aiTurns.push({ role: 'assistant', content: text });
   } catch (e) {
-    const code = e && e.code, kept = code !== 'refused' && e && e.text;
+    const code = e && (e.code || (e.name === 'AbortError' ? 'cancelled' : '')), kept = code !== 'refused' && e && (e.text || shown);
     out.classList.remove('wait');
     if (AI_OFF.includes(code)) { out.remove(); aiTurns.pop(); aiOff(); }
     else {
-      out.innerHTML = (kept ? mdLite(kept) : '') + `<div class="err">${code === 'cancelled' ? '멈췄습니다.' : AI_ERR[code] || '연결이 끊겼습니다. 다시 보내 주세요.'}</div>`;
-      if (kept) aiTurns.push({ role: 'assistant', content: kept });
+      out.innerHTML = (kept ? mdLite(kept) : '') + `<div class="err">${code === 'cancelled' ? '멈췄습니다.' : AI_ERR[code] || '연결이 끊겼습니다. 다시 보내 주세요.'}${code === 'http' && e.detail ? ` (${esc(e.detail)})` : ''}</div>`;
+      if (kept) aiTurns.push({ role: 'assistant', content: kept }); else aiTurns.pop();
     }
   } finally { aiCtl = null; aiBusy(false); }
 }
@@ -1571,11 +1672,27 @@ $('#ai-form').addEventListener('submit', e => { e.preventDefault(); const v = $(
 $('#ai-in').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#ai-form').requestSubmit(); } });
 $('#ai-stop').addEventListener('click', () => aiCtl && aiCtl.abort());
 $('#ai-reset').addEventListener('click', () => { if (aiCtl) aiCtl.abort(); aiTurns = []; $('#ai-log').innerHTML = ''; });
+$('#ai-prov').addEventListener('change', aiKeyHelp);
+$('#ai-keysave').addEventListener('click', () => {
+  const key = $('#ai-keyin').value.trim(), prov = $('#ai-prov').value;
+  if (key.length < 20) { $('#ai-keyin').focus(); return; }
+  try { localStorage.setItem(AI_KEY, JSON.stringify({ prov, key })); } catch (e) {}
+  $('#ai-keyin').value = '';
+  aiUseKey({ prov, key });
+});
+$('#ai-keyin').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#ai-keysave').click(); } });
+$('#ai-who').addEventListener('click', e => {
+  if (!e.target.closest('#ai-keychg')) return;
+  if (aiCtl) aiCtl.abort();
+  try { localStorage.removeItem(AI_KEY); } catch (err) {}
+  aiOff(); $('#ai-keyin').focus();
+});
 aiBusy(false);
 (async () => {
   const s = window.claude && window.claude.use ? await window.claude.use('sample').catch(() => null) : null;
-  if (!s) return aiOff();
-  sampleFn = s; aiBusy(false);
+  if (s) { sampleFn = s; $('#ai-box').hidden = false; $('#ai-who').textContent = 'Claude가 답합니다'; return aiBusy(false); }
+  if (aiCfg && aiCfg.key && AI_PROV[aiCfg.prov]) return aiUseKey(aiCfg);
+  aiOff();
 })();
 
 // ───────── 탭 ─────────
