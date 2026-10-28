@@ -11,8 +11,9 @@ TILE_BASE = 'https://act-webstatic.hoyoverse.com/map_manage/map/'
 Q = 'map_id=2&app_sn=ys_obc&lang=ko-kr'
 OUT = sys.argv[1] if len(sys.argv) > 1 else 'map'
 LEVELS = [-3, -2, -1]        # 공식 줌 단계 중 받을 것. 이 사이트의 줌 0,1,2가 됨(줌 2 = 원본의 1/2 크기)
-GROUPS = {1: 'warp', 10: 'spec', 11: 'ore'}
+GROUPS = {1: 'warp', 4: 'oculus', 10: 'spec', 11: 'ore'}
 WARP = {2, 3, 154}           # 일곱신상, 워프 포인트, 비경
+OCULI = {5, 6, 194, 403, 508, 626, 694, 833, 141}  # 원소별 신의 눈동자 + 진홍의 옥수
 
 def get(url, tries=4):
     for i in range(tries):
@@ -60,6 +61,7 @@ for top in tree:
     if not g: continue
     for ch in top['children']:
         if g == 'warp' and ch['id'] not in WARP: continue
+        if g == 'oculus' and ch['id'] not in OCULI: continue
         labels[ch['id']] = [ch['name'], g]
         rl = ch.get('recommend_route_list') or []
         if rl: routes[ch['id']] = rl[0]['url'].replace('lang=zh-cn', 'lang=ko-kr')
