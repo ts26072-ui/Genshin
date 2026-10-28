@@ -5,34 +5,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>티어표 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261027a">
+<link rel="stylesheet" href="common.css?v=20261028a">
 <style>
-/* 티어표: 왼쪽 등급 칸 + 오른쪽 캐릭터 타일 줄 */
-.tiers { display: flex; flex-direction: column; gap: 8px; }
-.trow { display: grid; grid-template-columns: 64px minmax(0, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-.tlabel { display: grid; place-items: center; font-weight: 900; font-size: 22px; color: #fff; background: var(--tc); text-shadow: 0 1px 2px rgb(0 0 0 / .35); }
-.tlabel small { display: block; font-size: 11px; font-weight: 500; opacity: .85; text-align: center; }
-.ttiles { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; min-height: 64px; align-content: flex-start; }
-.tt { width: 72px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 3px; position: relative; }
-.tt .pic { width: 60px; height: 60px; border-radius: 12px; overflow: hidden; background: var(--rar); box-shadow: inset 0 -3px 0 var(--c); }
+/* 티어표: 행 = 등급, 열 = 포지션(메인 딜러 · 서브 딜러 · 서포터 · 힐러·보호막). 좁은 화면에서는 등급마다 포지션 칸을 세로로 쌓음 */
+.tgrid { display: grid; grid-template-columns: 64px repeat(4, minmax(0, 1fr)); gap: 6px; }
+.thead { font-size: 13px; font-weight: 700; text-align: center; padding: 8px 4px; border-radius: 10px; background: rgb(14 19 32 / .7); color: #ECE5D8; box-shadow: inset 0 0 0 1px rgb(211 188 142 / .25); }
+.tlabel { display: grid; place-items: center; font-weight: 900; font-size: 22px; color: #fff; background: var(--tc); border-radius: 10px; text-shadow: 0 1px 2px rgb(0 0 0 / .35); text-align: center; line-height: 1.1; }
+.tlabel small { display: block; font-size: 11px; font-weight: 500; opacity: .9; }
+.tcell { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; min-height: 74px; min-width: 0; }
+.tcell .cap { display: none; }
+.tt { width: 62px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 2px; position: relative; }
+.tt .pic { width: 54px; height: 54px; border-radius: 10px; overflow: hidden; background: var(--rar); box-shadow: inset 0 -3px 0 var(--c); }
 .tt.r5 .pic { --rar: linear-gradient(160deg, #8a5a2b, #c48a3f); } .tt.r4 .pic { --rar: linear-gradient(160deg, #5a4a8a, #8a6ac4); }
 .tt .pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.tt .n { font-size: 12px; line-height: 1.25; text-align: center; max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tt .own { position: absolute; top: -4px; right: 2px; font-size: 10.5px; font-weight: 700; padding: 0 5px; border-radius: 999px; background: var(--gold); color: #1b1b1b; }
+.tt .n { font-size: 11.5px; line-height: 1.25; text-align: center; max-width: 62px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tt .own { position: absolute; top: -4px; right: 0; font-size: 10.5px; font-weight: 700; padding: 0 5px; border-radius: 999px; background: var(--gold); color: #1b1b1b; }
 .tt.dim { opacity: .35; }
 .tt:hover .pic { outline: 2px solid var(--gold); outline-offset: 1px; }
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
-.seg button { font: inherit; font-size: 13px; border: 0; background: var(--surface); color: var(--muted); padding: 5px 12px; cursor: pointer; }
-.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-select.sm { width: auto; }
-@media (max-width: 480px) { .trow { grid-template-columns: 46px minmax(0, 1fr); } .tlabel { font-size: 17px; } .tt { width: 60px; } .tt .pic { width: 52px; height: 52px; } }
+.empty-cell { color: var(--muted); font-size: 12px; align-self: center; }
+@media (max-width: 760px) {
+  .tgrid { grid-template-columns: 1fr; gap: 6px; }
+  .thead { display: none; }
+  .tlabel { justify-content: start; padding: 6px 12px; font-size: 18px; margin-top: 8px; display: flex; gap: 8px; align-items: baseline; }
+  .tlabel small { display: inline; }
+  .tcell .cap { display: block; width: 100%; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .tcell.none { display: none; }
+}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" style="max-width:1200px">
   <header class="top">
     <h1><span class="star">✦</span> 캐릭터 티어표</h1>
-    <p class="sub">원신 7.1 기준 캐릭터 성능 등급입니다. 내 캐릭터는 돌파 수가 붙고, 캐릭터를 누르면 종결 스탯 도감이 열립니다.</p>
+    <p class="sub">원신 7.1 기준 캐릭터 성능 등급을 포지션별로 나눴습니다. 내 캐릭터는 돌파 수가 붙고, 캐릭터를 누르면 종결 스탯 도감이 열립니다.</p>
   </header>
   <nav class="sitenav" aria-label="페이지">
     <a href="index.html">파티 감정소</a>
@@ -45,65 +50,55 @@ select.sm { width: auto; }
   </nav>
 
   <div class="filters">
-    <div class="seg" role="group" aria-label="기준">
-      <button type="button" data-by="gg">GamsGo 티어</button>
-      <button type="button" data-by="perf">종합 점수</button>
-    </div>
-    <label class="check" for="role-sel" style="gap:6px">역할 <select id="role-sel" class="sm"></select></label>
     <div class="elchips" id="els"></div>
     <label class="check" for="mine"><input type="checkbox" id="mine"> 내 캐릭터만 진하게</label>
+    <span class="count" id="count"></span>
   </div>
-  <div class="tiers" id="tiers"></div>
+  <div class="tgrid" id="tiers"></div>
 
-  <p class="foot-note" id="note"></p>
+  <p class="foot-note">등급은 캐릭터 성능 점수 하나로 매깁니다: GamsGo 원신 7.1 종합 티어표(2026년 9월, SS 92 · S 84 · A+ 76 · A 68 · B 56 · C 44 · D 30점) 60% + 나무위키 각 캐릭터 문서의 '평가'를 읽고 매긴 점수 40%. 파티 감정소의 캐릭터 성능 점수와 같은 값이며, 한쪽 평가만 있으면 그 값을 씁니다. SS 85점 이상 · S 72점 이상 · A 58점 이상 · B 45점 이상 · C 그 아래. 포지션은 캐릭터의 주 역할 기준이고, 같은 칸 안에서는 점수가 높은 순입니다. 매주 목요일 자동 업데이트에서 갱신됩니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
 </div>
 
-<script src="chars.js?v=20261027a"></script>
+<script src="chars.js?v=20261028a"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster();
 const PREF = GP.KEY + ':tier';
-let st = { by: 'gg', role: '', el: '', mine: false };
+let st = { el: '', mine: false };
 try { st = { ...st, ...JSON.parse(localStorage.getItem(PREF)) }; } catch (e) {}
 
-// GamsGo 등급(chars.js의 GG)과 종합 점수(GG 60% + 나무위키 평가 40%)를 T0~T4로 나눈 것 두 가지 기준
-const GG_ROWS = [['SS', '#d4553b'], ['S', '#e08a3c'], ['A+', '#d7b33f'], ['A', '#7fae4a'], ['B', '#4a9fae'], ['C', '#6a7fc4'], ['D', '#8a7a9a']];
-const PERF_ROWS = [['T0', '#d4553b', 85, '85+'], ['T1', '#e08a3c', 72, '72+'], ['T2', '#7fae4a', 58, '58+'], ['T3', '#4a9fae', 45, '45+'], ['T4', '#8a7a9a', 0, '45 미만']];
-const tierOf = d => PERF_ROWS.find(r => d.perf >= r[2])[0];
+const ROWS = [['SS', '#d4553b', 85, '85+'], ['S', '#e08a3c', 72, '72+'], ['A', '#7fae4a', 58, '58+'], ['B', '#4a9fae', 45, '45+'], ['C', '#8a7a9a', 0, '45 미만']];
+const POS = [['main', '메인 딜러'], ['sub', '서브 딜러'], ['sup', '서포터'], ['care', '힐러 · 보호막']];
+const posOf = d => d.roles[0] === 'heal' || d.roles[0] === 'shield' ? 'care' : d.roles[0];
+const rowOf = d => ROWS.find(r => d.perf >= r[2])[0];
 
-$('#role-sel').innerHTML = `<option value="">전체</option>` + Object.entries(GP.ROLE).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
 $('#els').innerHTML = `<button type="button" class="elchip" data-el="">전체</button>` + GP.ORDER.map(el => `<button type="button" class="elchip" data-el="${el}"><span class="dot" style="--c:var(--${el})"></span>${GP.EL[el]}</button>`).join('');
 $('#mine').disabled = !Object.keys(own).length;
 
 function tile(d) {
   const u = GP.iconUrl(d.id), o = own[d.id];
-  return `<a class="tt r${d.r}${st.mine && !o ? ' dim' : ''}" href="stats.html#${d.id}" title="${GP.esc(d.name)} · ${GP.EL[d.el]} · ${GP.ROLE[d.roles[0]]} · 종합 ${d.perf}점${d.guess ? ' (역할 추정)' : ''}" style="--c:var(--${d.el})">
+  return `<a class="tt r${d.r}${st.mine && !o ? ' dim' : ''}" href="stats.html#${d.id}" title="${GP.esc(d.name)} · ${GP.EL[d.el]} · ${d.roles.map(r => GP.ROLE[r]).join('/')} · ${d.perf}점${d.guess ? ' (역할 추정)' : ''}" style="--c:var(--${d.el})">
     <span class="pic">${u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : ''}</span>
     <span class="n">${GP.esc(d.name)}</span>${o ? `<span class="own">${o.cons}돌</span>` : ''}</a>`;
 }
 function render() {
   try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {}
-  for (const b of document.querySelectorAll('.seg button')) b.setAttribute('aria-pressed', b.dataset.by === st.by);
   for (const b of document.querySelectorAll('.elchip')) b.setAttribute('aria-pressed', b.dataset.el === st.el);
-  $('#role-sel').value = st.role; $('#mine').checked = st.mine;
-  const list = Object.values(GP.DB).filter(d => (!st.el || d.el === st.el) && (!st.role || d.roles.includes(st.role)))
+  $('#mine').checked = st.mine;
+  const list = Object.values(GP.DB).filter(d => !st.el || d.el === st.el)
     .sort((a, b) => b.perf - a.perf || b.r - a.r || a.name.localeCompare(b.name, 'ko'));
-  let rows;
-  if (st.by === 'gg') {
-    rows = GG_ROWS.map(([g, c]) => [g, c, '', list.filter(d => GG[d.id] === g)]);
-    const rest = list.filter(d => !GG[d.id]);
-    if (rest.length) rows.push(['?', '#777', '미평가', rest]);
-  } else rows = PERF_ROWS.map(([t, c, , sub]) => [t, c, sub, list.filter(d => tierOf(d) === t)]);
-  $('#tiers').innerHTML = rows.map(([lab, c, sub, ds]) => `<div class="trow"><div class="tlabel" style="--tc:${c}"><span>${lab}${sub ? `<small>${sub}</small>` : ''}</span></div>
-    <div class="ttiles">${ds.map(tile).join('') || '<span class="muted" style="align-self:center;font-size:13px">—</span>'}</div></div>`).join('');
-  $('#note').innerHTML = (st.by === 'gg'
-    ? 'GamsGo 원신 7.1 종합 티어표(2026년 9월)의 캐릭터별 최고 등급입니다. 같은 칸 안에서는 종합 점수가 높은 순입니다. 새 캐릭터는 티어표에 오르기 전까지 미평가로 둡니다.'
-    : '종합 점수 = GamsGo 티어 점수(SS 92 · S 84 · A+ 76 · A 68 · B 56 · C 44 · D 30) 60% + 나무위키 캐릭터 문서 \'평가\'를 읽고 매긴 점수 40%. 파티 감정소의 캐릭터 성능 점수와 같은 값입니다.')
-    + ' 매주 목요일 자동 업데이트에서 갱신됩니다. 캐릭터 이미지 © HoYoverse (enka.network).';
+  $('#count').textContent = `${list.length}명`;
+  let html = '<div></div>' + POS.map(([, n]) => `<div class="thead">${n}</div>`).join('');
+  for (const [t, c, , sub] of ROWS) {
+    html += `<div class="tlabel" style="--tc:${c}"><span>${t}</span><small>${sub}</small></div>`;
+    for (const [p, n] of POS) {
+      const ds = list.filter(d => rowOf(d) === t && posOf(d) === p);
+      html += `<div class="tcell${ds.length ? '' : ' none'}"><span class="cap">${n}</span>${ds.map(tile).join('') || '<span class="empty-cell">—</span>'}</div>`;
+    }
+  }
+  $('#tiers').innerHTML = html;
 }
-document.querySelector('.seg').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { st.by = b.dataset.by; render(); } });
 $('#els').addEventListener('click', e => { const b = e.target.closest('.elchip'); if (b) { st.el = b.dataset.el; render(); } });
-$('#role-sel').addEventListener('change', e => { st.role = e.target.value; render(); });
 $('#mine').addEventListener('change', e => { st.mine = e.target.checked; render(); });
 document.addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.remove(); }, true);
 render();
