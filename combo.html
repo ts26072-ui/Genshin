@@ -101,14 +101,14 @@
       <button type="button" class="b-J" data-k="J">점프<small>Space</small></button>
       <button type="button" class="b-E" data-k="E">E<small>스킬</small></button>
       <button type="button" class="b-Q" data-k="Q">Q<small>폭발</small></button>
-      <button type="button" class="b-D" data-k="D">대시<small>Shift</small></button>
-      <button type="button" class="b-A" data-k="A">공격<small>꾹 = 강공</small></button>
+      <button type="button" class="b-D" data-k="D">대시<small>Shift·우클릭</small></button>
+      <button type="button" class="b-A" data-k="A">공격<small>좌클릭 · 꾹 = 강공</small></button>
     </div>
-    <p class="keys">PC: <kbd>마우스 왼쪽</kbd> 또는 <kbd>J</kbd> 공격(꾹 누르면 강공) · <kbd>E</kbd> 스킬 · <kbd>Q</kbd> 폭발 · <kbd>Shift</kbd> 또는 <kbd>K</kbd> 대시 · <kbd>Space</kbd> 점프 · <kbd>W</kbd> 전진</p>
+    <p class="keys">PC는 원신 기본 키 그대로: 이 칸 안에서 <kbd>마우스 왼쪽</kbd> 공격(꾹 누르면 강공) · <kbd>E</kbd> 원소전투 스킬 · <kbd>Q</kbd> 원소폭발 · <kbd>왼쪽 Shift</kbd> 또는 <kbd>마우스 오른쪽</kbd> 대시 · <kbd>Space</kbd> 점프 · <kbd>W</kbd> 앞으로. 휴대폰은 아래 버튼(원신 모바일 기본 배치와 비슷하게)으로 누르세요.</p>
     <div class="result" id="result" hidden></div>
   </div>
 
-  <p class="foot-note">콤보와 주의점은 KQM 퀵 가이드(스커크·마비카·네페르, 2026년 10월 열람)를 따릅니다. 입력 간격은 공식 프레임표가 없어 실전 영상(60fps) 기준으로 맞춘 대략치라 실제 게임과 수십 ms 다를 수 있습니다. 내 기기에서 늘 빠르거나 느리게 나오면 '타이밍 보정'으로 맞추세요. 표기: N=평타(숫자는 타수), C=강공, F=강공 마무리(손 떼기), D=대시 캔슬, J=점프 캔슬, W=전진 입력(걷기 캔슬), tE/hE=스킬 짧게/길게, Q=원소폭발, 2[…]=두 번 반복.</p>
+  <p class="foot-note">콤보와 주의점은 KQM 퀵 가이드(스커크·마비카·네페르, 2026년 10월 열람)를 따릅니다. 입력 간격은 전투 시뮬레이터 gcsim 소스에 들어 있는 실측 프레임(60fps)입니다: 스커크·마비카는 gcsim 본 저장소, 네페르는 아직 반영 전인 구현 PR #3045 값이라 조금 바뀔 수 있습니다. 각 간격은 다음 입력이 받아들여지는 <b>가장 이른</b> 시점이라, 그보다 늦으면 그만큼 딜이 줄고 캔슬을 그보다 빨리 누르면 앞 타격이 사라집니다. 평타 연타는 게임이 입력을 미리 받아 두므로 빨리 눌러도 손해가 없어 빠름 판정을 하지 않습니다. 강공으로 바뀌는 누르기 시간(20프레임)과 일반 대시 뒤 간격은 gcsim 공통 값입니다. 핑·FPS·입력 지연 때문에 늘 한쪽으로 치우치면 '타이밍 보정'으로 맞추세요. 판정: 완벽 ±4프레임(약 0.07초), 좋음 ±8프레임. 표기: N=평타(숫자는 타수), C=강공(숫자는 마비카 회전 수), F=강공 마무리(손 떼기), D=대시 캔슬, J=점프 캔슬, W=전진 입력(걷기 캔슬), tE/hE=스킬 짧게/길게, Q=원소폭발, 2[…]=두 번 반복.</p>
 </div>
 
 <script src="chars.js?v=20261029a"></script>
@@ -117,13 +117,15 @@ const $ = s => document.querySelector(s);
 const PREF = (window.GP ? GP.KEY : 'genshin-party') + ':combo';
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-// ───────── 캐릭터별 콤보(KQM)와 입력 간격(ms, 60fps 영상 기준 대략치) ─────────
-// 간격은 '이전 입력 → 이번 입력'. cut: 너무 빨리 누르면 앞 타격이 끊겨 피해가 사라지는 캔슬
+// ───────── 캐릭터별 콤보(KQM)와 프레임(gcsim) ─────────
+// 프레임(60fps)은 gcsim 소스의 실측 값: 스커크·마비카는 본 저장소, 네페르는 구현 PR(#3045, 2026-09, 미반영).
+// 각 값은 '이 동작을 시작한 뒤 다음 동작을 시작할 수 있는 가장 이른 프레임'. 타격 경직(hitlag)도 더함
+const FR = 1000 / 60;
 const CHARS = {
   skirk: {
     name: '스커크', el: 'cryo',
     about: '칠상섬(짧은 E) 상태에서 평타를 끊어 치는 콤보입니다. N2D가 가장 효율 좋은 캔슬이지만 대시는 짧은 시간에 두 번까지만 되고, 2타가 맞기 전에 대시하면 2타 피해가 사라집니다. 마무리 평타(N5)는 맞는 순간 대시·Q·강공으로 끊을 수 있고, 강공·특수 Q는 균열을 흡수해 뱀의 교활을 채웁니다.',
-    T: { N: [0, 280, 300, 390, 480], hit: [0, 230, 250, 280, 330, 380], full: 650, D: 320, Q: 620, Chold: 330, Crec: 520, E: 450, J: 480, wAt: 210, wLen: 260, W: 120 },
+    src: 'gcsim internal/characters/skirk (칠상섬 상태 평타·강공·특수 Q·대시 프레임)',
     combos: [
       ['tE N5Q N5D N5C N5', '입문', '평타 5타를 4번. 1·3번째 끝에 특수 Q와 강공으로 균열을 흡수합니다. 연습 없이도 거의 그대로 나옵니다.'],
       ['tE N5D N2Q N5D N5C N5', '기본 추천', 'KQM 기본 추천 콤보. 입문 콤보에 2타를 더 넣고 특수 Q로 끊어 딜이 꽤 오릅니다.'],
@@ -133,8 +135,8 @@ const CHARS = {
   },
   mavuika: {
     name: '마비카', el: 'pyro',
-    about: '원소폭발 중 불의 탈것으로 강공(꾹 누르기)을 회전시키는 콤보입니다. 누르고 있는 동안 회전 강공이 이어지고, 손을 떼면 마무리 강공(F)이 나갑니다. 회전 중에 대시·점프로 끊어 반응 원소를 맞춥니다. 대시를 늦게 하면 대시 공격이 얼음보다 먼저 불을 붙여 융해가 깨집니다.',
-    T: { Q: 1450, spin0: 420, spin: 400, F: 520, D: 380, J: 500, E: 500 },
+    about: '원소폭발 중 불의 탈것으로 강공(꾹 누르기)을 회전시키는 콤보입니다. 누르고 있는 동안 회전 강공이 이어지고(첫 타 35프레임, 이후 한 바퀴 45프레임), 손을 떼면 마무리 강공(F)이 나갑니다. 회전 중에 대시·점프로 끊어 반응 원소를 맞춥니다. 대시를 늦게 하면 대시 공격이 얼음보다 먼저 불을 붙여 융해가 깨집니다.',
+    src: 'gcsim internal/characters/mavuika (탈것 강공 회전·마무리·대시·점프 프레임)',
     combos: [
       ['Q C8F', '입문 · 비반응', '강공을 회전 8번 동안 누르고 떼기. 증폭 반응이 없거나 푸리나만 있을 때.'],
       ['Q C4J C4', '융해 안정', '회전 4번 뒤 점프로 끊고 다시 4번. 얼음 부착 타이밍에 맞추기 쉽습니다.'],
@@ -144,8 +146,8 @@ const CHARS = {
   },
   nefer: {
     name: '네페르', el: 'dendro',
-    about: 'E로 그림자 춤 상태가 되면 강공이 환영 공연(스태미나 소모 없음)으로 바뀝니다. 강공 1타가 맞은 직후 대시로 끊으면 빨라지고 무적 시간도 생깁니다. 2타는 피해가 거의 없어 끊어도 손해가 없습니다(6돌은 2타가 월개화라 끊지 않는 편이 나음). 두 번째 E에 이슬이 모자라면 중간에 Q를 넣어 시간을 벌어요.',
-    T: { E: 550, Chold: 350, hit: 720, Crec: 1350, D: 380, Q: 1100 },
+    about: 'E로 그림자 춤 상태가 되면 강공이 환영 공연(스태미나 소모 없음)으로 바뀝니다. 강공 1타가 맞은 직후(환영 공연 시작 10프레임) 대시로 끊으면 빨라지고 무적 시간도 생깁니다. 2타는 피해가 거의 없어 끊어도 손해가 없습니다(6돌은 2타가 월개화라 끊지 않는 편이 나음). 두 번째 E에 이슬이 모자라면 중간에 Q를 넣어 시간을 벌어요.',
+    src: 'gcsim 네페르 구현 PR #3045 (아직 본 저장소에 반영 전이라 바뀔 수 있음). 대시 뒤 프레임은 일반 캐릭터 대시 값',
     combos: [
       ['E 3[C] E 3[C]', '대시 없음', '이슬이 안정적으로 모이지만 0~5돌에서는 딜이 조금 낮습니다.'],
       ['E 3[CD] E CD CQ CD', '추천', 'KQM 추천 대시 캔슬 콤보. 두 번째 E 중간에 Q로 이슬이 모일 시간을 법니다.'],
@@ -153,6 +155,8 @@ const CHARS = {
     ],
   },
 };
+// 스커크 칠상섬 평타 N1~N5 (gcsim attackSkill*): 다음 평타까지, 마지막 타격(캔슬 가능), 강공까지, 타격 경직
+const SK = { NN: [12, 21, 31, 33, 51], hit: [12, 11, 23, 27, 25], NC: [13, 12, 34, 40, 42], lag: [1, 2, 2, 2, 4] };
 const KEYN = { A: '공격', E: 'E', Q: 'Q', D: '대시', J: '점프', W: '전진' };
 
 // 콤보 표기 → 토큰 배열 (2[…] 반복 풀기)
@@ -160,40 +164,52 @@ function expand(s) {
   while (/\d\[[^\[\]]*\]/.test(s)) s = s.replace(/(\d)\[([^\[\]]*)\]/g, (_, n, body) => Array(+n).fill(body).join(' '));
   return s.trim().split(/\s+/).flatMap(w => w.match(/[th]?E|N\d|C\d*F?|D|Q|J|W/g) || []);
 }
-// 토큰 → 입력 이벤트 {t:'down'|'up', k, gap, label, tip, cut, free}
+// 토큰 → 입력 이벤트 {t:'down'|'up', k, gap(ms, 앞 이벤트부터), kind, label, tip}
+// kind — chain: 평타 연타(미리 눌러도 이어짐, 늦으면 손해) / cut: 캔슬(타격 전에 누르면 그 타격이 사라짐) / hold: 꾹 누른 시간 / act: 그 밖
+// nx: 마지막 이벤트부터 다음 동작별로 기다려야 하는 프레임
 function build(ch, notation) {
-  const T = CHARS[ch].T, toks = expand(notation), ev = [];
-  let wait = 0, lastN = 0;
-  const push = (t, k, gap, label, tip = '', extra = {}) => ev.push({ t, k, gap: Math.max(0, Math.round(gap)), label, tip, ...extra });
+  const toks = expand(notation), ev = [];
+  let nx = {};
+  const push = (t, k, f, kind, label, tip = '', extra = {}) => ev.push({ t, k, gap: Math.max(0, f) * FR, kind, label, tip, ...extra });
+  const need = (type, dflt = 20) => nx[type] ?? nx.any ?? dflt;
   for (let i = 0; i < toks.length; i++) {
     const tk = toks[i], next = toks[i + 1] || '', prev = toks[i - 1] || '';
-    const afterHit = /^N\d$/.test(prev) || /^C/.test(prev);
-    if (/E$/.test(tk)) { push('down', 'E', wait, tk === 'hE' ? 'E 길게' : 'E', tk === 'hE' ? '길게 눌렀다 떼기' : ''); if (tk === 'hE') push('up', 'E', 600, 'E 떼기'); wait = T.E; lastN = 0; }
-    else if (tk === 'Q') { push('down', 'Q', wait, 'Q', afterHit ? '앞 타격이 맞는 순간' : ''); wait = T.Q; lastN = 0; }
-    else if (tk === 'D') { push('down', 'D', wait, '대시', afterHit ? '타격이 맞은 직후 — 너무 빠르면 끊김' : '', { cut: afterHit }); wait = T.D; lastN = 0; }
-    else if (tk === 'J') { push('down', 'J', wait, '점프', afterHit ? '회전 타격 직후' : ''); wait = T.J; lastN = 0; }
-    else if (tk === 'W') { push('down', 'W', T.wAt, '전진 누르기', '3타 중에 앞으로'); push('up', 'W', T.wLen, '전진 떼기', '착지 직전에 손 떼기'); wait = T.W; lastN = 0; }
-    else if (/^N\d$/.test(tk)) {
+    const afterHit = /^N\d$|^C/.test(prev);
+    const first = !ev.length;
+    if (/E$/.test(tk)) {
+      push('down', 'E', first ? 0 : need('E'), 'act', tk === 'hE' ? 'E 길게' : 'E', tk === 'hE' ? '길게 눌렀다 떼기' : '짧게 누르기');
+      if (tk === 'hE') push('up', 'E', 30, 'hold', 'E 떼기');
+      nx = ch === 'skirk' ? { N: 21, C: 21, D: 29, Q: 31 } : ch === 'nefer' ? { C: 29, D: 38, Q: 38, N: 26 } : { any: 30 };
+    } else if (tk === 'Q') {
+      push('down', 'Q', first ? 0 : need('Q'), afterHit ? 'cut' : 'act', 'Q', afterHit ? '앞 타격이 맞는 순간' : '');
+      nx = ch === 'skirk' ? { N: 39, C: 39, D: 40 } : ch === 'mavuika' ? { any: 116 } : { C: 124, D: 120, E: 119 };
+    } else if (tk === 'D' || tk === 'J') {
+      push('down', tk, need(tk), afterHit ? 'cut' : 'act', tk === 'D' ? '대시' : '점프', afterHit ? '타격이 맞은 직후 — 빠르면 그 타격이 사라짐' : '');
+      nx = ch === 'skirk' ? (tk === 'D' ? { any: 11 } : { any: 30 }) : ch === 'mavuika' ? (tk === 'D' ? { C: 20, N: 18 } : { any: 42 }) : { C: 21, E: 21, Q: 21, N: 18 };
+    } else if (tk === 'W') {
+      push('down', 'W', SK.hit[2] + SK.lag[2], 'cut', '전진 누르기', '3타가 맞은 뒤 앞으로');
+      push('up', 'W', 42 - SK.hit[2] - SK.lag[2], 'hold', '전진 떼기', '착지 직전에 손 떼기');
+      nx = { N: 2, any: 2 };
+    } else if (/^N\d$/.test(tk)) {
       const k = +tk[1];
-      for (let j = 1; j <= k; j++) push('down', 'A', j === 1 ? wait : T.N[j - 1], `평타 ${j}`, j === 1 ? '짧게 탭' : '');
-      lastN = k;
-      // 다음이 캔슬이면 마지막 타격이 맞는 시점, 아니면 동작이 끝나는 시점
-      wait = /^(D|Q|C|J)/.test(next) ? T.hit[k] : next === 'W' ? 0 : T.full;
-      if (/^C/.test(next)) wait = T.hit[k];
-    }
-    else if (/^C/.test(tk)) {
-      const m = tk.match(/^C(\d*)(F?)$/), n = m[1] ? +m[1] : 0, fin = !!m[2];
+      for (let j = 1; j <= k; j++) push('down', 'A', j === 1 ? (first ? 0 : need('N')) : SK.NN[j - 2] + SK.lag[j - 2], j === 1 ? 'act' : 'chain', `평타 ${j}`, j === 1 ? '짧게 클릭' : '');
+      const L = SK.lag[k - 1];
+      nx = { N: SK.NN[k - 1] + L, D: SK.hit[k - 1] + L, Q: SK.hit[k - 1] + L, J: SK.hit[k - 1] + L, C: SK.NC[k - 1] + L };
+    } else if (/^C/.test(tk)) {
+      const m = tk.match(/^C(\d*)(F?)$/), n = m[1] ? +m[1] : 1, fin = !!m[2];
+      const kind = /^N\d$/.test(prev) ? 'cut' : 'act';
       if (ch === 'mavuika') {
-        const hold = T.spin0 + n * T.spin;
-        push('down', 'A', wait, `강공 ${n ? n + '회전' : ''}`.trim(), '꾹 누르고 있기', { holdStart: true });
-        if (fin || !/^(D|J)/.test(next)) { push('up', 'A', hold, fin ? '떼기 (마무리)' : '떼기', fin ? '회전이 끝나는 순간 손 떼기' : ''); wait = T.F; }
-        else { wait = hold; ev.push({ t: 'up', k: 'A', gap: 0, label: '', free: true, after: true }); }
+        // 첫 회전 타격 35f, 이후 45f마다. n번째 타격 직후에 떼거나 캔슬
+        const hold = 35 + (n - 1) * 45;
+        push('down', 'A', first ? 0 : need('C'), kind, `강공 ${n}회전`, '꾹 누르고 있기', { holdStart: true });
+        if (fin || !/^(D|J)/.test(next)) { push('up', 'A', hold, 'hold', fin ? '떼기 (마무리)' : '떼기', `${n}번째 회전이 맞은 직후 손 떼기`); nx = { D: 45, J: 45, any: 74 }; }
+        else { ev.push({ t: 'up', k: 'A', gap: 0, kind: 'free', label: '', free: true, after: true }); nx = { D: hold, J: hold }; }
       } else {
-        push('down', 'A', wait, ch === 'nefer' ? '강공 (환영 공연)' : '강공', '꾹 누르기', { holdStart: true });
-        push('up', 'A', T.Chold, '떼기', '강공이 나가면 떼기');
-        wait = /^(D|Q)/.test(next) ? (ch === 'nefer' ? T.hit - T.Chold : 260) : (ch === 'nefer' ? T.Crec - T.Chold : T.Crec);
+        // 꾹 누르기 20f(강공 발동) → 떼기. 이후 프레임은 강공 시작 기준
+        push('down', 'A', first ? 0 : need('C'), kind, ch === 'nefer' ? '강공 (환영 공연)' : '강공', '꾹 누르기', { holdStart: true });
+        push('up', 'A', 20, 'hold', '떼기', '강공이 나가면 떼기');
+        nx = ch === 'nefer' ? { D: 10, Q: 10, any: 106 } : { D: 27, Q: 43, any: 54 };
       }
-      lastN = 0;
     }
   }
   // 마비카 '회전 중 대시/점프' 뒤에 오는 자유 떼기를 캔슬 입력 뒤로 옮김
@@ -208,7 +224,7 @@ const save = () => { try { localStorage.setItem(PREF, JSON.stringify(st)); } cat
 let penal = false, wrong = 0, EV = [], idx = 0, lastT = 0, started = false, marks = [], timer = null, demo = null, aDown = 0, aKind = '', startT = 0, idealMs = 0;
 const scale = () => 100 / st.speed;
 const target = () => lastT + EV[idx].gap * scale() + st.offset;
-const PERFECT = () => 70 * scale(), GOOD = () => 140 * scale();
+const PERFECT = () => 4 * FR * scale(), GOOD = () => 8 * FR * scale();
 
 // 소리 안내
 let ac = null;
@@ -223,7 +239,7 @@ function renderChars() {
     return `<button type="button" class="chbtn" data-ch="${id}" aria-pressed="${st.ch === id}" style="--c:var(--${c.el})">${u ? `<img src="${u}" alt="">` : ''}${c.name}</button>`;
   }).join('');
   const c = CHARS[st.ch];
-  $('#about').textContent = c.about;
+  $('#about').innerHTML = esc(c.about) + `<br><span class="muted" style="font-size:12px">프레임 출처: ${esc(c.src)}</span>`;
   if (st.combo >= c.combos.length) st.combo = 0;
   $('#combos').innerHTML = c.combos.map(([no, lv, ds], i) => `<button type="button" class="cb" data-i="${i}" aria-pressed="${st.combo === i}"><span class="no">${esc(no)}</span><span class="lv">${esc(lv)}</span><span class="ds">${esc(ds)}</span></button>`).join('');
 }
@@ -298,10 +314,14 @@ function input(t, k, now = performance.now()) {
   if (!started) { started = true; startT = now; lastT = now; marks[idx] = 'ok'; idx++; show('perfect', '시작!'); renderSteps(); setCue(); if (idx < EV.length) tick(); else finish(now); return; }
   const dt = now - target();
   let cls, text, m;
-  if (Math.abs(dt) <= PERFECT()) { cls = 'perfect'; text = '완벽'; m = 'ok'; }
+  // 평타 연타는 게임이 입력을 미리 받아 두므로 빨리 눌러도 손해가 없음
+  if (e.kind === 'chain' && dt < 0) { cls = 'perfect'; text = '완벽 (미리 눌러도 이어짐)'; m = 'ok'; }
+  // 캔슬은 타격 프레임보다 먼저 누르면 그 타격이 사라지므로, 빠른 쪽은 1.5프레임(입력 오차)만 봐줌
+  else if (e.kind === 'cut' && dt < -1.5 * FR) { cls = 'early'; text = `너무 빠름 ${Math.round(-dt / FR)}프레임 — 앞 타격이 사라져 피해 손실`; m = 'bad'; }
+  else if (Math.abs(dt) <= PERFECT()) { cls = 'perfect'; text = '완벽'; m = 'ok'; }
   else if (Math.abs(dt) <= GOOD()) { cls = 'good'; text = dt < 0 ? '좋음 (조금 빠름)' : '좋음 (조금 느림)'; m = 'good'; }
-  else if (dt < 0) { cls = 'early'; text = e.cut ? `너무 빠름 ${Math.round(-dt)}ms — 앞 타격이 끊겨 피해 손실` : `빠름 ${Math.round(-dt)}ms`; m = 'bad'; }
-  else { cls = 'late'; text = `느림 ${Math.round(dt)}ms`; m = 'bad'; }
+  else if (dt < 0) { cls = 'early'; text = e.kind === 'cut' ? `너무 빠름 ${Math.round(-dt / FR)}프레임 — 앞 타격이 사라져 피해 손실` : e.kind === 'hold' ? `일찍 뗌 ${Math.round(-dt / FR)}프레임` : `빠름 ${Math.round(-dt / FR)}프레임`; m = 'bad'; }
+  else { cls = 'late'; text = `느림 ${Math.round(dt / FR)}프레임 — 그만큼 딜 손실`; m = 'bad'; }
   if (penal) { m = 'bad'; cls = 'miss'; text = '앞 입력 실수로 콤보가 끊김'; penal = false; }
   marks[idx] = m; show(cls, text);
   lastT = now; idx++;
@@ -341,13 +361,17 @@ pad.addEventListener('pointerdown', e => { const b = e.target.closest('button');
 const up = e => { const b = e.target.closest('button'); if (!b || !b.classList.contains('on')) return; b.classList.remove('on'); input('up', b.dataset.k); };
 pad.addEventListener('pointerup', up); pad.addEventListener('pointercancel', up);
 pad.addEventListener('contextmenu', e => e.preventDefault());
-const KMAP = { KeyJ: 'A', KeyE: 'E', KeyQ: 'Q', ShiftLeft: 'D', ShiftRight: 'D', KeyK: 'D', Space: 'J', KeyW: 'W' };
+const KMAP = { KeyE: 'E', KeyQ: 'Q', ShiftLeft: 'D', ShiftRight: 'D', Space: 'J', KeyW: 'W' };
 const held = new Set();
 document.addEventListener('keydown', e => { const k = KMAP[e.code]; if (!k || e.target.closest('input, textarea, select')) return; e.preventDefault(); if (held.has(e.code)) return; held.add(e.code); input('down', k); });
 document.addEventListener('keyup', e => { const k = KMAP[e.code]; if (!k) return; held.delete(e.code); input('up', k); });
 // 패드 밖 화면에서도 마우스 왼쪽 = 공격 (PC)
-$('.stage').addEventListener('mousedown', e => { if (e.button !== 0 || e.target.closest('button, input, label, .pad')) return; input('down', 'A'); });
-document.addEventListener('mouseup', e => { if (e.button === 0 && !e.target.closest('button, input, label, .pad')) input('up', 'A'); });
+// 연습 칸 안에서 마우스 왼쪽 = 공격, 오른쪽 = 대시(원신 PC 기본)
+const onStage = e => e.target.closest('.stage') && !e.target.closest('button, input, label, select, .pad');
+let mouseA = false;
+document.addEventListener('mousedown', e => { if (!onStage(e)) return; if (e.button === 0) { e.preventDefault(); mouseA = true; input('down', 'A'); } else if (e.button === 2) { e.preventDefault(); input('down', 'D'); } });
+document.addEventListener('mouseup', e => { if (e.button === 0 && mouseA) { mouseA = false; input('up', 'A'); } else if (e.button === 2 && e.target.closest('.stage')) input('up', 'D'); });
+$('.stage').addEventListener('contextmenu', e => e.preventDefault());
 
 $('#chars').addEventListener('click', e => { const b = e.target.closest('.chbtn'); if (!b) return; st.ch = b.dataset.ch; st.combo = Math.min(1, CHARS[st.ch].combos.length - 1); save(); renderChars(); reset(); });
 $('#combos').addEventListener('click', e => { const b = e.target.closest('.cb'); if (!b) return; st.combo = +b.dataset.i; save(); renderChars(); reset(); $('.stage').scrollIntoView({ block: 'start' }); });
