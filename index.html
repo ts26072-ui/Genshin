@@ -491,9 +491,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261029a"></script>
-<script src="weapons.js?v=20261029a"></script>
-<script src="rot.js?v=20261029a"></script>
+<script src="builds.js?v=20261029b"></script>
+<script src="weapons.js?v=20261029b"></script>
+<script src="rot.js?v=20261029b"></script>
+<script src="names.js?v=20261029b"></script>
+<script src="account.js?v=20261029b"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -1260,7 +1262,8 @@ function renderParties(ranked) {
 function renderRoster() {
   const v = $('#view-roster');
   const ids = Object.keys(S.roster);
-  const head = `<div class="bar"><h2>내 캐릭터</h2><div class="actions"><button class="btn primary" type="button" data-act="new-char">+ 캐릭터 등록</button></div></div>`;
+  const head = `<div class="bar"><h2>내 캐릭터</h2><div class="actions"><button class="btn ghost" type="button" data-act="hoyo-sync" title="GitHub Actions가 3시간마다 받아 둔 HoYoLAB 데이터로 채움">HoYoLAB 동기화</button><button class="btn ghost" type="button" data-act="good-import" title="Inventory Kamera 등 스캐너가 만든 GOOD(JSON) 파일">GOOD 파일 불러오기</button><button class="btn primary" type="button" data-act="new-char">+ 캐릭터 등록</button></div></div>`
+    + (S.hoyoAt ? `<p class="legend">HoYoLAB 동기화: ${esc(new Date(S.hoyoAt).toLocaleString('ko-KR'))} 데이터 · 사이트를 열 때 새 데이터가 있으면 자동으로 반영합니다.</p>` : '');
   if (!ids.length) {
     v.innerHTML = head + `<div class="empty-state"><p>등록된 캐릭터가 없습니다.</p><p>게임의 캐릭터 상세 화면을 보면서 레벨, 특성, 무기, 치명타·원충 수치를 입력하세요.</p></div>`;
     return;
@@ -1835,6 +1838,89 @@ $('#btn-del-party').addEventListener('click', () => {
   save(); dParty.close(); render(); toast('파티 삭제됨');
 });
 
+// ───────── 계정 불러오기: HoYoLAB 자동 동기화 · GOOD 파일 (account.js) ─────────
+const NAME_ID = Object.fromEntries(Object.values(DB).map(d => [d.name, d.id]));
+const KEY_STAT = { atk: '공격력', hp: '최대 HP', def: '방어력', em: '원소 마스터리' };
+const TRAVELER_HID = [10000005, 10000007];
+function idOfRow(row) {
+  if (row.traveler || TRAVELER_HID.includes(row.hid)) { const el = row.traveler || ACCT.EL_HOYO[row.element]; return DB['traveler-' + el] ? 'traveler-' + el : null; }
+  return NAME_ID[row.name] || null;
+}
+// 장착 성유물 → 세트(4세트 / 2+2 / 효과 없음)
+function setsOf(arts) {
+  const n = {};
+  for (const a of arts) if (a.set) n[a.set] = (n[a.set] || 0) + 1;
+  const four = Object.keys(n).find(k => n[k] >= 4);
+  if (four) return { set: 'full', sa: four, sb: '' };
+  const two = Object.keys(n).filter(k => n[k] >= 2);
+  if (two.length >= 2) return { set: 'two', sa: two[0], sb: two[1] };
+  return { set: 'broken', sa: '', sb: '' };
+}
+// 모래·성배·왕관 주옵이 모두 추천 목록 안이면 true (치명 확률·피해 왕관은 같게 봄)
+function mainOkOf(id, arts) {
+  const b = BUILDS[id], norm = s => s === '치명타 피해' ? '치명타 확률' : s;
+  return ['sands', 'goblet', 'circlet'].every(slot => {
+    const a = arts.find(x => x.slot === slot);
+    if (!a) return false;
+    const list = b ? (b.main[slot] || []).map(norm) : [];
+    return !list.length || list.includes(norm(a.main[0]));
+  });
+}
+// 불러온 캐릭터 한 명 → 이 사이트의 캐릭터 입력값. 돌파·특성 상한·핵심 스탯은 기존 규칙(mk) 그대로
+function charFromRow(id, row, prev, statsOk) {
+  const d = DB[id], base = prev || defaultsFor(id), arts = row.arts || [];
+  const st = statsOk ? row.stats || {} : ACCT.statsFromArts(arts);
+  const w = row.weapon;
+  const ap = row.ascension != null ? ASC_EDGE.includes(row.level) && row.ascension < ascOf(row.level) : false;
+  const c = { ...base, id, lv: row.level, ap, cons: row.cons };
+  c.t = row.talents.map(x => clamp(Math.round(x), 1, 10)).map(x => Math.min(x, talCapOf(c)));
+  if (w) Object.assign(c, { wn: WEAPONS[w.name] ? w.name : '', wt: (WEAPONS[w.name]?.r || w.rarity) >= 5 ? 'five' : (WEAPONS[w.name]?.r || w.rarity) === 4 ? 'four' : 'three', wl: w.level, wr: w.ref || 1 });
+  if (arts.length) Object.assign(c, setsOf(arts), { mainOk: mainOkOf(id, arts) });
+  const pick = (k, dflt) => st[k] != null && (statsOk || arts.length) ? Math.round(st[k] * 10) / 10 : dflt;
+  c.cr = pick('치명타 확률', base.cr); c.cd = pick('치명타 피해', base.cd); c.er = pick('원소 충전 효율', base.er);
+  // 핵심 스탯은 최종 스탯이 있을 때만(HoYoLAB). GOOD 파일은 무기 기초 공격력을 몰라 기존 값 유지
+  if (statsOk && st[KEY_STAT[d.scale]] != null) c.key = Math.round(st[KEY_STAT[d.scale]]);
+  c.arts = arts.map(({ loc, lock, ...a }) => a);
+  return c;
+}
+function applyRows(rows, src, statsOk) {
+  if (S.sample) { S.roster = {}; S.parties = []; S.sample = false; }
+  let n = 0; const miss = [];
+  for (const row of rows) {
+    const id = idOfRow(row);
+    if (!id) { miss.push(row.name || row.key); continue; }
+    S.roster[id] = charFromRow(id, row, S.roster[id], statsOk); n++;
+  }
+  save(); render();
+  return { n, miss };
+}
+async function syncHoyo(manual) {
+  let h;
+  try { h = await ACCT.fetchHoyo(); }
+  catch (e) {
+    if (manual) toast(e.status === 404 ? '아직 동기화된 데이터가 없습니다. 안내대로 GitHub Secrets를 넣고 hoyolab-sync를 한 번 실행해 주세요' : 'HoYoLAB 데이터를 불러오지 못했습니다');
+    return;
+  }
+  if (!manual && (!S.hoyoAuto || S.hoyoAt === h.updated)) return;
+  const { n, miss } = applyRows(h.chars || [], 'hoyolab', true);
+  if (h.ar) S.ar = h.ar;
+  S.hoyoAt = h.updated; S.hoyoAuto = true; save(); render();
+  toast(`HoYoLAB에서 ${n}명 불러옴${h.ar ? ` · 모험 등급 ${h.ar}` : ''}${miss.length ? ` · 못 찾음: ${miss.join(', ')}` : ''}`);
+}
+const goodInput = document.createElement('input');
+goodInput.type = 'file'; goodInput.accept = '.json,application/json'; goodInput.id = 'good-file'; goodInput.hidden = true;
+document.body.appendChild(goodInput);
+goodInput.addEventListener('change', async () => {
+  const f = goodInput.files[0]; goodInput.value = '';
+  if (!f) return;
+  try {
+    const g = ACCT.parseGood(await ACCT.readFile(f));
+    const { n, miss } = applyRows(g.chars, 'good', false);
+    ACCT.saveBag(g.bag);
+    toast(`GOOD 파일: 캐릭터 ${n}명 · 성유물 ${g.bag.length}개 (성유물 감정 탭의 '가방 성유물'에서 볼 수 있음)${miss.length ? ` · 못 찾음: ${miss.slice(0, 5).join(', ')}` : ''}`);
+  } catch (e) { toast('불러오지 못했습니다: ' + e.message); }
+});
+
 // ───────── 공통 ─────────
 document.addEventListener('click', e => {
   const c = e.target.closest('[data-close]'); if (c) { c.closest('dialog').close(); return; }
@@ -1844,6 +1930,8 @@ document.addEventListener('click', e => {
   if (act === 'edit-char') openChar(a.dataset.id);
   if (act === 'new-party') openParty(null);
   if (act === 'edit-party') openParty(a.dataset.id);
+  if (act === 'hoyo-sync') syncHoyo(true);
+  if (act === 'good-import') $('#good-file').click();
 });
 $('#btn-clear').addEventListener('click', () => { S = { sample: false, ar: S.ar, wl: S.wl, roster: {}, parties: [] }; save(); render(); setTab('roster'); toast('예시 데이터를 비웠습니다'); });
 $('#btn-backup').addEventListener('click', () => { $('#bk-text').value = JSON.stringify({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties, res: S.res }); $('#dlg-backup').showModal(); });
@@ -1966,6 +2054,8 @@ async function initSync() {
 render();
 initSync();
 setTab(tab);
+// 계정 저장소 연결이 끝난 뒤 새 HoYoLAB 데이터가 있으면 반영(한 번 동기화한 뒤부터 자동)
+setTimeout(() => syncHoyo(false), 2500);
 </script>
 <script>if ('serviceWorker' in navigator && /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 

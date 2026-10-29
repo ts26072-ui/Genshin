@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>캔슬 연습 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261029a">
+<link rel="stylesheet" href="common.css?v=20261029b">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -111,7 +111,7 @@
   <p class="foot-note">콤보와 주의점은 KQM 퀵 가이드(스커크·마비카·네페르, 2026년 10월 열람)를 따릅니다. 입력 간격은 전투 시뮬레이터 gcsim 소스에 들어 있는 실측 프레임(60fps)입니다: 스커크·마비카는 gcsim 본 저장소, 네페르는 아직 반영 전인 구현 PR #3045 값이라 조금 바뀔 수 있습니다. 각 간격은 다음 입력이 받아들여지는 <b>가장 이른</b> 시점이라, 그보다 늦으면 그만큼 딜이 줄고 캔슬을 그보다 빨리 누르면 앞 타격이 사라집니다. 평타 연타는 게임이 입력을 미리 받아 두므로 빨리 눌러도 손해가 없어 빠름 판정을 하지 않습니다. 강공으로 바뀌는 누르기 시간(20프레임)과 일반 대시 뒤 간격은 gcsim 공통 값입니다. 핑·FPS·입력 지연 때문에 늘 한쪽으로 치우치면 '타이밍 보정'으로 맞추세요. 판정: 완벽 ±4프레임(약 0.07초), 좋음 ±8프레임. 표기: N=평타(숫자는 타수), C=강공(숫자는 마비카 회전 수), F=강공 마무리(손 떼기), D=대시 캔슬, J=점프 캔슬, W=전진 입력(걷기 캔슬), tE/hE=스킬 짧게/길게, Q=원소폭발, 2[…]=두 번 반복.</p>
 </div>
 
-<script src="chars.js?v=20261029a"></script>
+<script src="chars.js?v=20261029b"></script>
 <script>
 const $ = s => document.querySelector(s);
 const PREF = (window.GP ? GP.KEY : 'genshin-party') + ':combo';

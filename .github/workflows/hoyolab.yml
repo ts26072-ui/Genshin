@@ -1,0 +1,38 @@
+# HoYoLAB 전적 기록 → account/hoyolab.json (3시간마다 + 수동 실행)
+# 필요한 Secrets: HOYOLAB_COOKIE, GENSHIN_UID (tools/hoyolab_sync.py 참고)
+name: hoyolab-sync
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */3 * * *'
+permissions:
+  contents: write
+concurrency:
+  group: hoyolab-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install genshin
+      - name: Fetch HoYoLAB data
+        env:
+          HOYOLAB_COOKIE: ${{ secrets.HOYOLAB_COOKIE }}
+          GENSHIN_UID: ${{ secrets.GENSHIN_UID }}
+        run: python tools/hoyolab_sync.py account/hoyolab.json
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ ! -f account/hoyolab.json ]; then echo "no data yet"; exit 0; fi
+          git add account/hoyolab.json
+          # 내용이 같으면 스크립트가 파일을 건드리지 않으므로 커밋할 것이 없음
+          if git diff --cached --quiet -- account/hoyolab.json; then echo "no change"; exit 0; fi
+          git commit -m "HoYoLAB 계정 동기화"
+          git pull --rebase
+          git push

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>성유물 감정 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261029a">
+<link rel="stylesheet" href="common.css?v=20261029b">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -38,6 +38,11 @@
 .notes { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
 .hint { font-size: 12.5px; color: var(--muted); margin: 0; }
 @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
+.bag-f { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 8px; }
+.bag-f label { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+#bag-tbl tbody tr { cursor: pointer; }
+#bag-tbl tbody tr:hover { background: rgb(127 127 127 / .08); }
+.gb { display: inline-grid; place-items: center; min-width: 30px; height: 22px; border-radius: 6px; font-weight: 700; font-size: 12.5px; color: #fff; background: var(--c); padding: 0 6px; }
 </style>
 </head>
 <body>
@@ -94,12 +99,28 @@
     </section>
   </div>
 
+  <section class="panel bag" id="bag" style="margin-top:22px">
+    <div class="bar" style="margin:0 0 8px"><h2 style="margin:0">가방 성유물</h2>
+      <div class="actions"><button class="btn ghost sm" type="button" id="bag-good">GOOD 파일 불러오기</button></div></div>
+    <p class="hint" id="bag-src"></p>
+    <div class="bag-f">
+      <label>부위 <select id="bag-slot"><option value="">전체</option></select></label>
+      <label>보기 <select id="bag-view"><option value="all">전체</option><option value="keep">쓸 것(A 이상)</option><option value="junk">버릴 후보(C)</option><option value="up">강화할 것(+16 미만 · 기대값 S 이상)</option></select></label>
+      <span class="hint" id="bag-count"></span>
+    </div>
+    <div class="tblwrap"><table class="tbl" id="bag-tbl"></table></div>
+    <button class="btn ghost sm" type="button" id="bag-more" hidden>더 보기</button>
+  </section>
+
+  <p class="foot-note">가방 성유물: GOOD 파일의 성유물 전부(없으면 HoYoLAB로 불러온 내 캐릭터의 착용 성유물)를 내 캐릭터 각각의 추천 부옵 가중치로 감정해, 가장 잘 맞는 캐릭터와 그 등급을 보여 줍니다. 추천 세트가 아니면 기대값의 80%로, 추천 주옵이 아니면 제외하고 봅니다. 행을 누르면 위 감정기에 채워 자세히 볼 수 있습니다.</p>
   <p class="foot-note">유효 옵션 = 부옵 수치 ÷ 1회 최대 상승치 × 캐릭터 가중치의 합입니다. 가중치는 추천 부옵 우선순위(genshin-builds.com v7.1) 순서대로 1·1·0.8·0.6·0.45이며, 치명타 확률·피해는 같은 값, 깡옵은 % 옵션의 40%입니다. +20 성유물의 부옵 상승은 8~9회이고 1회 상승치는 최댓값의 70~100%라, 유효 옵션 6.5회 이상이면 종결급으로 봅니다. 강화 중인 성유물은 남은 강화가 지금 부옵들에 고르게 붙는다고 가정한 기대값으로 등급을 냅니다.</p>
 </div>
 
-<script src="chars.js?v=20261029a"></script>
-<script src="builds.js?v=20261029a"></script>
-<script src="gear.js?v=20261029a"></script>
+<script src="chars.js?v=20261029b"></script>
+<script src="builds.js?v=20261029b"></script>
+<script src="gear.js?v=20261029b"></script>
+<script src="names.js?v=20261029b"></script>
+<script src="account.js?v=20261029b"></script>
 <script>
 const $ = s => document.querySelector(s);
 const PREF = 'genshin-party-appraiser-v1:rate';
@@ -177,6 +198,83 @@ $('#slot').addEventListener('change', () => { fillMain(); render(); });
 $('#f').addEventListener('input', render);
 $('#f').addEventListener('submit', e => e.preventDefault());
 render();
+
+// ───────── 가방 성유물: 성유물마다 가장 잘 맞는 내 캐릭터와 등급 ─────────
+const GRADE_ORDER = { SS: 5, S: 4, A: 3, B: 2, C: 1 };
+const setFit = (id, set) => { const b = BUILDS[id]; return !!b && b.sets.some(s => s.set === set || (s.pick || []).includes(set)); };
+// 후보: 내 캐릭터(없으면 추천 자료가 있는 모든 캐릭터)
+const cands = () => { const o = Object.keys(own).filter(id => BUILDS[id]); return o.length ? o : ids; };
+function bestFor(a) {
+  let best = null;
+  const art = { ...a, main: a.main[0] };
+  for (const id of cands()) {
+    const r = rateArtifact(art, id);
+    if (r.mainOk === 'bad') continue;
+    const fit = setFit(id, a.set);
+    const v = (a.level >= 20 ? r.eff : r.projected) * (fit ? 1 : 0.8);
+    if (!best || v > best.v) best = { id, r, v, fit };
+  }
+  return best;
+}
+let bagRows = [], bagShow = 80;
+function loadBagRows() {
+  const bag = ACCT.loadBag();
+  let arts, src;
+  if (bag && bag.arts && bag.arts.length) { arts = bag.arts; src = `GOOD 파일 (${new Date(bag.at).toLocaleString('ko-KR')}) · ${arts.length}개`; }
+  else {
+    arts = Object.values(own).flatMap(c => (c.arts || []).map(a => ({ ...a, loc: c.id })));
+    src = arts.length ? `HoYoLAB로 불러온 내 캐릭터의 착용 성유물 ${arts.length}개 · 가방 전체는 GOOD 파일로 불러오세요` : '아직 불러온 성유물이 없습니다. GOOD 파일을 불러오거나, 파티 감정소에서 HoYoLAB 동기화를 해 주세요.';
+  }
+  $('#bag-src').textContent = src;
+  bagRows = arts.filter(a => SLOTS[a.slot] && (a.rarity ?? 5) >= 4).map(a => ({ a, b: bestFor(a) }));
+  bagRows.sort((x, y) => (y.b ? y.b.v : -1) - (x.b ? x.b.v : -1));
+}
+const ownerName = loc => { if (!loc) return ''; if (GP.DB[loc]) return GP.DB[loc].name; const n = (typeof GOOD_NAMES === 'object' && GOOD_NAMES.characters[loc]) || loc; return n; };
+function renderBag() {
+  const slot = $('#bag-slot').value, view = $('#bag-view').value;
+  const list = bagRows.filter(({ a, b }) => {
+    if (slot && a.slot !== slot) return false;
+    const g = b ? GRADE_ORDER[b.r.grade.g] : 0;
+    if (view === 'keep') return g >= 3;
+    if (view === 'junk') return g <= 1;
+    if (view === 'up') return a.level < 16 && g >= 4;
+    return true;
+  });
+  $('#bag-count').textContent = `${list.length}개`;
+  $('#bag-tbl').innerHTML = `<thead><tr><th>등급</th><th>부위 · 세트</th><th>주옵</th><th class="r">강화</th><th>가장 잘 맞는 캐릭터</th><th class="r">유효 옵션</th><th>지금 착용</th></tr></thead><tbody>`
+    + (list.length ? list.slice(0, bagShow).map(({ a, b }, i) => {
+      const g = b ? b.r.grade : gradeOf(0);
+      return `<tr data-i="${bagRows.indexOf(list[i])}"><td><span class="gb" style="--c:${g.c}">${g.g}</span></td>
+        <td>${SLOTS[a.slot].n}<br><span class="hint">${GP.esc(a.set)}${b && !b.fit ? ' · 추천 세트 아님' : ''}</span></td>
+        <td>${GP.esc(a.main[0])}</td><td class="r mono">+${a.level}</td>
+        <td>${b ? GP.esc(GP.DB[b.id].name) : '<span class="hint">맞는 캐릭터 없음</span>'}</td>
+        <td class="r mono">${b ? b.v.toFixed(1) + (a.level < 20 ? '<span class="hint">*</span>' : '') : '–'}</td>
+        <td>${GP.esc(ownerName(a.loc))}${a.lock ? ' 🔒' : ''}</td></tr>`;
+    }).join('') : `<tr><td colspan="7" class="muted">해당하는 성유물이 없습니다.</td></tr>`) + '</tbody>';
+  $('#bag-more').hidden = list.length <= bagShow;
+}
+$('#bag-slot').innerHTML += Object.entries(SLOTS).map(([k, s]) => `<option value="${k}">${s.n}</option>`).join('');
+$('#bag-slot').addEventListener('change', () => { bagShow = 80; renderBag(); });
+$('#bag-view').addEventListener('change', () => { bagShow = 80; renderBag(); });
+$('#bag-more').addEventListener('click', () => { bagShow += 120; renderBag(); });
+// 행을 누르면 위 감정기에 채움
+$('#bag-tbl').addEventListener('click', e => {
+  const tr = e.target.closest('tr[data-i]'); if (!tr) return;
+  const { a, b } = bagRows[+tr.dataset.i];
+  const subs = a.subs.slice(0, 4).map(([s, v]) => [s, v]); while (subs.length < 4) subs.push(['', 0]);
+  write({ c: b ? b.id : '', slot: a.slot, main: a.main[0], level: a.level, subs });
+  render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+const goodPick = document.createElement('input');
+goodPick.type = 'file'; goodPick.accept = '.json,application/json'; goodPick.hidden = true; document.body.appendChild(goodPick);
+$('#bag-good').addEventListener('click', () => goodPick.click());
+goodPick.addEventListener('change', async () => {
+  const f = goodPick.files[0]; goodPick.value = ''; if (!f) return;
+  try { const g = ACCT.parseGood(await ACCT.readFile(f)); ACCT.saveBag(g.bag); loadBagRows(); renderBag(); }
+  catch (err) { $('#bag-src').textContent = '불러오지 못했습니다: ' + err.message; }
+});
+loadBagRows(); renderBag();
+if (location.hash === '#bag') $('#bag').scrollIntoView();
 </script>
 <script>if ('serviceWorker' in navigator && /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
