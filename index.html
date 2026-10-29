@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0e1320"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="파티 감정소"></head><body>
 <title>원신 파티 감정소</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -348,6 +348,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
     </div>
     <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
       <a class="btn ghost sm" href="tier.html">티어표</a>
+      <a class="btn ghost sm" href="combo.html">캔슬 연습</a>
       <a class="btn ghost sm" href="farm.html">재료 파밍</a>
       <a class="btn ghost sm" href="map.html">지도</a>
       <a class="btn ghost sm" href="rate.html">성유물 감정</a>
@@ -406,7 +407,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
     </div>
   </section>
 
-  <p class="foot-note">점수는 커뮤니티에서 통용되는 육성 기준(레벨 90, 주력 특성 8–9, 치명 비율 1:2, 캐릭터별 원충 목표 등)을 단순화한 추정치입니다. 레진 비용은 대략적인 상대값입니다. 파티 가치 = 딜량 50% + 육성 25% + 시너지 25%이며, 딜량은 가장 비슷한 실측 파티(genshin.im 7.1 허수아비 실측)의 DPS × 대체 멤버 배율(내 동료 평균 성능 ÷ 실측 동료 평균 성능의 제곱, 최대 1) × 육성 배율(육성 점수/85)로 추정하고 실측 1위(247k)를 100점으로 봅니다. 같은 메인의 실측 파티가 없으면 캐릭터 성능 점수로 보수적으로 추정합니다(최대 실측 1위의 75%). 캐릭터 성능 점수(T0–T4)는 GamsGo 원신 7.1 종합 티어표(2026년 9월, SS=92 · S=84 · A+=76 · A=68 · B=56 · C=44 · D=30)를 60%, 나무위키 각 캐릭터 문서의 '평가' 항목(2026년 10월 열람)을 읽고 매긴 값을 40% 섞은 것이며, 캐릭터 편집 화면에서 직접 바꿀 수 있습니다. 레벨 점수는 모험 등급이 허용하는 최대 레벨 대비 방어 계수 × 기초 스탯 곡선으로 계산하고, Lv.60 전에는 두 번째 고유 특성이 잠긴 만큼 감점합니다. 레벨이 낮으면 무기·성유물이 좋아도 기초 스탯이 낮아 제 힘을 못 내므로, 레벨 점수의 제곱근을 육성 점수 전체에 곱합니다(Lv.80 약 ×0.94, Lv.50 약 ×0.7, Lv.1 약 ×0.3). 특성은 돌파 단계별 상한(2·4·6·8·10단계 돌파 시 2·4·6·8·10)을 넘을 수 없습니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러오며, 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
+  <p class="foot-note">점수는 커뮤니티에서 통용되는 육성 기준(레벨 90, 주력 특성 8–9, 치명 비율 1:2, 캐릭터별 원충 목표 등)을 단순화한 추정치입니다. 레진 비용은 대략적인 상대값입니다. 파티 가치 = 딜량 50% + 육성 25% + 시너지 25%이며, 딜량은 가장 비슷한 실측 파티(genshin.im 7.1 허수아비 실측)의 DPS × 대체 멤버 배율(내 동료 평균 성능 ÷ 실측 동료 평균 성능의 제곱, 최대 1) × 내 육성 배율로 추정하고(육성 배율은 원신 데미지 공식으로 계산: 실측 기준 육성(Lv.90·핵심 특성 9·치명 70/150·기준 핵심 스탯·추천 무기/세트) 대비 내 캐릭터의 핵심 스탯 × 치명 기대값 × 특성 배율 × Lv.100 적 방어 계수 × 무기·세트·주옵·원충·돌파 계수를 곱하고, 메인 60%·서브 25%·서포터 8%의 피해 비중으로 합침. 서포터는 버프 성능으로 팀 전체에 곱함) 실측 1위(247k)를 100점으로 봅니다. 같은 메인의 실측 파티가 없으면 캐릭터 성능 점수로 보수적으로 추정합니다(최대 실측 1위의 75%). 캐릭터 성능 점수(T0–T4)는 GamsGo 원신 7.1 종합 티어표(2026년 9월, SS=92 · S=84 · A+=76 · A=68 · B=56 · C=44 · D=30)를 60%, 나무위키 각 캐릭터 문서의 '평가' 항목(2026년 10월 열람)을 읽고 매긴 값을 40% 섞은 것이며, 캐릭터 편집 화면에서 직접 바꿀 수 있습니다. 레벨 점수는 모험 등급이 허용하는 최대 레벨 대비 방어 계수 × 기초 스탯 곡선으로 계산하고, Lv.60 전에는 두 번째 고유 특성이 잠긴 만큼 감점합니다. 레벨이 낮으면 무기·성유물이 좋아도 기초 스탯이 낮아 제 힘을 못 내므로, 레벨 점수의 제곱근을 육성 점수 전체에 곱합니다(Lv.80 약 ×0.94, Lv.50 약 ×0.7, Lv.1 약 ×0.3). 특성은 돌파 단계별 상한(2·4·6·8·10단계 돌파 시 2·4·6·8·10)을 넘을 수 없습니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러오며, 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
 </div>
 
 <dialog id="dlg-char">
@@ -490,9 +491,9 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261028h"></script>
-<script src="weapons.js?v=20261028h"></script>
-<script src="rot.js?v=20261028h"></script>
+<script src="builds.js?v=20261029a"></script>
+<script src="weapons.js?v=20261029a"></script>
+<script src="rot.js?v=20261029a"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -779,13 +780,66 @@ const lvTarget = () => lvCapOf(ar());
 const talTarget = d => Math.min(talTargetRole(d), talCapAt(lvTarget()));
 const critTarget = d => Math.round((d.roles[0] === 'main' ? 230 : 190) * artStage(ar()));
 const cvOf = c => Math.round(2 * Math.max(0, c.cr - 5) + Math.max(0, c.cd - 50));
-function keyTarget(d) {
+// 다 키운 계정(모험 등급 55+, Lv.90)의 핵심 스탯 기준
+function keyRef(d) {
   let t = SCALE[d.scale].t;
   if (d.scale === 'em' && !d.crit) t *= 1.25;
   if (d.scale === 'hp' && d.roles[0] === 'main') t *= 1.15;
   if (d.scale === 'hp' && !d.crit && d.roles[0] !== 'main') t = 25000;
-  return Math.round(t * (0.55 + 0.45 * artStage(ar())) * (0.5 + 0.5 * baseRatio(lvTarget())));
+  return t;
 }
+const keyTarget = d => Math.round(keyRef(d) * (0.55 + 0.45 * artStage(ar())) * (0.5 + 0.5 * baseRatio(lvTarget())));
+
+// ───────── 데미지 공식으로 본 내 캐릭터의 피해 배율 ─────────
+// 실측 팀 딜량의 기준 육성(Lv.90 · 핵심 특성 9 · 치명 70/150(서브 60/120) · 기준 핵심 스탯 · 추천 무기/세트 · 원충 충족 · 0돌) 대비
+// 내 캐릭터가 같은 행동을 했을 때 나오는 피해 비율. 원신 피해 공식의 각 항을 따로 계산해 곱함:
+//   피해 = 스킬 배율(특성 레벨) × 핵심 스탯 × (1 + 피해 보너스) × 치명 기대값 × 방어 계수(Lv.100 적) × 저항
+// 특성 레벨 배율은 대부분의 스킬이 따르는 공통 성장표(Lv.1 = 1, Lv.10 = 1.8, Lv.13 = 2.125)
+const TALM = [1, 1, 1.075, 1.15, 1.25, 1.325, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.125, 2.25, 2.375];
+const def100 = lv => (lv + 100) / ((lv + 100) + 200);
+const CRIT_REF = { main: [0.7, 1.5], sub: [0.6, 1.2] };
+const DMG_SHARE = { main: 0.6, sub: 0.25, sup: 0.08, heal: 0.04, shield: 0.04 };
+function dmgFactor(c) {
+  const d = prof(c), role = d.roles[0];
+  const ref = keyRef(d), key = Math.max(1, c.key || 0);
+  // 핵심 스탯: 공격력·HP·방어력은 피해에 그대로 비례. 원소 마스터리는 반응 배율 16·EM/(EM+2000)에 들어가 증가가 완만함
+  const stat = clamp(d.scale === 'em' ? (1 + 16 * key / (key + 2000)) / (1 + 16 * ref / (ref + 2000)) * (d.crit ? Math.sqrt(key / ref) : 1) : key / ref, 0.15, 1.5);
+  // 치명 기대값 = 1 + 확률 × 피해 (확률은 100%에서 막힘)
+  const [rr, rd] = CRIT_REF[role === 'main' ? 'main' : 'sub'];
+  const crit = d.crit ? (1 + Math.min(1, c.cr / 100) * c.cd / 100) / (1 + rr * rd) : 1;
+  const tl = d.tal.length ? d.tal : [1];
+  const tal = avg(tl.map(i => TALM[Math.min(c.t[i] || 1, talCapOf(c))])) / TALM[9];
+  // 원소 마스터리 반응 위주(치명 없음)는 방어 무시, 나머지는 Lv.100 적 기준 방어 계수
+  const lv = d.scale === 'em' && !d.crit ? 1 : def100(Math.max(1, effLv(c))) / def100(90);
+  const wv = weaponValue(c);
+  const wep = 0.75 + 0.25 * clamp(wv.v + (wv.five ? 0.03 : 0.02) * (c.wr - 1));
+  const set = 0.8 + 0.2 * setInfo(c).v;
+  const main = c.mainOk ? 1 : 0.85;
+  // 원소 충전 효율이 모자라면 원소폭발을 매 사이클 못 씀
+  const er = 0.7 + 0.3 * clamp(c.er / d.er) ** 2;
+  const con = d.r === 5 ? [1, 1.12, 1.2, 1.25, 1.32, 1.4, 1.65][c.cons] : 1 + 0.035 * c.cons;
+  const parts = { stat, crit, tal, lv, wep, set, main, er, con };
+  return { f: clamp(Object.values(parts).reduce((a, b) => a * b, 1), 0.02, 2.5), parts };
+}
+const DMG_PART = { stat: '핵심 스탯', crit: '치명 기대값', tal: '특성 레벨', lv: '레벨(방어 계수)', wep: '무기', set: '성유물 세트', main: '주옵션', er: '원소 충전', con: '돌파' };
+// 팀 배율: 역할별 피해 비중으로 각 멤버의 피해 배율을 가중 평균. 서포터·생존 담당은 버프·실드 성능이 동료 피해에 곱해짐
+function teamFactor(mem) {
+  if (!mem.length) return { f: 0, top: null };
+  let w = 0, s = 0, buff = 1;
+  const rows = mem.map(m => ({ m, x: dmgFactor(m.c) }));
+  for (const { m, x } of rows) {
+    const role = m.d.roles[0], sh = DMG_SHARE[role] || 0.05;
+    w += sh; s += sh * x.f;
+    if (role === 'sup') buff *= 0.85 + 0.15 * clamp(x.f);
+    else if (role === 'heal' || role === 'shield') buff *= 0.95 + 0.05 * clamp(x.f);
+  }
+  // 빈 자리는 피해·버프 없음
+  w += (4 - mem.length) * DMG_SHARE.sup;
+  const main = rows.slice().sort((a, b) => (DMG_SHARE[b.m.d.roles[0]] || 0) - (DMG_SHARE[a.m.d.roles[0]] || 0) || b.m.d.perf - a.m.d.perf)[0];
+  return { f: clamp(s / w * buff, 0.02, 1.6), rows, main };
+}
+// 피해 배율에서 가장 많이 깎는 항목(상위 3개)
+const dmgLoss = x => Object.entries(x.parts).filter(([, v]) => v < 0.97).sort((a, b) => a[1] - b[1]).slice(0, 3);
 
 // ───────── 무기 · 성유물 세트 평가 (weapons.js, builds.js 데이터) ─────────
 const recWeapons = id => (WEAPON_REC[id] && WEAPON_REC[id].list) || [];
@@ -978,7 +1032,7 @@ function evalParty(p, over, roster) {
   wsum += (4 - mem.length) * RW.sup;
   const build = wsum ? ssum / wsum : 0;
   // 딜량: 가장 비슷한 실측 파티 × 겹침 배율 × 육성 배율, 비슷한 파티가 없으면 성능 점수로 추정
-  const td = partyDps(mem, build);
+  const td = partyDps(mem);
   const expDps = td.est;
   const dpsScore = clamp(100 * expDps / META_MAX, 0, 100);
 
@@ -1287,11 +1341,10 @@ const META = [
 ].map(([dps, note, ids]) => ({ dps, note, ids }));
 const META_MAX = Math.max(...META.map(m => m.dps));
 const kfmt = n => `${Math.round(n / 1000)}k`;
-// 실측은 잘 키운 계정 기준이므로, 멤버 육성 점수의 역할 가중 평균 / 85를 내 계정 배율로 씀(0.25~1.05)
+// 실측은 잘 키운 계정 기준이므로, 데미지 공식으로 계산한 내 팀 배율(teamFactor)을 곱함
 function buildFactor(ids) {
-  let w = 0, s = 0;
-  for (const id of ids) { const c = S.roster[id]; if (!c) continue; const d = prof(c), rw = RW[d.roles[0]]; w += rw; s += rw * charCalc(c).score; }
-  return w ? clamp(s / w / 85, 0.25, 1.05) : 0;
+  const mem = ids.filter(id => S.roster[id]).map(id => ({ id, c: S.roster[id], d: prof(S.roster[id]) }));
+  return teamFactor(mem).f;
 }
 // 내 파티와 가장 비슷한 실측 파티: 실측 파티의 메인이 내 파티에 있는 것 중 겹침 수 → 딜량 순
 // (서포터만 겹치는 경우는 딜 구조가 달라 비교하지 않음)
@@ -1311,31 +1364,37 @@ function restPerf(ids, core, perfOf) {
   while (rest.length < 3) rest.push(0);
   return avg(rest);
 }
-// 파티 딜량(evalParty에서 사용, 성장 시뮬레이션의 가상 육성도 반영) = 기준 딜량 × 육성 배율(육성 가중 평균/85)
+// 파티 딜량(evalParty에서 사용, 성장 시뮬레이션의 가상 육성도 반영) = 기준 딜량 × 팀 피해 배율(teamFactor, 데미지 공식)
 // 기준 딜량: 같은 메인의 실측 파티가 있으면 실측 × (내 동료 평균 성능 / 실측 동료 평균 성능)^2 (최대 1, 같은 조합이면 1)
 // 없으면 체급(핵심 딜러 성능 50% + 나머지 평균 50%)으로 실측 1위 대비 (체급/95)^4, 실측되지 않은 조합이라 최대 75%로 제한
-function partyDps(mem, build) {
-  const bf = clamp(build / 85, 0.25, 1.05);
+function partyDps(mem) {
   if (!mem.length) return { est: 0, src: 'none', ov: 0 };
+  const tf = teamFactor(mem), bf = tf.f;
   const ids = mem.map(m => m.id);
   const perfOf = id => mem.find(m => m.id === id)?.d.perf ?? 0;
   const hit = matchIds(ids);
   if (hit) {
     const core = hit.m.ids[0];
     const sub = clamp(restPerf(ids, core, perfOf) / restPerf(hit.m.ids, core, id => DB[id].perf), 0, 1) ** 2;
-    return { est: hit.m.dps * sub * bf, src: 'measured', m: hit.m, ov: hit.ov, sub };
+    return { est: hit.m.dps * sub * bf, src: 'measured', m: hit.m, ov: hit.ov, sub, tf };
   }
   const dealers = mem.filter(m => m.d.roles[0] === 'main');
   const core = (dealers.length ? dealers : mem).slice().sort((a, b) => b.d.perf - a.d.perf)[0];
   const tier = 0.5 * core.d.perf + 0.5 * restPerf(ids, core.id, perfOf);
-  return { est: META_MAX * Math.min(0.75, (tier / 95) ** 4) * bf, src: 'estimated', ov: 0 };
+  return { est: META_MAX * Math.min(0.75, (tier / 95) ** 4) * bf, src: 'estimated', ov: 0, tf };
+}
+// 팀 배율과 메인 딜러를 가장 많이 깎는 항목
+function tfNote(tf) {
+  if (!tf || !tf.main) return '';
+  const m = tf.main, loss = dmgLoss(m.x);
+  return ` · 내 육성 ×${tf.f.toFixed(2)}` + (loss.length ? ` (${esc(m.m.d.name)} ${loss.map(([k, v]) => `${DMG_PART[k]} ×${v.toFixed(2)}`).join(', ')})` : '');
 }
 function dpsLine(e) {
   const d = e.dps;
   if (d.src === 'none') return '';
-  if (d.src === 'estimated') return `<p class="dps-line">추정 딜량 <b class="mono">~${kfmt(e.expDps)}/초</b> <span class="muted">· 비슷한 실측 파티가 없어 캐릭터 성능으로 추정</span></p>`;
+  if (d.src === 'estimated') return `<p class="dps-line">추정 딜량 <b class="mono">~${kfmt(e.expDps)}/초</b> <span class="muted">· 비슷한 실측 파티가 없어 캐릭터 성능으로 추정${tfNote(d.tf)}</span></p>`;
   const names = d.m.ids.map(id => DB[id].name).join('·');
-  return `<p class="dps-line">추정 딜량 <b class="mono">~${kfmt(e.expDps)}/초</b> <span class="muted">· 기준 ${esc(names)} ${kfmt(d.m.dps)} (${d.ov}/4 일치${d.ov < 4 ? `, 대체 멤버 배율 ×${d.sub.toFixed(2)}` : ''}, 내 육성 반영)</span></p>`;
+  return `<p class="dps-line">추정 딜량 <b class="mono">~${kfmt(e.expDps)}/초</b> <span class="muted">· 기준 ${esc(names)} ${kfmt(d.m.dps)} (${d.ov}/4 일치${d.ov < 4 ? `, 대체 멤버 배율 ×${d.sub.toFixed(2)}` : ''})${tfNote(d.tf)}</span></p>`;
 }
 // 엔진 도감: 내 보유 캐릭터로 각 엔진의 자리를 채워 보고, 완성 → 1자리 부족 → 나머지 순으로 보여 줌
 function renderEngines() {
@@ -1371,7 +1430,7 @@ function renderMeta() {
       <div class="actions"><label class="inline-sel" for="meta-filter">보기 <select id="meta-filter">
         <option value="all">전체 ${rows.length}개</option><option value="ready">바로 구성 가능 ${ready.length}개</option><option value="near">1명 부족 ${rows.filter(r => r.missing.length === 1).length}개</option>
       </select></label></div></div>
-    <p class="legend">원신 7.1 기준 실측 팀 딜량(허수아비 대상, 3~6사이클 평균)입니다. 출처에 돌파·무기 조건이 적혀 있지 않아 잘 키운 계정 기준으로 보고, '내 계정' 값은 멤버들의 육성 점수를 곱한 추정치입니다. 다수 적·기믹·생존은 반영되지 않습니다.</p>
+    <p class="legend">원신 7.1 기준 실측 팀 딜량(허수아비 대상, 3~6사이클 평균)입니다. 출처에 돌파·무기 조건이 적혀 있지 않아 잘 키운 계정 기준으로 보고, '내 계정' 값은 원신 데미지 공식(핵심 스탯 × 치명 기대값 × 특성 배율 × 방어 계수 …)으로 내 캐릭터가 기준 육성 대비 몇 %의 피해를 내는지 계산해 곱한 추정치입니다. 다수 적·기믹·생존은 반영되지 않습니다.</p>
     <div class="meta-sum">
       <div class="msum"><h3>지금 만들 수 있는 최고 딜량</h3>${ready.length ? ready.slice(0, 3).map(r => `<div class="msrow"><span>${esc(r.ids.map(id => DB[id].name).join('·'))}</span><b class="mono">~${kfmt(r.est)}</b></div>`).join('') : '<p class="muted">보유 캐릭터로 4명을 모두 갖춘 실측 파티가 없습니다.</p>'}</div>
       <div class="msum"><h3>1명만 더 있으면 되는 파티</h3>${near.length ? near.map(r => `<div class="msrow"><span>${esc(DB[r.ids[0]].name)} 파티 — <b>${esc(DB[r.missing[0]].name)}</b> 필요</span><span class="mono muted">${kfmt(r.dps)}</span></div>`).join('') : '<p class="muted">해당 없음</p>'}</div>
@@ -1382,7 +1441,7 @@ function renderMeta() {
       <div class="mhead"><span class="mrank mono">#${rows.indexOf(r) + 1}</span><div class="mchips">${memberChips(r)}</div>${tag(r)}</div>
       <div class="mbar"><div class="meter big"><i style="width:${r.dps / META_MAX * 100}%;--c:var(--gold)"></i>${r.est != null ? `<i class="mine" style="width:${r.est / META_MAX * 100}%"></i>` : ''}</div>
         <span class="mono mval">${kfmt(r.dps)}</span></div>
-      <div class="mfoot">${r.missing.length ? `<span class="muted">보유 ${4 - r.missing.length}/4 · 부족: ${esc(r.missing.map(id => DB[id].name).join(', '))}</span>` : `<span>내 계정 추정 <b class="mono">~${kfmt(r.est)}/초</b> <span class="muted">(육성 배율 ×${(r.est / r.dps).toFixed(2)})</span></span>`}</div>
+      <div class="mfoot">${r.missing.length ? `<span class="muted">보유 ${4 - r.missing.length}/4 · 부족: ${esc(r.missing.map(id => DB[id].name).join(', '))}</span>` : `<span>내 계정 추정 <b class="mono">~${kfmt(r.est)}/초</b> <span class="muted">(내 육성 배율 ×${(r.est / r.dps).toFixed(2)})</span></span>`}</div>
     </div>`).join('')}</div>
     <p class="foot-note">출처: <a href="https://genshin.im/measured-dps" target="_blank" rel="noopener">genshin.im Measured Team DPS (7.1, 2026-10-22 갱신)</a>. 방랑자 파티 멤버는 갱신판에서 빠져 직전 genshin.im 표의 조합을 그대로 두었고, 베스나 파티 멤버는 <a href="https://www.gamsgo.com/ko/blog/%EC%9B%90%EC%8B%A0-%ED%8B%B0%EC%96%B4%ED%91%9C" target="_blank" rel="noopener">GamsGo 7.1 가이드</a>, 미즈키·얼음 여행자 파티 멤버는 <a href="https://allthings.how/genshin-impact-dps-tier-list/" target="_blank" rel="noopener">AllThings.How 7.0 딜량 순위</a>의 조합입니다. 출처에 멤버가 없는 아야카·응광·코코미·리넷·헤이조·프레미네·불 여행자는 제외했습니다.</p>`;
   $('#meta-filter').value = metaFilter;
@@ -1908,5 +1967,6 @@ render();
 initSync();
 setTab(tab);
 </script>
+<script>if ('serviceWorker' in navigator && /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 
 </body></html>

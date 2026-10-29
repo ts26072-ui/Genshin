@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>캔슬 연습 · 원신 파티 감정소</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="common.css?v=20261029a">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0e1320">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="파티 감정소">
+<style>
+/* 캔슬 연습: 콤보 표기를 입력 순서로 풀어, 다음 입력 시점을 줄어드는 고리로 보여 주고 입력마다 빠름·느림을 판정 */
+.chars { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.chbtn { font: inherit; display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.chbtn img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: var(--c); }
+.chbtn[aria-pressed="true"] { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); font-weight: 700; }
+.combos { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.cb { font: inherit; text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; }
+.cb[aria-pressed="true"] { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+.cb .no { font-family: ui-monospace, Consolas, monospace; font-weight: 700; font-size: 14px; word-break: break-word; }
+.cb .lv { font-size: 12px; color: var(--muted); align-self: center; white-space: nowrap; }
+.cb .ds { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.steps { display: flex; flex-wrap: wrap; gap: 4px; }
+.st { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; padding: 3px 7px; border-radius: 6px; background: rgb(127 127 127 / .12); color: var(--muted); }
+.st.now { background: var(--gold); color: #1b1b1b; font-weight: 700; }
+.st.ok { color: #6fbf73; } .st.good { color: #c9b45a; } .st.bad { color: #e07a5f; text-decoration: line-through; }
+.cue { display: grid; grid-template-columns: 120px 1fr; gap: 14px; align-items: center; }
+.ring { position: relative; width: 120px; height: 120px; }
+.ring .core, .ring .appr { position: absolute; inset: 22px; border-radius: 50%; display: grid; place-items: center; }
+.ring .core { background: var(--gold-soft, rgb(211 188 142 / .2)); border: 2px solid var(--gold); font-weight: 900; font-size: 15px; text-align: center; line-height: 1.15; }
+.ring .appr { border: 3px solid var(--gold); opacity: .8; transform: scale(2); pointer-events: none; }
+.cue .now-t { font-size: 17px; font-weight: 700; }
+.cue .tip { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.judge { font-weight: 900; font-size: 18px; min-height: 26px; }
+.j-perfect { color: #6fbf73; } .j-good { color: #c9b45a; } .j-early, .j-late, .j-miss { color: #e07a5f; }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ctl label { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.ctl input[type=range] { width: 120px; }
+/* 모바일 게임과 비슷한 오른쪽 아래 버튼 배치 */
+.pad { position: relative; height: 230px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.pad button { position: absolute; border-radius: 50%; border: 2px solid rgb(255 255 255 / .35); background: rgb(14 19 32 / .78); color: #ECE5D8; font: inherit; font-weight: 700; display: grid; place-items: center; text-align: center; line-height: 1.1; touch-action: none; cursor: pointer; }
+.pad button small { display: block; font-size: 10px; font-weight: 500; opacity: .7; }
+.pad button.on { background: var(--gold); color: #1b1b1b; border-color: #fff; }
+.pad button.hint { box-shadow: 0 0 0 3px var(--gold), 0 0 18px var(--gold); }
+.b-A { width: 96px; height: 96px; right: 8px; bottom: 8px; font-size: 16px; }
+.b-E { width: 68px; height: 68px; right: 118px; bottom: 14px; }
+.b-Q { width: 74px; height: 74px; right: 112px; bottom: 100px; }
+.b-D { width: 62px; height: 62px; right: 14px; bottom: 118px; }
+.b-J { width: 58px; height: 58px; right: 196px; bottom: 112px; }
+.b-W { width: 64px; height: 64px; left: 8px; bottom: 30px; border-radius: 16px !important; }
+.result { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.result div { background: rgb(127 127 127 / .08); border-radius: 10px; padding: 8px 10px; }
+.result b { display: block; font-size: 20px; }
+.result span { font-size: 12px; color: var(--muted); }
+.keys { font-size: 12.5px; color: var(--muted); }
+.keys kbd { font-family: inherit; padding: 1px 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); }
+@media (max-width: 520px) { .cue { grid-template-columns: 96px 1fr; } .ring { width: 96px; height: 96px; } .ring .core, .ring .appr { inset: 16px; } }
+</style>
+</head>
+<body>
+<div class="wrap" style="max-width:860px">
+  <header class="top">
+    <h1><span class="star">✦</span> 캔슬 연습</h1>
+    <p class="sub">스커크 · 마비카 · 네페르의 평타·강공 캔슬 콤보를 리듬 게임처럼 연습합니다. 고리가 안쪽 원에 겹칠 때 누르세요.</p>
+  </header>
+  <nav class="sitenav" aria-label="페이지">
+    <a href="index.html">파티 감정소</a>
+    <a href="tier.html">티어표</a>
+    <a href="combo.html" aria-current="page">캔슬 연습</a>
+    <a href="farm.html">재료 파밍</a>
+    <a href="map.html">지도</a>
+    <a href="rate.html">성유물 감정</a>
+    <a href="guide.html">성유물 추천</a>
+    <a href="stats.html">종결 스탯 도감</a>
+  </nav>
+
+  <div class="chars" id="chars"></div>
+  <p class="legend" id="about"></p>
+  <div class="combos" id="combos"></div>
+
+  <div class="stage">
+    <div class="steps" id="steps"></div>
+    <div class="cue">
+      <div class="ring"><div class="appr" id="appr"></div><div class="core" id="core">시작</div></div>
+      <div><div class="now-t" id="now">첫 입력을 누르면 시작합니다</div><div class="tip" id="tip"></div><div class="judge" id="judge"></div></div>
+    </div>
+    <div class="ctl">
+      <button class="btn primary sm" type="button" id="demo">시범 보기</button>
+      <button class="btn ghost sm" type="button" id="reset">처음부터</button>
+      <label>속도 <input type="range" id="speed" min="50" max="100" step="5" value="100"> <span class="mono" id="speed-v">100%</span></label>
+      <label>타이밍 보정 <input type="range" id="offset" min="-120" max="120" step="10" value="0"> <span class="mono" id="offset-v">0ms</span></label>
+      <label class="check"><input type="checkbox" id="beep" checked> 소리 안내</label>
+    </div>
+    <div class="pad" id="pad">
+      <button type="button" class="b-W" data-k="W">전진<small>W</small></button>
+      <button type="button" class="b-J" data-k="J">점프<small>Space</small></button>
+      <button type="button" class="b-E" data-k="E">E<small>스킬</small></button>
+      <button type="button" class="b-Q" data-k="Q">Q<small>폭발</small></button>
+      <button type="button" class="b-D" data-k="D">대시<small>Shift</small></button>
+      <button type="button" class="b-A" data-k="A">공격<small>꾹 = 강공</small></button>
+    </div>
+    <p class="keys">PC: <kbd>마우스 왼쪽</kbd> 또는 <kbd>J</kbd> 공격(꾹 누르면 강공) · <kbd>E</kbd> 스킬 · <kbd>Q</kbd> 폭발 · <kbd>Shift</kbd> 또는 <kbd>K</kbd> 대시 · <kbd>Space</kbd> 점프 · <kbd>W</kbd> 전진</p>
+    <div class="result" id="result" hidden></div>
+  </div>
+
+  <p class="foot-note">콤보와 주의점은 KQM 퀵 가이드(스커크·마비카·네페르, 2026년 10월 열람)를 따릅니다. 입력 간격은 공식 프레임표가 없어 실전 영상(60fps) 기준으로 맞춘 대략치라 실제 게임과 수십 ms 다를 수 있습니다. 내 기기에서 늘 빠르거나 느리게 나오면 '타이밍 보정'으로 맞추세요. 표기: N=평타(숫자는 타수), C=강공, F=강공 마무리(손 떼기), D=대시 캔슬, J=점프 캔슬, W=전진 입력(걷기 캔슬), tE/hE=스킬 짧게/길게, Q=원소폭발, 2[…]=두 번 반복.</p>
+</div>
+
+<script src="chars.js?v=20261029a"></script>
+<script>
+const $ = s => document.querySelector(s);
+const PREF = (window.GP ? GP.KEY : 'genshin-party') + ':combo';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// ───────── 캐릭터별 콤보(KQM)와 입력 간격(ms, 60fps 영상 기준 대략치) ─────────
+// 간격은 '이전 입력 → 이번 입력'. cut: 너무 빨리 누르면 앞 타격이 끊겨 피해가 사라지는 캔슬
+const CHARS = {
+  skirk: {
+    name: '스커크', el: 'cryo',
+    about: '칠상섬(짧은 E) 상태에서 평타를 끊어 치는 콤보입니다. N2D가 가장 효율 좋은 캔슬이지만 대시는 짧은 시간에 두 번까지만 되고, 2타가 맞기 전에 대시하면 2타 피해가 사라집니다. 마무리 평타(N5)는 맞는 순간 대시·Q·강공으로 끊을 수 있고, 강공·특수 Q는 균열을 흡수해 뱀의 교활을 채웁니다.',
+    T: { N: [0, 280, 300, 390, 480], hit: [0, 230, 250, 280, 330, 380], full: 650, D: 320, Q: 620, Chold: 330, Crec: 520, E: 450, J: 480, wAt: 210, wLen: 260, W: 120 },
+    combos: [
+      ['tE N5Q N5D N5C N5', '입문', '평타 5타를 4번. 1·3번째 끝에 특수 Q와 강공으로 균열을 흡수합니다. 연습 없이도 거의 그대로 나옵니다.'],
+      ['tE N5D N2Q N5D N5C N5', '기본 추천', 'KQM 기본 추천 콤보. 입문 콤보에 2타를 더 넣고 특수 Q로 끊어 딜이 꽤 오릅니다.'],
+      ['tE N5D N2Q 2[N5D] N2C N5', '중급', '기본 콤보 끝에 N2를 하나 더 넣은 형태. 클릭 속도와 타이밍이 중요합니다.'],
+      ['tE 2[N2D] N2Q 2[2[N2D] N3W] N2D N2C N2D N3', '상급', 'N2D 두 번 뒤 대시 쿨타임 동안 N3W(3타 중 전진 입력, 착지 직전에 손 떼기)로 버티는 고효율 콤보. 걷기 캔슬을 익혀야 합니다.'],
+    ],
+  },
+  mavuika: {
+    name: '마비카', el: 'pyro',
+    about: '원소폭발 중 불의 탈것으로 강공(꾹 누르기)을 회전시키는 콤보입니다. 누르고 있는 동안 회전 강공이 이어지고, 손을 떼면 마무리 강공(F)이 나갑니다. 회전 중에 대시·점프로 끊어 반응 원소를 맞춥니다. 대시를 늦게 하면 대시 공격이 얼음보다 먼저 불을 붙여 융해가 깨집니다.',
+    T: { Q: 1450, spin0: 420, spin: 400, F: 520, D: 380, J: 500, E: 500 },
+    combos: [
+      ['Q C8F', '입문 · 비반응', '강공을 회전 8번 동안 누르고 떼기. 증폭 반응이 없거나 푸리나만 있을 때.'],
+      ['Q C4J C4', '융해 안정', '회전 4번 뒤 점프로 끊고 다시 4번. 얼음 부착 타이밍에 맞추기 쉽습니다.'],
+      ['Q C2D C3D C4', '가장 안정', '반응 안 하는 회전과 반응하는 회전을 5번씩. 물·얼음 지원이 넉넉한 팀에서 가장 안정적입니다.'],
+      ['Q C3F D C3F', '최고 딜 (융해)', '시틀라리·로자리아 단일 얼음 융해의 최고 딜 콤보. 마무리 뒤 대시를 빨리 해야 융해가 안 깨집니다.'],
+    ],
+  },
+  nefer: {
+    name: '네페르', el: 'dendro',
+    about: 'E로 그림자 춤 상태가 되면 강공이 환영 공연(스태미나 소모 없음)으로 바뀝니다. 강공 1타가 맞은 직후 대시로 끊으면 빨라지고 무적 시간도 생깁니다. 2타는 피해가 거의 없어 끊어도 손해가 없습니다(6돌은 2타가 월개화라 끊지 않는 편이 나음). 두 번째 E에 이슬이 모자라면 중간에 Q를 넣어 시간을 벌어요.',
+    T: { E: 550, Chold: 350, hit: 720, Crec: 1350, D: 380, Q: 1100 },
+    combos: [
+      ['E 3[C] E 3[C]', '대시 없음', '이슬이 안정적으로 모이지만 0~5돌에서는 딜이 조금 낮습니다.'],
+      ['E 3[CD] E CD CQ CD', '추천', 'KQM 추천 대시 캔슬 콤보. 두 번째 E 중간에 Q로 이슬이 모일 시간을 법니다.'],
+      ['E 3[CD] E 3[CD]', '교체형', '두 번째 E 전에 동료로 교체해 스킬·세트 효과를 갱신하는 팀에서.'],
+    ],
+  },
+};
+const KEYN = { A: '공격', E: 'E', Q: 'Q', D: '대시', J: '점프', W: '전진' };
+
+// 콤보 표기 → 토큰 배열 (2[…] 반복 풀기)
+function expand(s) {
+  while (/\d\[[^\[\]]*\]/.test(s)) s = s.replace(/(\d)\[([^\[\]]*)\]/g, (_, n, body) => Array(+n).fill(body).join(' '));
+  return s.trim().split(/\s+/).flatMap(w => w.match(/[th]?E|N\d|C\d*F?|D|Q|J|W/g) || []);
+}
+// 토큰 → 입력 이벤트 {t:'down'|'up', k, gap, label, tip, cut, free}
+function build(ch, notation) {
+  const T = CHARS[ch].T, toks = expand(notation), ev = [];
+  let wait = 0, lastN = 0;
+  const push = (t, k, gap, label, tip = '', extra = {}) => ev.push({ t, k, gap: Math.max(0, Math.round(gap)), label, tip, ...extra });
+  for (let i = 0; i < toks.length; i++) {
+    const tk = toks[i], next = toks[i + 1] || '', prev = toks[i - 1] || '';
+    const afterHit = /^N\d$/.test(prev) || /^C/.test(prev);
+    if (/E$/.test(tk)) { push('down', 'E', wait, tk === 'hE' ? 'E 길게' : 'E', tk === 'hE' ? '길게 눌렀다 떼기' : ''); if (tk === 'hE') push('up', 'E', 600, 'E 떼기'); wait = T.E; lastN = 0; }
+    else if (tk === 'Q') { push('down', 'Q', wait, 'Q', afterHit ? '앞 타격이 맞는 순간' : ''); wait = T.Q; lastN = 0; }
+    else if (tk === 'D') { push('down', 'D', wait, '대시', afterHit ? '타격이 맞은 직후 — 너무 빠르면 끊김' : '', { cut: afterHit }); wait = T.D; lastN = 0; }
+    else if (tk === 'J') { push('down', 'J', wait, '점프', afterHit ? '회전 타격 직후' : ''); wait = T.J; lastN = 0; }
+    else if (tk === 'W') { push('down', 'W', T.wAt, '전진 누르기', '3타 중에 앞으로'); push('up', 'W', T.wLen, '전진 떼기', '착지 직전에 손 떼기'); wait = T.W; lastN = 0; }
+    else if (/^N\d$/.test(tk)) {
+      const k = +tk[1];
+      for (let j = 1; j <= k; j++) push('down', 'A', j === 1 ? wait : T.N[j - 1], `평타 ${j}`, j === 1 ? '짧게 탭' : '');
+      lastN = k;
+      // 다음이 캔슬이면 마지막 타격이 맞는 시점, 아니면 동작이 끝나는 시점
+      wait = /^(D|Q|C|J)/.test(next) ? T.hit[k] : next === 'W' ? 0 : T.full;
+      if (/^C/.test(next)) wait = T.hit[k];
+    }
+    else if (/^C/.test(tk)) {
+      const m = tk.match(/^C(\d*)(F?)$/), n = m[1] ? +m[1] : 0, fin = !!m[2];
+      if (ch === 'mavuika') {
+        const hold = T.spin0 + n * T.spin;
+        push('down', 'A', wait, `강공 ${n ? n + '회전' : ''}`.trim(), '꾹 누르고 있기', { holdStart: true });
+        if (fin || !/^(D|J)/.test(next)) { push('up', 'A', hold, fin ? '떼기 (마무리)' : '떼기', fin ? '회전이 끝나는 순간 손 떼기' : ''); wait = T.F; }
+        else { wait = hold; ev.push({ t: 'up', k: 'A', gap: 0, label: '', free: true, after: true }); }
+      } else {
+        push('down', 'A', wait, ch === 'nefer' ? '강공 (환영 공연)' : '강공', '꾹 누르기', { holdStart: true });
+        push('up', 'A', T.Chold, '떼기', '강공이 나가면 떼기');
+        wait = /^(D|Q)/.test(next) ? (ch === 'nefer' ? T.hit - T.Chold : 260) : (ch === 'nefer' ? T.Crec - T.Chold : T.Crec);
+      }
+      lastN = 0;
+    }
+  }
+  // 마비카 '회전 중 대시/점프' 뒤에 오는 자유 떼기를 캔슬 입력 뒤로 옮김
+  for (let i = 0; i < ev.length; i++) if (ev[i].after && ev[i + 1]) { const x = ev.splice(i, 1)[0]; ev.splice(i + 1, 0, x); i++; }
+  return ev;
+}
+
+// ───────── 상태 ─────────
+let st = { ch: 'skirk', combo: 1, speed: 100, offset: 0, beep: true };
+try { st = { ...st, ...JSON.parse(localStorage.getItem(PREF) || '{}') }; } catch (e) {}
+const save = () => { try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {} };
+let penal = false, wrong = 0, EV = [], idx = 0, lastT = 0, started = false, marks = [], timer = null, demo = null, aDown = 0, aKind = '', startT = 0, idealMs = 0;
+const scale = () => 100 / st.speed;
+const target = () => lastT + EV[idx].gap * scale() + st.offset;
+const PERFECT = () => 70 * scale(), GOOD = () => 140 * scale();
+
+// 소리 안내
+let ac = null;
+function beep(f = 880, d = 0.05) {
+  if (!st.beep) return;
+  try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = f; g.gain.value = 0.08; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + d); } catch (e) {}
+}
+
+function renderChars() {
+  $('#chars').innerHTML = Object.entries(CHARS).map(([id, c]) => {
+    const u = window.GP && GP.iconUrl ? GP.iconUrl(id) : '';
+    return `<button type="button" class="chbtn" data-ch="${id}" aria-pressed="${st.ch === id}" style="--c:var(--${c.el})">${u ? `<img src="${u}" alt="">` : ''}${c.name}</button>`;
+  }).join('');
+  const c = CHARS[st.ch];
+  $('#about').textContent = c.about;
+  if (st.combo >= c.combos.length) st.combo = 0;
+  $('#combos').innerHTML = c.combos.map(([no, lv, ds], i) => `<button type="button" class="cb" data-i="${i}" aria-pressed="${st.combo === i}"><span class="no">${esc(no)}</span><span class="lv">${esc(lv)}</span><span class="ds">${esc(ds)}</span></button>`).join('');
+}
+function stepLabel(e) { return e.label || ''; }
+function renderSteps() {
+  const vis = EV.map((e, i) => ({ e, i })).filter(x => !x.e.free);
+  $('#steps').innerHTML = vis.map(({ e, i }) => `<span class="st ${i === idx ? 'now' : marks[i] || ''}" data-i="${i}">${esc(stepLabel(e))}</span>`).join('');
+}
+function setCue() {
+  while (idx < EV.length && EV[idx].free && !started) idx++;
+  const e = EV[idx];
+  for (const b of document.querySelectorAll('.pad button')) b.classList.toggle('hint', !!e && b.dataset.k === e.k);
+  if (!e) return;
+  $('#core').textContent = e.t === 'up' ? '떼기' : KEYN[e.k];
+  $('#now').textContent = started ? `다음: ${e.label}` : `첫 입력: ${e.label}`;
+  $('#tip').textContent = e.tip || '';
+}
+function reset() {
+  stopDemo();
+  const c = CHARS[st.ch];
+  EV = build(st.ch, c.combos[st.combo][0]);
+  idealMs = EV.reduce((s, e) => s + e.gap, 0);
+  idx = 0; lastT = 0; started = false; marks = []; aDown = 0; wrong = 0; penal = false;
+  $('#judge').textContent = ''; $('#judge').className = 'judge'; $('#result').hidden = true;
+  $('#appr').style.transform = 'scale(2)'; $('#appr').style.opacity = '.8';
+  renderSteps(); setCue();
+}
+// 다가오는 고리: 목표 시점에 안쪽 원과 겹침
+function tick() {
+  cancelAnimationFrame(timer);
+  const loop = () => {
+    if (!started || idx >= EV.length) return;
+    const e = EV[idx];
+    const span = Math.max(250, e.gap * scale());
+    const left = target() - performance.now();
+    const p = clamp(left / span, -0.3, 1);
+    $('#appr').style.transform = `scale(${1 + Math.max(0, p)})`;
+    $('#appr').style.opacity = p < -0.15 ? '.25' : '.85';
+    timer = requestAnimationFrame(loop);
+  };
+  loop();
+  scheduleBeep();
+}
+let beepT = null;
+function scheduleBeep() {
+  clearTimeout(beepT);
+  if (!started || idx >= EV.length || EV[idx].free) return;
+  const ms = target() - performance.now();
+  if (ms > 0) beepT = setTimeout(() => beep(EV[idx] && EV[idx].t === 'up' ? 660 : 880), ms);
+}
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+function show(cls, text) { const j = $('#judge'); j.className = 'judge j-' + cls; j.textContent = text; }
+
+// 입력 처리: 순서가 맞으면 목표 시점과의 차이를 판정, 틀린 키는 '순서 틀림'
+function input(t, k, now = performance.now()) {
+  if (idx >= EV.length) return;
+  if (k === 'A' && t === 'down') { aDown = now; }
+  let e = EV[idx];
+  // 자유 떼기(마비카 회전 중 캔슬 뒤): 아무 때나 떼면 통과
+  if (e.free) {
+    if (t === 'up' && k === 'A') { idx++; renderSteps(); setCue(); return; }
+    if (!(t === 'down' && EV[idx + 1] && EV[idx + 1].k === k)) { if (t === 'down') show('miss', '공격을 누른 채로 다음 입력'); return; }
+    idx++; e = EV[idx];
+  }
+  if (t === 'up' && !(e.t === 'up' && e.k === k)) {
+    // 평타를 꾹 눌러 강공이 나간 경우 / 마비카 강공을 일찍 뗀 경우
+    if (k === 'A' && aDown && now - aDown > 330 && EV[idx - 1] && EV[idx - 1].k === 'A' && !EV[idx - 1].holdStart) { show('miss', '너무 오래 눌러 강공이 나감 — 평타는 짧게 탭'); penal = true; }
+    if (k === 'A' && EV.slice(0, idx).reverse().find(x => x.k === 'A')?.holdStart && EV.slice(idx).some(x => x.free)) { show('miss', '일찍 뗌 — 마무리 강공이 나가 회전이 끊김'); penal = true; }
+    return;
+  }
+  if (!(e.t === t && e.k === k)) { if (t === 'down') { show('miss', `순서 틀림 — 지금은 ${e.label}`); if (started) wrong++; } return; }
+  if (!started) { started = true; startT = now; lastT = now; marks[idx] = 'ok'; idx++; show('perfect', '시작!'); renderSteps(); setCue(); if (idx < EV.length) tick(); else finish(now); return; }
+  const dt = now - target();
+  let cls, text, m;
+  if (Math.abs(dt) <= PERFECT()) { cls = 'perfect'; text = '완벽'; m = 'ok'; }
+  else if (Math.abs(dt) <= GOOD()) { cls = 'good'; text = dt < 0 ? '좋음 (조금 빠름)' : '좋음 (조금 느림)'; m = 'good'; }
+  else if (dt < 0) { cls = 'early'; text = e.cut ? `너무 빠름 ${Math.round(-dt)}ms — 앞 타격이 끊겨 피해 손실` : `빠름 ${Math.round(-dt)}ms`; m = 'bad'; }
+  else { cls = 'late'; text = `느림 ${Math.round(dt)}ms`; m = 'bad'; }
+  if (penal) { m = 'bad'; cls = 'miss'; text = '앞 입력 실수로 콤보가 끊김'; penal = false; }
+  marks[idx] = m; show(cls, text);
+  lastT = now; idx++;
+  renderSteps(); setCue();
+  if (idx >= EV.length || EV.slice(idx).every(x => x.free)) finish(now); else tick();
+}
+function finish(now) {
+  cancelAnimationFrame(timer); clearTimeout(beepT);
+  const took = now - startT, ideal = idealMs * 1, js = marks.filter(Boolean);
+  const n = k => js.filter(x => x === k).length;
+  const loss = clamp((took - ideal) / took, 0, 0.9);
+  $('#result').hidden = false;
+  $('#result').innerHTML = `<div><b>${n('ok')}</b><span>완벽</span></div><div><b>${n('good')}</b><span>좋음</span></div><div><b>${n('bad')}</b><span>빠름·느림</span></div><div><b>${wrong}</b><span>잘못 누름</span></div>
+    <div><b>${(took / 1000).toFixed(2)}초</b><span>걸린 시간 (이상적 ${(ideal / 1000).toFixed(2)}초)</span></div>
+    <div><b>${st.speed < 100 ? '—' : Math.round(loss * 100) + '%'}</b><span>${st.speed < 100 ? '속도 100%에서 딜 손실 계산' : '이상적 대비 딜 손실(시간 기준)'}</span></div>`;
+  $('#now').textContent = '끝! 처음부터 다시 하거나 속도를 올려 보세요';
+  $('#tip').textContent = ''; $('#core').textContent = '끝';
+  for (const b of document.querySelectorAll('.pad button')) b.classList.remove('hint');
+}
+// 시범: 목표 시점마다 자동 입력
+function stopDemo() { if (demo) { demo.forEach(clearTimeout); demo = null; $('#demo').textContent = '시범 보기'; } }
+function runDemo() {
+  reset();
+  $('#demo').textContent = '시범 멈춤';
+  demo = []; let t = 300;
+  const flash = k => { const b = document.querySelector(`.pad [data-k="${k}"]`); if (b) { b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 120); } };
+  EV.forEach((e, i) => {
+    t += (i === 0 ? 0 : e.gap * scale());
+    demo.push(setTimeout(() => { flash(e.k); if (!e.free) beep(e.t === 'up' ? 660 : 880); input(e.t, e.k, performance.now() - st.offset * 0); }, t));
+  });
+  demo.push(setTimeout(stopDemo, t + 200));
+}
+
+// ───────── 입력 장치 ─────────
+const pad = $('#pad');
+pad.addEventListener('pointerdown', e => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); b.setPointerCapture(e.pointerId); b.classList.add('on'); input('down', b.dataset.k); });
+const up = e => { const b = e.target.closest('button'); if (!b || !b.classList.contains('on')) return; b.classList.remove('on'); input('up', b.dataset.k); };
+pad.addEventListener('pointerup', up); pad.addEventListener('pointercancel', up);
+pad.addEventListener('contextmenu', e => e.preventDefault());
+const KMAP = { KeyJ: 'A', KeyE: 'E', KeyQ: 'Q', ShiftLeft: 'D', ShiftRight: 'D', KeyK: 'D', Space: 'J', KeyW: 'W' };
+const held = new Set();
+document.addEventListener('keydown', e => { const k = KMAP[e.code]; if (!k || e.target.closest('input, textarea, select')) return; e.preventDefault(); if (held.has(e.code)) return; held.add(e.code); input('down', k); });
+document.addEventListener('keyup', e => { const k = KMAP[e.code]; if (!k) return; held.delete(e.code); input('up', k); });
+// 패드 밖 화면에서도 마우스 왼쪽 = 공격 (PC)
+$('.stage').addEventListener('mousedown', e => { if (e.button !== 0 || e.target.closest('button, input, label, .pad')) return; input('down', 'A'); });
+document.addEventListener('mouseup', e => { if (e.button === 0 && !e.target.closest('button, input, label, .pad')) input('up', 'A'); });
+
+$('#chars').addEventListener('click', e => { const b = e.target.closest('.chbtn'); if (!b) return; st.ch = b.dataset.ch; st.combo = Math.min(1, CHARS[st.ch].combos.length - 1); save(); renderChars(); reset(); });
+$('#combos').addEventListener('click', e => { const b = e.target.closest('.cb'); if (!b) return; st.combo = +b.dataset.i; save(); renderChars(); reset(); $('.stage').scrollIntoView({ block: 'start' }); });
+$('#reset').addEventListener('click', reset);
+$('#demo').addEventListener('click', () => demo ? (stopDemo(), reset()) : runDemo());
+const bindRange = (id, key, fmt) => { const r = $('#' + id); r.value = st[key]; $('#' + id + '-v').textContent = fmt(st[key]); r.addEventListener('input', () => { st[key] = +r.value; $('#' + id + '-v').textContent = fmt(st[key]); save(); }); r.addEventListener('change', reset); };
+bindRange('speed', 'speed', v => v + '%');
+bindRange('offset', 'offset', v => (v > 0 ? '+' : '') + v + 'ms');
+$('#beep').checked = st.beep; $('#beep').addEventListener('change', e => { st.beep = e.target.checked; save(); });
+document.addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.remove(); }, true);
+renderChars(); reset();
+</script>
+<script>if ('serviceWorker' in navigator && /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+</body>
+</html>

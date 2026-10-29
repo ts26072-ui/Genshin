@@ -6,7 +6,13 @@
 <title>지도 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="common.css?v=20261028h">
+<link rel="stylesheet" href="common.css?v=20261029a">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0e1320">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="파티 감정소">
 <style>
 /* 왼쪽: 재료 고르기 + 추천 루트 목록 / 오른쪽: 지도. 좁은 화면은 위아래로 */
 .mapwrap { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 12px; align-items: start; }
@@ -53,6 +59,7 @@
   <nav class="sitenav" aria-label="페이지">
     <a href="index.html">파티 감정소</a>
     <a href="tier.html">티어표</a>
+    <a href="combo.html">캔슬 연습</a>
     <a href="farm.html">재료 파밍</a>
     <a href="map.html" aria-current="page">지도</a>
     <a href="rate.html">성유물 감정</a>
@@ -75,9 +82,9 @@
 </div>
 
 <script src="vendor/leaflet.js"></script>
-<script src="chars.js?v=20261028h"></script>
-<script src="farm.js?v=20261028h"></script>
-<script src="map/mapdata.js?v=20261028h"></script>
+<script src="chars.js?v=20261029a"></script>
+<script src="farm.js?v=20261029a"></script>
+<script src="map/mapdata.js?v=20261029a"></script>
 <script>
 const $ = s => document.querySelector(s);
 // GitHub Pages에서는 같은 사이트의 지도 조각을, 그 밖(claude.ai 앱 등)에서는 GitHub Pages 주소를 씀
@@ -225,5 +232,6 @@ else {
   if (st.label && D.labels[st.label]) showLabel(st.label); else renderSide();
 }
 </script>
+<script>if ('serviceWorker' in navigator && /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>

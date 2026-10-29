@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>성유물 감정 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261028h">
+<link rel="stylesheet" href="common.css?v=20261029a">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0e1320">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="파티 감정소">
 <style>
 .layout { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 18px; align-items: start; }
 .form { display: flex; flex-direction: column; gap: 12px; }
@@ -43,6 +49,7 @@
   <nav class="sitenav" aria-label="페이지">
     <a href="index.html">파티 감정소</a>
     <a href="tier.html">티어표</a>
+    <a href="combo.html">캔슬 연습</a>
     <a href="farm.html">재료 파밍</a>
     <a href="map.html">지도</a>
     <a href="rate.html" aria-current="page">성유물 감정</a>
@@ -90,9 +97,9 @@
   <p class="foot-note">유효 옵션 = 부옵 수치 ÷ 1회 최대 상승치 × 캐릭터 가중치의 합입니다. 가중치는 추천 부옵 우선순위(genshin-builds.com v7.1) 순서대로 1·1·0.8·0.6·0.45이며, 치명타 확률·피해는 같은 값, 깡옵은 % 옵션의 40%입니다. +20 성유물의 부옵 상승은 8~9회이고 1회 상승치는 최댓값의 70~100%라, 유효 옵션 6.5회 이상이면 종결급으로 봅니다. 강화 중인 성유물은 남은 강화가 지금 부옵들에 고르게 붙는다고 가정한 기대값으로 등급을 냅니다.</p>
 </div>
 
-<script src="chars.js?v=20261028h"></script>
-<script src="builds.js?v=20261028h"></script>
-<script src="gear.js?v=20261028h"></script>
+<script src="chars.js?v=20261029a"></script>
+<script src="builds.js?v=20261029a"></script>
+<script src="gear.js?v=20261029a"></script>
 <script>
 const $ = s => document.querySelector(s);
 const PREF = 'genshin-party-appraiser-v1:rate';
@@ -171,5 +178,6 @@ $('#f').addEventListener('input', render);
 $('#f').addEventListener('submit', e => e.preventDefault());
 render();
 </script>
+<script>if ('serviceWorker' in navigator && /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
 </html>
