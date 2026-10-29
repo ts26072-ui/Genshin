@@ -1,6 +1,6 @@
 // 앱(홈 화면에 추가)용 서비스 워커: 오프라인에서도 열리게 페이지·스크립트를 저장해 둠
 // 페이지·스크립트는 네트워크 먼저(항상 최신), 안 되면 저장본. 지도 타일·아이콘·글꼴·캐릭터 이미지는 저장본 먼저(데이터 절약)
-const CACHE = 'gp-20261029d';
+const CACHE = 'gp-20261029e';
 const CORE = ['./', 'index.html', 'tier.html', 'combo.html', 'farm.html', 'map.html', 'rate.html', 'guide.html', 'stats.html',
   'common.css', 'chars.js', 'builds.js', 'weapons.js', 'gear.js', 'farm.js', 'rot.js', 'names.js', 'account.js', 'manifest.webmanifest', 'icon-192.png'];
 
