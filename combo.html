@@ -59,6 +59,33 @@
 .result span { font-size: 12px; color: var(--muted); }
 .keys { font-size: 12.5px; color: var(--muted); }
 .keys kbd { font-family: inherit; padding: 1px 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); }
+/* 모바일 연습 화면 */
+.mob { position: fixed; inset: 0; z-index: 50; background: radial-gradient(ellipse at 50% 30%, #2a3350, #0e1320 70%); color: #ECE5D8; touch-action: none; user-select: none; -webkit-user-select: none; overflow: hidden;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.mob-top { position: absolute; top: max(8px, env(safe-area-inset-top)); left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); display: flex; gap: 6px; align-items: center; z-index: 3; }
+.mob-name { flex: 1; font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mbtn { font: inherit; font-size: 12.5px; padding: 6px 11px; border-radius: 999px; border: 1px solid rgb(255 255 255 / .3); background: rgb(14 19 32 / .7); color: #ECE5D8; }
+.mbtn.on { background: #ECE5D8; color: #1b1b1b; }
+.mob-cue { position: absolute; top: 46px; left: 50%; transform: translateX(-50%); width: min(560px, 62vw); display: flex; flex-direction: column; gap: 6px; z-index: 2; pointer-events: none; }
+.mob-cue .steps { max-height: 52px; overflow: hidden; justify-content: center; }
+.mob-cue .st { font-size: 11px; padding: 2px 5px; }
+.mob-cue .cue { grid-template-columns: 84px 1fr; gap: 10px; }
+.mob-cue .ring { width: 84px; height: 84px; } .mob-cue .ring .core, .mob-cue .ring .appr { inset: 14px; }
+.mob-cue .ring .core { font-size: 13px; }
+.mob-cue .now-t { font-size: 15px; } .mob-cue .tip { color: #c9ccd6; font-size: 12px; } .mob-cue .judge { font-size: 16px; }
+.mob-cue .result { pointer-events: auto; } .mob-cue .result div { background: rgb(14 19 32 / .7); padding: 5px 8px; } .mob-cue .result b { font-size: 16px; }
+.joy { position: absolute; left: calc(7vw + env(safe-area-inset-left)); bottom: calc(9vh + env(safe-area-inset-bottom)); width: 30vmin; height: 30vmin; border-radius: 50%; background: rgb(255 255 255 / .07); border: 2px solid rgb(255 255 255 / .22); touch-action: none; }
+.joy .thumb { position: absolute; left: 50%; top: 50%; width: 42%; height: 42%; margin: -21% 0 0 -21%; border-radius: 50%; background: rgb(236 229 216 / .55); }
+.joy.on .thumb { background: var(--gold); }
+.joy small { position: absolute; top: 100%; left: 0; right: 0; text-align: center; font-size: 10.5px; opacity: .6; margin-top: 4px; white-space: nowrap; }
+.joy.hint { box-shadow: 0 0 0 3px var(--gold), 0 0 18px var(--gold); }
+.pad.mpad { position: absolute; inset: 0; height: auto; pointer-events: none; }
+.pad.mpad button { pointer-events: auto; width: var(--s); height: var(--s); right: var(--r); bottom: var(--b); font-size: calc(var(--s) * .2); }
+.pad.mpad button small { font-size: calc(var(--s) * .11); }
+.mob.editing .pad.mpad button { outline: 2px dashed var(--gold); outline-offset: 3px; }
+.mob-editbar { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); background: rgb(14 19 32 / .9); border: 1px solid var(--gold); border-radius: 12px; padding: 10px 14px; font-size: 12.5px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; max-width: 70vw; z-index: 4; }
+.mob-rot { display: none; position: absolute; left: 12px; right: 12px; top: 50%; text-align: center; font-size: 13px; background: rgb(14 19 32 / .85); border-radius: 10px; padding: 8px; z-index: 1; pointer-events: none; }
+@media (orientation: portrait) { .mob-rot { display: block; } .mob-cue { width: 92vw; } }
 @media (max-width: 520px) { .cue { grid-template-columns: 96px 1fr; } .ring { width: 96px; height: 96px; } .ring .core, .ring .appr { inset: 16px; } }
 </style>
 </head>
@@ -90,6 +117,7 @@
       <div><div class="now-t" id="now">첫 입력을 누르면 시작합니다</div><div class="tip" id="tip"></div><div class="judge" id="judge"></div></div>
     </div>
     <div class="ctl">
+      <button class="btn primary sm" type="button" id="mob-go">📱 모바일 연습 화면</button>
       <button class="btn primary sm" type="button" id="demo">시범 보기</button>
       <button class="btn ghost sm" type="button" id="reset">처음부터</button>
       <label>속도 <input type="range" id="speed" min="50" max="100" step="5" value="100"> <span class="mono" id="speed-v">100%</span></label>
@@ -104,8 +132,33 @@
       <button type="button" class="b-D" data-k="D">대시<small>Shift·우클릭</small></button>
       <button type="button" class="b-A" data-k="A">공격<small>좌클릭 · 꾹 = 강공</small></button>
     </div>
-    <p class="keys">PC는 원신 기본 키 그대로: 이 칸 안에서 <kbd>마우스 왼쪽</kbd> 공격(꾹 누르면 강공) · <kbd>E</kbd> 원소전투 스킬 · <kbd>Q</kbd> 원소폭발 · <kbd>왼쪽 Shift</kbd> 또는 <kbd>마우스 오른쪽</kbd> 대시 · <kbd>Space</kbd> 점프 · <kbd>W</kbd> 앞으로. 휴대폰은 아래 버튼(원신 모바일 기본 배치와 비슷하게)으로 누르세요.</p>
+    <p class="keys">PC는 원신 기본 키 그대로: 이 칸 안에서 <kbd>마우스 왼쪽</kbd> 공격(꾹 누르면 강공) · <kbd>E</kbd> 원소전투 스킬 · <kbd>Q</kbd> 원소폭발 · <kbd>왼쪽 Shift</kbd> 또는 <kbd>마우스 오른쪽</kbd> 대시 · <kbd>Space</kbd> 점프 · <kbd>W</kbd> 앞으로. 휴대폰은 <b>📱 모바일 연습 화면</b>을 누르면 원신 모바일처럼 가로 전체 화면에 왼쪽 조이스틱(위로 밀기 = 앞으로)과 오른쪽 공격·E·Q·점프·질주 버튼이 나옵니다. 「버튼 위치」로 내 원신 배치와 같게 끌어서 옮기면 저장됩니다.</p>
     <div class="result" id="result" hidden></div>
+  </div>
+
+  <!-- 모바일 연습 화면: 가로 전체 화면, 왼쪽 조이스틱(W), 오른쪽 원신 모바일식 버튼(끌어서 위치 바꾸기) -->
+  <div class="mob" id="mob" hidden>
+    <div class="mob-top">
+      <button type="button" class="mbtn" id="mob-x" aria-label="닫기">✕</button>
+      <span class="mob-name" id="mob-name"></span>
+      <button type="button" class="mbtn" id="mob-demo">시범</button>
+      <button type="button" class="mbtn" id="mob-reset">처음부터</button>
+      <button type="button" class="mbtn" id="mob-edit">버튼 위치</button>
+    </div>
+    <div class="mob-cue" id="mob-cue"></div>
+    <div class="joy" id="joy"><div class="thumb" id="thumb"></div><small>위로 밀기 = 앞으로(W)</small></div>
+    <div class="pad mpad" id="mpad">
+      <button type="button" data-k="A">공격<small>꾹 = 강공</small></button>
+      <button type="button" data-k="E">E</button>
+      <button type="button" data-k="Q">Q</button>
+      <button type="button" data-k="J">점프</button>
+      <button type="button" data-k="D">질주</button>
+    </div>
+    <div class="mob-editbar" id="mob-editbar" hidden>버튼을 끌어서 내 원신 배치와 같게 옮기세요 · 크기: 두 손가락 대신 아래 슬라이더
+      <label>크기 <input type="range" id="mob-size" min="70" max="140" step="5" value="100"></label>
+      <button type="button" class="mbtn" id="mob-default">기본 배치</button>
+      <button type="button" class="mbtn" id="mob-done">완료</button></div>
+    <div class="mob-rot" id="mob-rot">휴대폰을 <b>가로</b>로 돌리면 원신과 같은 화면이 됩니다</div>
   </div>
 
   <p class="foot-note">콤보와 주의점은 KQM 퀵 가이드(스커크·마비카·네페르, 2026년 10월 열람)를 따릅니다. 입력 간격은 전투 시뮬레이터 gcsim 소스에 들어 있는 실측 프레임(60fps)입니다: 스커크·마비카는 gcsim 본 저장소, 네페르는 아직 반영 전인 구현 PR #3045 값이라 조금 바뀔 수 있습니다. 각 간격은 다음 입력이 받아들여지는 <b>가장 이른</b> 시점이라, 그보다 늦으면 그만큼 딜이 줄고 캔슬을 그보다 빨리 누르면 앞 타격이 사라집니다. 평타 연타는 게임이 입력을 미리 받아 두므로 빨리 눌러도 손해가 없어 빠름 판정을 하지 않습니다. 강공으로 바뀌는 누르기 시간(20프레임)과 일반 대시 뒤 간격은 gcsim 공통 값입니다. 핑·FPS·입력 지연 때문에 늘 한쪽으로 치우치면 '타이밍 보정'으로 맞추세요. 판정: 완벽 ±4프레임(약 0.07초), 좋음 ±8프레임. 표기: N=평타(숫자는 타수), C=강공(숫자는 마비카 회전 수), F=강공 마무리(손 떼기), D=대시 캔슬, J=점프 캔슬, W=전진 입력(걷기 캔슬), tE/hE=스킬 짧게/길게, Q=원소폭발, 2[…]=두 번 반복.</p>
@@ -252,6 +305,7 @@ function setCue() {
   while (idx < EV.length && EV[idx].free && !started) idx++;
   const e = EV[idx];
   for (const b of document.querySelectorAll('.pad button')) b.classList.toggle('hint', !!e && b.dataset.k === e.k);
+  $('#joy').classList.toggle('hint', !!e && e.k === 'W');
   if (!e) return;
   $('#core').textContent = e.t === 'up' ? '떼기' : KEYN[e.k];
   $('#now').textContent = started ? `다음: ${e.label}` : `첫 입력: ${e.label}`;
@@ -340,14 +394,18 @@ function finish(now) {
   $('#now').textContent = '끝! 처음부터 다시 하거나 속도를 올려 보세요';
   $('#tip').textContent = ''; $('#core').textContent = '끝';
   for (const b of document.querySelectorAll('.pad button')) b.classList.remove('hint');
+  $('#joy').classList.remove('hint');
 }
 // 시범: 목표 시점마다 자동 입력
-function stopDemo() { if (demo) { demo.forEach(clearTimeout); demo = null; $('#demo').textContent = '시범 보기'; } }
+function stopDemo() { if (demo) { demo.forEach(clearTimeout); demo = null; $('#demo').textContent = '시범 보기'; $('#mob-demo').textContent = '시범'; } }
 function runDemo() {
   reset();
   $('#demo').textContent = '시범 멈춤';
   demo = []; let t = 300;
-  const flash = k => { const b = document.querySelector(`.pad [data-k="${k}"]`); if (b) { b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 120); } };
+  const flash = k => {
+    for (const b of document.querySelectorAll(`.pad [data-k="${k}"]`)) { b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 120); }
+    if (k === 'W') { $('#joy').classList.add('on'); setTimeout(() => $('#joy').classList.remove('on'), 200); }
+  };
   EV.forEach((e, i) => {
     t += (i === 0 ? 0 : e.gap * scale());
     demo.push(setTimeout(() => { flash(e.k); if (!e.free) beep(e.t === 'up' ? 660 : 880); input(e.t, e.k, performance.now() - st.offset * 0); }, t));
@@ -356,11 +414,98 @@ function runDemo() {
 }
 
 // ───────── 입력 장치 ─────────
-const pad = $('#pad');
-pad.addEventListener('pointerdown', e => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); b.setPointerCapture(e.pointerId); b.classList.add('on'); input('down', b.dataset.k); });
-const up = e => { const b = e.target.closest('button'); if (!b || !b.classList.contains('on')) return; b.classList.remove('on'); input('up', b.dataset.k); };
-pad.addEventListener('pointerup', up); pad.addEventListener('pointercancel', up);
-pad.addEventListener('contextmenu', e => e.preventDefault());
+let editing = false;
+const capture = (el, e) => { try { el.setPointerCapture(e.pointerId); } catch (err) {} };
+function bindPad(pad) {
+  pad.addEventListener('pointerdown', e => { const b = e.target.closest('button'); if (!b || editing) return; e.preventDefault(); capture(b, e); b.classList.add('on'); input('down', b.dataset.k); });
+  const up = e => { const b = e.target.closest('button'); if (!b || !b.classList.contains('on')) return; b.classList.remove('on'); input('up', b.dataset.k); };
+  pad.addEventListener('pointerup', up); pad.addEventListener('pointercancel', up);
+  pad.addEventListener('contextmenu', e => e.preventDefault());
+}
+bindPad($('#pad')); bindPad($('#mpad'));
+
+// ───────── 모바일 연습 화면 ─────────
+// 기본 배치(가로 화면 기준): 오른쪽 아래 공격, 그 왼쪽 E, 더 왼쪽 위 Q, 공격 위 점프, 오른쪽 끝 질주. [오른쪽 %, 아래 %, 크기 vmin]
+const MPOS_DEFAULT = { A: [5, 8, 24], E: [24, 6, 16], Q: [36, 17, 17], J: [9, 42, 14], D: [1.5, 33, 13] };
+let mpos = JSON.parse(JSON.stringify(st.mpos || MPOS_DEFAULT));
+const placeButtons = () => {
+  const k = (st.msize || 100) / 100;
+  for (const b of document.querySelectorAll('#mpad button')) {
+    const [r, bt, s] = mpos[b.dataset.k] || MPOS_DEFAULT[b.dataset.k];
+    b.style.setProperty('--r', r + 'vw'); b.style.setProperty('--b', bt + 'vh'); b.style.setProperty('--s', s * k + 'vmin');
+  }
+};
+const mobHome = { steps: $('#steps'), cue: $('.cue'), result: $('#result') };
+const mobAnchor = document.createComment('mob');
+function openMob() {
+  stopDemo();
+  $('#steps').before(mobAnchor);
+  $('#mob-cue').append(mobHome.steps, mobHome.cue, mobHome.result);
+  $('#mob-name').textContent = `${CHARS[st.ch].name} · ${CHARS[st.ch].combos[st.combo][0]}`;
+  $('#mob').hidden = false; document.body.style.overflow = 'hidden';
+  placeButtons(); reset();
+  const el = document.documentElement;
+  // 전체 화면 + 가로 고정(지원하는 브라우저만, 안 되면 그냥 둠)
+  try { (el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : Promise.reject()).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape')).catch(() => {}); } catch (e) {}
+}
+function closeMob() {
+  stopDemo(); setEditing(false);
+  mobAnchor.after(mobHome.steps, mobHome.cue); $('.keys').after(mobHome.result); mobAnchor.remove();
+  $('#mob').hidden = true; document.body.style.overflow = '';
+  try { if (document.fullscreenElement) document.exitFullscreen(); if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+  reset();
+}
+$('#mob-go').addEventListener('click', openMob);
+$('#mob-x').addEventListener('click', closeMob);
+$('#mob-reset').addEventListener('click', reset);
+$('#mob-demo').addEventListener('click', () => { if (demo) { stopDemo(); reset(); $('#mob-demo').textContent = '시범'; } else { runDemo(); $('#mob-demo').textContent = '멈춤'; } });
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && !$('#mob').hidden) { /* 뒤로 가기로 전체 화면만 풀린 경우 화면은 유지 */ } });
+
+// 조이스틱: 위로 절반 넘게 밀면 W 누름, 돌아오거나 손을 떼면 W 뗌
+const joy = $('#joy'), thumb = $('#thumb');
+let joyId = null, joyW = false;
+const joyMove = e => {
+  const r = joy.getBoundingClientRect(), R = r.width / 2;
+  let dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R);
+  const d = Math.hypot(dx, dy), lim = R * 0.75;
+  if (d > lim) { dx *= lim / d; dy *= lim / d; }
+  thumb.style.transform = `translate(${dx}px, ${dy}px)`;
+  const up = -dy / lim;
+  if (!joyW && up > 0.5) { joyW = true; joy.classList.add('on'); input('down', 'W'); }
+  else if (joyW && up < 0.3) { joyW = false; joy.classList.remove('on'); input('up', 'W'); }
+};
+joy.addEventListener('pointerdown', e => { if (editing) return; e.preventDefault(); joyId = e.pointerId; capture(joy, e); joyMove(e); });
+joy.addEventListener('pointermove', e => { if (e.pointerId === joyId) joyMove(e); });
+const joyEnd = e => { if (e.pointerId !== joyId) return; joyId = null; thumb.style.transform = ''; if (joyW) { joyW = false; joy.classList.remove('on'); input('up', 'W'); } };
+joy.addEventListener('pointerup', joyEnd); joy.addEventListener('pointercancel', joyEnd);
+
+// 버튼 위치 바꾸기: 끌어서 옮기고 저장
+function setEditing(on) {
+  editing = on; $('#mob').classList.toggle('editing', on); $('#mob-editbar').hidden = !on; $('#mob-edit').classList.toggle('on', on);
+  if (!on) { st.mpos = mpos; save(); }
+}
+$('#mob-edit').addEventListener('click', () => setEditing(!editing));
+$('#mob-done').addEventListener('click', () => setEditing(false));
+$('#mob-default').addEventListener('click', () => { mpos = JSON.parse(JSON.stringify(MPOS_DEFAULT)); st.msize = 100; $('#mob-size').value = 100; placeButtons(); });
+$('#mob-size').value = st.msize || 100;
+$('#mob-size').addEventListener('input', e => { st.msize = +e.target.value; placeButtons(); save(); });
+let drag = null;
+$('#mpad').addEventListener('pointerdown', e => {
+  const b = e.target.closest('button'); if (!b || !editing) return;
+  e.preventDefault(); capture(b, e);
+  const r = b.getBoundingClientRect();
+  drag = { b, id: e.pointerId, ox: e.clientX - (r.right), oy: e.clientY - (r.bottom) };
+});
+$('#mpad').addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const right = clamp((innerWidth - (e.clientX - drag.ox)) / innerWidth * 100, 0, 90), bottom = clamp((innerHeight - (e.clientY - drag.oy)) / innerHeight * 100, 0, 85);
+  const k = drag.b.dataset.k; mpos[k] = [+right.toFixed(1), +bottom.toFixed(1), (mpos[k] || MPOS_DEFAULT[k])[2]];
+  placeButtons();
+});
+const dragEnd = e => { if (drag && e.pointerId === drag.id) drag = null; };
+$('#mpad').addEventListener('pointerup', dragEnd); $('#mpad').addEventListener('pointercancel', dragEnd);
+// 휴대폰이면 모바일 연습 화면 버튼을 눈에 띄게
+if (matchMedia('(pointer: coarse)').matches) $('#mob-go').textContent = '📱 원신처럼 가로 화면으로 연습';
 const KMAP = { KeyE: 'E', KeyQ: 'Q', ShiftLeft: 'D', ShiftRight: 'D', Space: 'J', KeyW: 'W' };
 const held = new Set();
 document.addEventListener('keydown', e => { const k = KMAP[e.code]; if (!k || e.target.closest('input, textarea, select')) return; e.preventDefault(); if (held.has(e.code)) return; held.add(e.code); input('down', k); });
