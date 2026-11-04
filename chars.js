@@ -146,14 +146,14 @@ const PERF_NAMU = {
 };
 const GG = {
   'traveler-pyro':'B', 'traveler-hydro':'D', 'traveler-anemo':'D', 'traveler-electro':'C', 'traveler-dendro':'B', 'traveler-cryo':'SS', 'traveler-geo':'D',
-  amber:'D', xiangling:'A+', bennett:'S', diluc:'C', klee:'A', xinyan:'D', hutao:'B', yanfei:'D', yoimiya:'C', thoma:'B', dehya:'B', lyney:'B', chevreuse:'S', gaming:'B', arlecchino:'A', mavuika:'SS', durin:'S', nicole:'SS',
+  amber:'D', xiangling:'A+', bennett:'SS', diluc:'C', klee:'A', xinyan:'D', hutao:'B', yanfei:'D', yoimiya:'C', thoma:'B', dehya:'B', lyney:'B', chevreuse:'S', gaming:'B', arlecchino:'A', mavuika:'SS', durin:'S', nicole:'SS',
   barbara:'C', xingqiu:'A+', mona:'A+', tartaglia:'B', kokomi:'A', ayato:'C', yelan:'A+', candace:'C', nilou:'A', neuvillette:'A', furina:'S', sigewinne:'B', mualani:'A+', dahlia:'C', aino:'A', columbina:'SS', vodyanitsa:'S',
-  sucrose:'SS', jean:'A', venti:'A+', xiao:'B', kazuha:'A+', sayu:'C', heizou:'D', faruzan:'A', wanderer:'B', lynette:'B', xianyun:'A', chasca:'A+', lanyan:'A', mizuki:'S', ifa:'C', jahoda:'A', barca:'S', prune:'A+', vesna:'SS',
+  sucrose:'SS', jean:'A', venti:'A+', xiao:'B', kazuha:'A+', sayu:'C', heizou:'D', faruzan:'S', wanderer:'B', lynette:'B', xianyun:'A', chasca:'A+', lanyan:'A', mizuki:'SS', ifa:'C', jahoda:'A', barca:'S', prune:'A+', vesna:'SS',
   lisa:'C', razor:'B', beidou:'B', fischl:'S', keqing:'C', sara:'B', raiden:'A', yae:'SS', shinobu:'A', dori:'C', cyno:'SS', sethos:'C', clorinde:'B', ororon:'A', iansan:'SS', varesa:'A+', ineffa:'SS', flins:'SS', alyosha:'S',
   collei:'B', tighnari:'C', nahida:'A+', yaoyao:'A', alhaitham:'B', kaveh:'D', baizhu:'A', kirara:'A', emilie:'A+', kinich:'A+', lauma:'SS', nefer:'SS',
-  kaeya:'B', chongyun:'C', qiqi:'S', diona:'A', ganyu:'B', rosaria:'A', eula:'C', ayaka:'B', aloy:'D', shenhe:'A+', layla:'A', mika:'C', freminet:'D', wriothesley:'S', charlotte:'A', citlali:'SS', escoffier:'S', skirk:'S', roen:'A+', sandrone:'SS', odette:'SS',
+  kaeya:'B', chongyun:'C', qiqi:'S', diona:'A', ganyu:'B', rosaria:'A', eula:'C', ayaka:'A', aloy:'D', shenhe:'A+', layla:'A', mika:'C', freminet:'D', wriothesley:'SS', charlotte:'A', citlali:'SS', escoffier:'S', skirk:'S', roen:'A+', sandrone:'SS', odette:'SS',
   ningguang:'D', noelle:'C', zhongli:'A', albedo:'A+', gorou:'A', itto:'C', yunjin:'B', navia:'B', chiori:'A', kachina:'C', xilonen:'S', illuga:'A+', zibai:'SS', linnea:'SS',
-  mitya:'SS', // 7.2 출시(2026-11-04) — GamsGo 7.2 표가 아직 없어 Game8 SS·Prydwen Apex·Genshinlab SS를 따름
+  mitya:'SS', valery:'S',
 };
 const GG_SCORE = { SS: 92, S: 84, 'A+': 76, A: 68, B: 56, C: 44, D: 30 };
 const PERF = {};
