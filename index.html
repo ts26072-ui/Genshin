@@ -491,11 +491,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261029b"></script>
-<script src="weapons.js?v=20261029b"></script>
-<script src="rot.js?v=20261029b"></script>
-<script src="names.js?v=20261029b"></script>
-<script src="account.js?v=20261029b"></script>
+<script src="builds.js?v=20261104"></script>
+<script src="weapons.js?v=20261104"></script>
+<script src="rot.js?v=20261104"></script>
+<script src="names.js?v=20261104"></script>
+<script src="account.js?v=20261104"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -647,7 +647,7 @@ const RAW = [
 ];
 // 캐릭터 성능 점수(0~100)는 두 출처를 섞어서 만든다.
 // 1) PERF_NAMU: 나무위키 각 캐릭터 문서 '평가' 항목(2026년 10월 열람)의 장단점과 총평을 읽고 매긴 값. null = 평가 문서 없음
-// 2) GG: GamsGo 원신 7.1 종합 티어표(2026-09-23) — 메인/서브/서포터 칸 중 가장 높은 등급
+// 2) GG: GamsGo 원신 7.1 종합 티어표(2026-09-23) — 메인/서브/서포터 칸 중 가장 높은 등급. 7.2 신캐는 다른 7.2 티어표로 보충
 // 최종 = 티어표 60% + 나무위키 40%, 한쪽만 있으면 그 값
 const PERF_NAMU = {
   'traveler-pyro':55, 'traveler-hydro':20, 'traveler-anemo':30, 'traveler-electro':30, 'traveler-dendro':52, 'traveler-cryo':70, 'traveler-geo':25,
@@ -668,6 +668,7 @@ const GG = {
   collei:'B', tighnari:'C', nahida:'A+', yaoyao:'A', alhaitham:'B', kaveh:'D', baizhu:'A', kirara:'A', emilie:'A+', kinich:'A+', lauma:'SS', nefer:'SS',
   kaeya:'B', chongyun:'C', qiqi:'S', diona:'A', ganyu:'B', rosaria:'A', eula:'C', ayaka:'B', aloy:'D', shenhe:'A+', layla:'A', mika:'C', freminet:'D', wriothesley:'S', charlotte:'A', citlali:'SS', escoffier:'S', skirk:'S', roen:'A+', sandrone:'SS', odette:'SS',
   ningguang:'D', noelle:'C', zhongli:'A', albedo:'A+', gorou:'A', itto:'C', yunjin:'B', navia:'B', chiori:'A', kachina:'C', xilonen:'S', illuga:'A+', zibai:'SS', linnea:'SS',
+  mitya:'SS', // 7.2 출시(2026-11-04) — GamsGo 7.2 표가 아직 없어 Game8 SS·Prydwen Apex·Genshinlab SS를 따름
 };
 const GG_SCORE = { SS: 92, S: 84, 'A+': 76, A: 68, B: 56, C: 44, D: 30 };
 const PERF = {};
