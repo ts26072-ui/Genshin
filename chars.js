@@ -188,6 +188,6 @@ const ICON = {
   qiqi:'Qiqi', aloy:'Aloy', freminet:'Freminet', kachina:'Kachina', lanyan:'Lanyan', mizuki:'Mizuki', ifa:'Ifa', dahlia:'Dahlia', aino:'Aino',
   ineffa:'Ineffa', flins:'Flins', lauma:'Lauma', nefer:'Nefer', durin:'Durin', nicole:'Nicole', columbina:'Columbina', vodyanitsa:'Vodyanitsa',
   jahoda:'Jahoda', barca:'Varka', prune:'Prune', vesna:'Vesna', alyosha:'Alyosha', roen:'Lohen', sandrone:'MarionetteNew', odette:'Odette',
-  illuga:'Illuga', zibai:'Zibai', linnea:'Linnea',
+  illuga:'Illuga', zibai:'Zibai', linnea:'Linnea', mitya:'Mitya', valery:'Valeriy',
 };
 GP.iconUrl = id => { const n = ICON[id] || (id.startsWith('traveler') ? 'PlayerGirl' : null); return n ? `https://enka.network/ui/UI_AvatarIcon_${n}.png` : null; };
