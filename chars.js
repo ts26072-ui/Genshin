@@ -156,6 +156,25 @@ const GG = {
   mitya:'SS', valery:'S',
 };
 const GG_SCORE = { SS: 92, S: 84, 'A+': 76, A: 68, B: 56, C: 44, D: 30 };
+// GamsGo 7.2 종합 티어표의 역할별 등급 '메인/서브/서포터'(- = 그 칸에 없음). 티어표 페이지가 한 캐릭터를 여러 칸에 나눠 보여 줄 때 씀
+const GG_ROLE = {
+  sandrone:'SS/-/-', odette:'-/SS/SS', mitya:'SS/-/SS', yae:'-/SS/-', columbina:'-/SS/SS', vesna:'SS/-/-', 'traveler-cryo':'SS/-/-', ineffa:'-/SS/SS',
+  linnea:'-/SS/SS', wriothesley:'SS/-/-', lauma:'-/SS/SS', cyno:'SS/-/-', nicole:'-/-/SS', mizuki:'SS/-/B', bennett:'-/-/SS', zibai:'SS/-/-',
+  iansan:'-/-/SS', mavuika:'SS/S/-', citlali:'-/-/SS', nefer:'SS/-/-', flins:'SS/-/-', sucrose:'-/A/SS', skirk:'S/-/-', durin:'-/S/-',
+  vodyanitsa:'-/-/S', barca:'S/-/-', alyosha:'-/-/S', furina:'-/S/S', valery:'-/-/S', escoffier:'-/S/S', qiqi:'-/-/S', fischl:'-/S/-',
+  chevreuse:'-/-/S', xilonen:'-/-/S', faruzan:'-/-/S', mualani:'A+/-/-', venti:'A/A+/-', nahida:'-/A+/A+', varesa:'A+/-/-', prune:'-/A/A+',
+  chasca:'A+/-/-', emilie:'-/A+/-', mona:'-/A/A+', roen:'A+/-/-', yelan:'-/A+/-', illuga:'-/-/A+', kinich:'A+/-/-', xingqiu:'-/A+/-', kazuha:'-/-/A+',
+  xiangling:'-/A+/-', shenhe:'-/-/A+', albedo:'-/A+/-', arlecchino:'A/-/-', raiden:'B/A/-', xianyun:'-/-/A', neuvillette:'A/-/-', nilou:'-/A/-',
+  baizhu:'-/-/A', klee:'A/-/-', shinobu:'-/A/A', zhongli:'-/-/A', ayaka:'A/-/-', ororon:'-/A/-', jean:'-/-/A', aino:'-/A/-', lanyan:'-/-/A',
+  kokomi:'-/B/A', gorou:'-/-/A', diona:'-/-/A', chiori:'-/A/-', yaoyao:'-/-/A', jahoda:'-/A/B', charlotte:'-/-/A', rosaria:'-/A/C', layla:'-/-/A',
+  kirara:'-/-/A', clorinde:'B/-/-', thoma:'-/B/B', gaming:'B/-/-', ganyu:'C/B/-', yunjin:'-/-/B', razor:'B/-/-', collei:'-/B/-', sara:'-/-/B',
+  navia:'B/-/-', 'traveler-pyro':'-/B/-', alhaitham:'B/-/-', sigewinne:'-/-/B', lyney:'B/-/-', beidou:'-/B/-', hutao:'B/-/-', kaeya:'-/B/-',
+  dehya:'D/C/B', xiao:'B/-/-', 'traveler-dendro':'-/B/-', lynette:'-/B/-', tartaglia:'B/-/-', wanderer:'B/-/-', yoimiya:'C/-/-', kachina:'-/C/-',
+  mika:'-/-/C', diluc:'C/-/-', sayu:'-/C/C', itto:'C/-/-', lisa:'-/C/D', dahlia:'-/-/C', ayato:'C/-/-', chongyun:'-/C/D', barbara:'-/-/C',
+  'traveler-electro':'-/-/C', tighnari:'C/-/-', sethos:'C/-/-', candace:'-/-/C', ifa:'C/-/-', dori:'-/-/C', keqing:'C/-/-', noelle:'C/-/D',
+  eula:'C/-/-', yanfei:'D/-/-', xinyan:'D/D/D', heizou:'D/-/-', 'traveler-geo':'-/D/-', kaveh:'D/-/-', amber:'-/D/-', freminet:'D/-/-',
+  'traveler-anemo':'-/D/-', ningguang:'D/-/-', 'traveler-hydro':'-/D/-', aloy:'D/-/-',
+};
 const PERF = {};
 for (const id of new Set([...Object.keys(PERF_NAMU), ...Object.keys(GG)])) {
   const n = PERF_NAMU[id], g = GG[id] ? GG_SCORE[GG[id]] : null;

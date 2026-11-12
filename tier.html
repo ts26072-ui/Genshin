@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="파티 감정소">
 <style>
 /* 티어표: 행 = 등급, 열 = 포지션(메인 딜러 · 서브 딜러 · 서포터 · 힐러·보호막). 좁은 화면에서는 등급마다 포지션 칸을 세로로 쌓음 */
-.tgrid { display: grid; grid-template-columns: 64px repeat(4, minmax(0, 1fr)); gap: 6px; }
+.tgrid { display: grid; grid-template-columns: 64px repeat(3, minmax(0, 1fr)); gap: 6px; }
 .thead { font-size: 13px; font-weight: 700; text-align: center; padding: 8px 4px; border-radius: 10px; background: rgb(14 19 32 / .7); color: #ECE5D8; box-shadow: inset 0 0 0 1px rgb(211 188 142 / .25); }
 .tlabel { display: grid; place-items: center; font-weight: 900; font-size: 22px; color: #fff; background: var(--tc); border-radius: 10px; text-shadow: 0 1px 2px rgb(0 0 0 / .35); text-align: center; line-height: 1.1; }
 .tlabel small { display: block; font-size: 11px; font-weight: 500; opacity: .9; }
@@ -27,6 +27,10 @@
 .tt .n { font-size: 11.5px; line-height: 1.25; text-align: center; max-width: 62px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tt .own { position: absolute; top: -4px; right: 0; font-size: 10.5px; font-weight: 700; padding: 0 5px; border-radius: 999px; background: var(--gold); color: #1b1b1b; }
 .tt.dim { opacity: .35; }
+.tt .alt { position: absolute; top: -4px; left: 0; font-size: 10px; font-weight: 700; padding: 0 4px; border-radius: 999px; background: var(--sunk); color: var(--muted); border: 1px solid var(--line); }
+.roles { display: flex; flex-wrap: wrap; gap: 6px; }
+.roles span { font-size: 12.5px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); }
+.roles b { margin-left: 4px; }
 .tt:hover .pic { outline: 2px solid var(--gold); outline-offset: 1px; }
 .empty-cell { color: var(--muted); font-size: 12px; align-self: center; }
 button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
@@ -60,21 +64,12 @@ button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: poin
 </style>
 </head>
 <body>
+<script src="shell.js?v=20261112"></script>
 <div class="wrap" style="max-width:1200px">
   <header class="top">
     <h1><span class="star">✦</span> 캐릭터 티어표</h1>
-    <p class="sub">원신 7.2 기준 캐릭터 성능 등급을 포지션별로 나눴습니다. 내 캐릭터는 돌파 수가 붙고, 캐릭터를 누르면 점수와 그 근거가 나옵니다.</p>
+    <p class="sub">원신 7.2 기준 캐릭터 성능 등급을 포지션별로 나눴습니다. 메인 딜러와 서브 딜러처럼 여러 자리에서 쓰는 캐릭터는 각 칸에 그 자리 등급으로 들어갑니다. 내 캐릭터는 돌파 수가 붙고, 캐릭터를 누르면 점수와 그 근거가 나옵니다.</p>
   </header>
-  <nav class="sitenav" aria-label="페이지">
-    <a href="index.html">파티 감정소</a>
-    <a href="tier.html" aria-current="page">티어표</a>
-    <a href="combo.html">캔슬 연습</a>
-    <a href="farm.html">재료 파밍</a>
-    <a href="map.html">지도</a>
-    <a href="rate.html">성유물 감정</a>
-    <a href="guide.html">성유물 추천</a>
-    <a href="stats.html">종결 스탯 도감</a>
-  </nav>
 
   <div class="filters">
     <div class="elchips" id="els"></div>
@@ -84,7 +79,7 @@ button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: poin
   <div class="tgrid" id="tiers"></div>
   <dialog id="dlg" aria-label="캐릭터 점수"></dialog>
 
-  <p class="foot-note">등급은 캐릭터 성능 점수 하나로 매깁니다: GamsGo 원신 7.2 종합 티어표(2026년 11월 4일, SS 92 · S 84 · A+ 76 · A 68 · B 56 · C 44 · D 30점) 60% + 나무위키 각 캐릭터 문서의 '평가'를 읽고 매긴 점수 40%. 파티 감정소의 캐릭터 성능 점수와 같은 값이며, 한쪽 평가만 있으면 그 값을 씁니다. SS 85점 이상 · S 72점 이상 · A 58점 이상 · B 45점 이상 · C 그 아래. 포지션은 캐릭터의 주 역할 기준이고, 같은 칸 안에서는 점수가 높은 순입니다. 매주 목요일 자동 업데이트에서 갱신됩니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
+  <p class="foot-note">등급은 캐릭터 성능 점수 하나로 매깁니다: GamsGo 원신 7.2 종합 티어표(2026년 11월 4일, SS 92 · S 84 · A+ 76 · A 68 · B 56 · C 44 · D 30점) 60% + 나무위키 각 캐릭터 문서의 '평가'를 읽고 매긴 점수 40%. 파티 감정소의 캐릭터 성능 점수와 같은 값이며, 한쪽 평가만 있으면 그 값을 씁니다. SS 85점 이상 · S 72점 이상 · A 58점 이상 · B 45점 이상 · C 그 아래. 포지션은 GamsGo 표의 메인 딜러·서브 딜러·서포터 칸을 그대로 따르고(힐러·보호막은 서포터 칸), 한 캐릭터가 여러 칸에 있으면 칸마다 그 자리 등급으로 점수를 매깁니다. 가장 높은 자리의 점수가 파티 감정소의 성능 점수이고, 다른 자리 타일에는 '부' 표시가 붙습니다. 같은 칸 안에서는 점수가 높은 순입니다. 매주 목요일 자동 업데이트에서 갱신됩니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
 </div>
 
 <script src="chars.js?v=20261112"></script>
@@ -96,34 +91,44 @@ let st = { el: '', mine: false };
 try { st = { ...st, ...JSON.parse(localStorage.getItem(PREF)) }; } catch (e) {}
 
 const ROWS = [['SS', '#d4553b', 85, '85+'], ['S', '#e08a3c', 72, '72+'], ['A', '#7fae4a', 58, '58+'], ['B', '#4a9fae', 45, '45+'], ['C', '#8a7a9a', 0, '45 미만']];
-const POS = [['main', '메인 딜러'], ['sub', '서브 딜러'], ['sup', '서포터'], ['care', '힐러 · 보호막']];
-const posOf = d => d.roles[0] === 'heal' || d.roles[0] === 'shield' ? 'care' : d.roles[0];
-const rowOf = d => ROWS.find(r => d.perf >= r[2])[0];
+const POS = [['main', '메인 딜러'], ['sub', '서브 딜러'], ['sup', '서포터 · 힐러 · 보호막']];
+const posOf = d => d.roles[0] === 'heal' || d.roles[0] === 'shield' ? 'sup' : d.roles[0];
+const rowOf = perf => ROWS.find(r => perf >= r[2])[0];
+// 캐릭터가 들어갈 칸과 그 칸의 점수: GamsGo 역할별 등급 60% + 나무위키 40%. 역할별 등급이 없으면 주 역할 칸 하나
+function slots(d) {
+  const g = GG_ROLE[d.id], n = PERF_NAMU[d.id] ?? null;
+  if (!g) return [{ pos: posOf(d), perf: d.perf, tier: null }];
+  const out = g.split('/').map((t, i) => t === '-' ? null : { pos: POS[i][0], tier: t, perf: n != null ? Math.round(0.6 * GG_SCORE[t] + 0.4 * n) : GG_SCORE[t] }).filter(Boolean);
+  const top = Math.max(...out.map(x => x.perf));
+  out.forEach(x => x.alt = x.perf < top || out.findIndex(y => y.perf === top) !== out.indexOf(x));
+  return out;
+}
 
 $('#els').innerHTML = `<button type="button" class="elchip" data-el="">전체</button>` + GP.ORDER.map(el => `<button type="button" class="elchip" data-el="${el}"><span class="dot" style="--c:var(--${el})"></span>${GP.EL[el]}</button>`).join('');
 $('#mine').disabled = !Object.keys(own).length;
 
-function tile(d) {
+function tile(d, sl) {
   const u = GP.iconUrl(d.id), o = own[d.id];
-  return `<button type="button" class="tt r${d.r}${st.mine && !o ? ' dim' : ''}" data-id="${d.id}" title="${GP.esc(d.name)} · ${d.perf}점" style="--c:var(--${d.el})">
-    <span class="pic">${u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : ''}</span>
+  return `<button type="button" class="tt r${d.r}${st.mine && !o ? ' dim' : ''}" data-id="${d.id}" title="${GP.esc(d.name)} · ${POS.find(p => p[0] === sl.pos)[1]} ${sl.perf}점" style="--c:var(--${d.el})">
+    ${sl.alt ? '<span class="alt">부</span>' : ''}<span class="pic">${u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : ''}</span>
     <span class="n">${GP.esc(d.name)}</span>${o ? `<span class="own">${o.cons}돌</span>` : ''}</button>`;
 }
 // 캐릭터를 누르면 뜨는 점수 창: 종합 점수와 그 근거(GamsGo 등급 점수·나무위키 평가 점수)
 function scoreCard(id) {
-  const d = GP.DB[id], o = own[id], row = ROWS.find(r => r[0] === rowOf(d));
+  const d = GP.DB[id], o = own[id], row = ROWS.find(r => r[0] === rowOf(d.perf)), sls = slots(d), best = sls.find(x => !x.alt) || sls[0];
   const g = GG[id], gs = g ? GG_SCORE[g] : null, n = PERF_NAMU[id] ?? null;
   const part = (k, v, label) => `<span>${k}</span><span class="pbar"><i style="width:${v ?? 0}%"></i></span><span class="v">${label}</span>`;
   const how = gs != null && n != null ? 'GamsGo 60% + 나무위키 40%' : gs != null ? 'GamsGo 등급만 있음' : n != null ? '나무위키 평가만 있음' : '평가 없음 — 기본값';
-  const rank = Object.values(GP.DB).filter(x => posOf(x) === posOf(d)).sort((a, b) => b.perf - a.perf).findIndex(x => x.id === id) + 1;
-  const total = Object.values(GP.DB).filter(x => posOf(x) === posOf(d)).length;
+  const inPos = Object.values(GP.DB).map(x => ({ id: x.id, s: slots(x).find(y => y.pos === best.pos) })).filter(x => x.s).sort((a, b) => b.s.perf - a.s.perf);
+  const rank = inPos.findIndex(x => x.id === id) + 1, total = inPos.length;
   return `<div class="sc" style="--c:var(--${d.el})">
     <div class="sc-head"><div class="pic r${d.r}">${GP.iconUrl(id) ? `<img src="${GP.iconUrl(id)}" alt="">` : ''}</div>
       <div><div class="nm">${GP.esc(d.name)}</div><div class="meta">${'★'.repeat(d.r)} · ${GP.EL[d.el]}${d.wp ? ' · ' + GP.WPN[d.wp] : ''} · ${d.roles.map(r => GP.ROLE[r]).join(' / ')}${d.guess ? ' (역할 추정)' : ''}</div>
       ${o ? `<div class="meta">내 캐릭터 · Lv.${o.lv} · ${o.cons}돌파</div>` : ''}</div>
       <button type="button" class="btn sm" data-close>닫기</button></div>
     <div class="big"><span class="grade" style="--tc:${row[1]}">${row[0]}</span>
-      <div><div class="pts">${d.perf}<small> / 100점</small></div><div class="meta muted" style="font-size:12.5px">${POS.find(p => p[0] === posOf(d))[1]} ${total}명 중 ${rank}위 · ${how}</div></div></div>
+      <div><div class="pts">${d.perf}<small> / 100점</small></div><div class="meta muted" style="font-size:12.5px">${POS.find(p => p[0] === best.pos)[1]} ${total}명 중 ${rank}위 · ${how}</div></div></div>
+    ${sls.length > 1 || sls[0].tier ? `<div class="roles">${sls.map(x => `<span>${POS.find(p => p[0] === x.pos)[1]}<b>${x.tier || ''} ${x.perf}점</b></span>`).join('')}</div>` : ''}
     <div class="parts">
       ${part('GamsGo 티어', gs, g ? `${g} · ${gs}점` : '없음')}
       ${part('나무위키 평가', n, n != null ? `${n}점` : '없음')}
@@ -140,13 +145,15 @@ function render() {
   $('#mine').checked = st.mine;
   const list = Object.values(GP.DB).filter(d => !st.el || d.el === st.el)
     .sort((a, b) => b.perf - a.perf || b.r - a.r || a.name.localeCompare(b.name, 'ko'));
-  $('#count').textContent = `${list.length}명`;
+  const cells = list.flatMap(d => slots(d).map(sl => ({ d, sl })));
+  const multi = list.filter(d => slots(d).length > 1).length;
+  $('#count').textContent = `${list.length}명 · 여러 자리 ${multi}명`;
   let html = '<div></div>' + POS.map(([, n]) => `<div class="thead">${n}</div>`).join('');
   for (const [t, c, , sub] of ROWS) {
     html += `<div class="tlabel" style="--tc:${c}"><span>${t}</span><small>${sub}</small></div>`;
     for (const [p, n] of POS) {
-      const ds = list.filter(d => rowOf(d) === t && posOf(d) === p);
-      html += `<div class="tcell${ds.length ? '' : ' none'}"><span class="cap">${n}</span>${ds.map(tile).join('') || '<span class="empty-cell">—</span>'}</div>`;
+      const ds = cells.filter(x => x.sl.pos === p && rowOf(x.sl.perf) === t).sort((a, b) => b.sl.perf - a.sl.perf || a.sl.alt - b.sl.alt);
+      html += `<div class="tcell${ds.length ? '' : ' none'}"><span class="cap">${n}</span>${ds.map(x => tile(x.d, x.sl)).join('') || '<span class="empty-cell">—</span>'}</div>`;
     }
   }
   $('#tiers').innerHTML = html;

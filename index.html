@@ -131,6 +131,38 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .card .score { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
 .cap { font-family: var(--f-body); font-size: 11px; color: var(--muted); }
 
+/* 메인 로비 */
+.lobby { display: flex; flex-direction: column; gap: 22px; }
+.hero { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; padding: 20px 22px; border: 1px solid var(--line); border-radius: 14px; }
+.hero h2 { font-size: 20px; }
+.hero .stats { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 12px 0 14px; }
+.hero .stat b { display: block; font-size: 26px; font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.hero .stat span { font-size: 12.5px; color: var(--muted); }
+.hero .link-st { font-size: 13px; margin: 0 0 10px; }
+.hero .acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.hero .best { border-left: 1px solid var(--line); padding-left: 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.hero .best .nm { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
+.hero .best .faces { display: flex; gap: 4px; }
+.hero .best .val { font-size: 32px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.lh { font-size: 17px; margin: 0 0 10px; display: flex; align-items: baseline; gap: 10px; }
+.lh .more { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: 0; cursor: pointer; font-family: inherit; padding: 0; }
+.lh .more:hover { color: var(--ink); }
+.todo { display: flex; flex-direction: column; gap: 8px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.tile { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 4px 12px; align-items: center; text-decoration: none; color: var(--ink); text-align: left; font: inherit; cursor: pointer;
+  background: rgb(14 19 32 / .55); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.tile:hover { border-color: var(--gold); background: rgb(14 19 32 / .8); }
+.tile .gl { grid-row: span 2; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 16px; color: #1b1b1b;
+  background: radial-gradient(circle at 35% 30%, #F4E8CC, var(--c, #D3BC8E) 70%); box-shadow: 0 0 0 1px rgb(211 188 142 / .5); }
+.tile .tn { font-weight: 700; display: flex; gap: 6px; align-items: baseline; }
+.tile .tn small { font-size: 12px; color: var(--gold); font-weight: 600; }
+.tile .td { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.guide-dlg { max-width: 640px; }
+.steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 12px; font-size: 14px; }
+.steps ul { margin: 6px 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.steps code { font-size: 12.5px; background: var(--sunk); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+@media (max-width: 760px) { .hero { grid-template-columns: 1fr; padding: 16px; } .hero .best { border-left: 0; border-top: 1px solid var(--line); padding: 14px 0 0; } }
+
 /* growth */
 .glist { display: flex; flex-direction: column; gap: 8px; }
 .gitem { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 14px; align-items: center; }
@@ -235,6 +267,15 @@ dialog::backdrop { background: rgb(10 12 24 / 0.5); }
 .pick-note b { color: var(--ink); font-weight: 600; }
 .fgrid.wide { grid-template-columns: 1fr; }
 fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 12px; margin: 0; }
+.artbox { margin-top: 12px; }
+.artbox > summary { cursor: pointer; font-weight: 600; font-size: 13.5px; padding: 4px 0; }
+.arts { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-top: 8px; }
+.art { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 6px; background: var(--bg); }
+.art .ah { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 13px; font-weight: 700; }
+.art .ah .v { font-size: 12px; font-weight: 600; }
+.art .srow { display: grid; grid-template-columns: minmax(0, 1fr) 64px; gap: 4px; }
+.art select, .art input { padding: 5px 6px; font-size: 13px; }
+.art .fixed { font-size: 13px; color: var(--muted); padding: 5px 0; }
 legend { font-size: 12px; letter-spacing: 0.06em; color: var(--muted); padding: 0 4px; font-weight: 600; }
 label { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--muted); }
 label.check { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); font-size: 13.5px; }
@@ -302,11 +343,11 @@ header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 
 .elchip[aria-pressed="true"] { background: #ECE5D8; color: #3B4255; border-color: #fff; }
 input, select, textarea { border-radius: 8px; }
 /* 종이 창: 크림색 패널(다크 모드는 남색) + 안쪽 금선 + 네 모서리 금색 꺾쇠 */
-.panel, .prow, .gitem, .msum, .mrow, .ecard, dialog, .grid > .card, .list > .card, .ccard .info, .notice, .preview {
+.panel, .hero, .prow, .gitem, .msum, .mrow, .ecard, dialog, .grid > .card, .list > .card, .ccard .info, .notice, .preview {
   --bg: var(--p-bg); --surface: var(--p-surface); --sunk: var(--p-sunk); --ink: var(--p-ink); --muted: var(--p-muted); --line: var(--p-line);
   --gold: var(--p-gold); --gold-soft: var(--p-gold-soft); --good: var(--p-good); --warn: var(--p-warn); --bad: var(--p-bad);
   color: var(--ink); }
-.panel, .prow, .gitem, .msum, .mrow, .ecard, dialog, .grid > .card, .list > .card {
+.panel, .hero, .prow, .gitem, .msum, .mrow, .ecard, dialog, .grid > .card, .list > .card {
   --cb: color-mix(in srgb, var(--gold) 80%, transparent);
   background-color: var(--surface); border-color: var(--line);
   box-shadow: inset 0 0 0 4px var(--surface), inset 0 0 0 5px color-mix(in srgb, var(--gold) 35%, transparent), 0 6px 18px rgb(0 0 0 / .28);
@@ -323,7 +364,7 @@ input, select, textarea { border-radius: 8px; }
 dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 .grade { box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px currentColor; font-weight: 900; }
 .gitem .no { font-weight: 900; }
-.bar h2::before, .sec-h::before { content: "◆"; color: var(--gold); font-size: .55em; margin-right: 8px; vertical-align: .25em; }
+.bar h2::before, .sec-h::before, .lh::before { content: "◆"; color: var(--gold); font-size: .55em; margin-right: 8px; vertical-align: .25em; }
 .toast { background: #ECE5D8; color: #3B4255; box-shadow: 0 0 0 1px #fff8, 0 6px 18px rgb(0 0 0 / .4); }
 @media (max-width: 760px) {
   .party, .prow .party { grid-template-columns: 1fr; }
@@ -340,6 +381,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
+<script src="shell.js?v=20261112"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -347,13 +389,6 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
       <p class="sub">보유 캐릭터의 육성 상태를 입력하면 파티를 가치 순으로 줄 세우고, 약한 곳과 레진을 먼저 쓸 곳을 알려 줍니다.</p>
     </div>
     <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
-      <a class="btn ghost sm" href="tier.html">티어표</a>
-      <a class="btn ghost sm" href="combo.html">캔슬 연습</a>
-      <a class="btn ghost sm" href="farm.html">재료 파밍</a>
-      <a class="btn ghost sm" href="map.html">지도</a>
-      <a class="btn ghost sm" href="rate.html">성유물 감정</a>
-      <a class="btn ghost sm" href="guide.html">성유물 추천</a>
-      <a class="btn ghost sm" href="stats.html">종결 스탯 도감</a>
       <span class="sync" id="sync" role="status"></span>
       <button class="btn sm" id="btn-login" type="button" hidden>Google 로그인</button>
       <button class="btn ghost sm" id="btn-backup" type="button">백업 · 불러오기</button>
@@ -361,6 +396,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </header>
 
   <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="home" id="tab-home">홈</button>
     <button class="tab" role="tab" data-tab="parties" id="tab-parties">파티 순위<span class="n" id="cnt-p"></span></button>
     <button class="tab" role="tab" data-tab="roster" id="tab-roster">내 캐릭터<span class="n" id="cnt-r"></span></button>
     <button class="tab" role="tab" data-tab="growth" id="tab-growth">성장 우선순위</button>
@@ -379,7 +415,8 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
     <button class="btn sm" id="btn-clear" type="button">예시 비우기</button>
   </div>
 
-  <section id="view-parties" role="tabpanel"></section>
+  <section id="view-home" role="tabpanel" hidden></section>
+  <section id="view-parties" role="tabpanel" hidden></section>
   <section id="view-roster" role="tabpanel" hidden></section>
   <section id="view-growth" role="tabpanel" hidden></section>
   <section id="view-meta" role="tabpanel" hidden></section>
@@ -409,6 +446,28 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 
   <p class="foot-note">점수는 커뮤니티에서 통용되는 육성 기준(레벨 90, 주력 특성 8–9, 치명 비율 1:2, 캐릭터별 원충 목표 등)을 단순화한 추정치입니다. 레진 비용은 대략적인 상대값입니다. 파티 가치 = 딜량 50% + 육성 25% + 시너지 25%이며, 딜량은 가장 비슷한 실측 파티(genshin.im 7.2 허수아비 실측)의 DPS × 대체 멤버 배율(내 동료 평균 성능 ÷ 실측 동료 평균 성능의 제곱, 최대 1) × 내 육성 배율로 추정하고(육성 배율은 원신 데미지 공식으로 계산: 실측 기준 육성(Lv.90·핵심 특성 9·치명 70/150·기준 핵심 스탯·추천 무기/세트) 대비 내 캐릭터의 핵심 스탯 × 치명 기대값 × 특성 배율 × Lv.100 적 방어 계수 × 무기·세트·주옵·원충·돌파 계수를 곱하고, 메인 60%·서브 25%·서포터 8%의 피해 비중으로 합침. 서포터는 버프 성능으로 팀 전체에 곱함) 실측 1위(251k)를 100점으로 봅니다. 같은 메인의 실측 파티가 없으면 캐릭터 성능 점수로 보수적으로 추정합니다(최대 실측 1위의 75%). 캐릭터 성능 점수(T0–T4)는 GamsGo 원신 7.2 종합 티어표(2026년 11월, SS=92 · S=84 · A+=76 · A=68 · B=56 · C=44 · D=30)를 60%, 나무위키 각 캐릭터 문서의 '평가' 항목(2026년 10월 열람)을 읽고 매긴 값을 40% 섞은 것이며, 캐릭터 편집 화면에서 직접 바꿀 수 있습니다. 레벨 점수는 모험 등급이 허용하는 최대 레벨 대비 방어 계수 × 기초 스탯 곡선으로 계산하고, Lv.60 전에는 두 번째 고유 특성이 잠긴 만큼 감점합니다. 레벨이 낮으면 무기·성유물이 좋아도 기초 스탯이 낮아 제 힘을 못 내므로, 레벨 점수의 제곱근을 육성 점수 전체에 곱합니다(Lv.80 약 ×0.94, Lv.50 약 ×0.7, Lv.1 약 ×0.3). 특성은 돌파 단계별 상한(2·4·6·8·10단계 돌파 시 2·4·6·8·10)을 넘을 수 없습니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러오며, 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
 </div>
+
+<dialog id="dlg-link" aria-labelledby="link-title">
+  <div class="dlg guide-dlg">
+    <div class="dlg-head"><h2 id="link-title">HoYoLAB 연동하기</h2><button class="btn ghost sm" type="button" data-close>닫기</button></div>
+    <p class="muted" style="margin:0">한 번만 설정하면 GitHub가 3시간마다 HoYoLAB 전적에서 캐릭터·무기·성유물·특성을 받아 오고, 이 앱은 열 때마다 자동으로 채웁니다. 설정은 휴대폰만으로도 할 수 있습니다.</p>
+    <ol class="steps">
+      <li><b>전적 공개 켜기</b> — HoYoLAB 앱 → 내 정보 → 전적 → 오른쪽 위 설정에서 <b>전적 기록 공개</b>와 <b>캐릭터 상세 정보 공개</b>를 켭니다. 같은 화면에서 원신 UID(9~10자리)도 확인해 두세요.</li>
+      <li><b>쿠키 복사</b> (로그인 열쇠라서 여기서만 조심히 다룹니다)
+        <ul>
+          <li><b>안드로이드</b>: Play 스토어에서 <b>Firefox</b> 설치 → 메뉴 → 부가 기능에서 <b>Cookie-Editor</b>(cgagnier) 추가 → Firefox로 <code>www.hoyolab.com</code>에 로그인 → 메뉴 → 부가 기능 → Cookie-Editor를 열고 <code>ltoken_v2</code>, <code>ltuid_v2</code>, <code>ltmid_v2</code> 세 값을 복사합니다.</li>
+          <li><b>아이폰</b>: 브라우저에서 쿠키를 꺼낼 믿을 만한 방법이 없어, 이 단계만 PC에서 하세요(PC 크롬 → hoyolab.com 로그인 → F12 → Application → Cookies에서 같은 세 값).</li>
+        </ul>
+        세 값을 메모장에서 <code>ltoken_v2=값; ltuid_v2=값; ltmid_v2=값</code> 한 줄로 이어 붙입니다.</li>
+      <li><b>GitHub에 넣기</b> — 휴대폰 브라우저로 github.com에 로그인(GitHub 앱은 이 설정을 못 함) → 저장소 <b>ts26072-ui/Genshin</b> → Settings → Secrets and variables → Actions → <b>New repository secret</b>을 두 번 눌러
+        <ul><li>이름 <code>HOYOLAB_COOKIE</code>, 값: 위에서 만든 한 줄</li><li>이름 <code>GENSHIN_UID</code>, 값: 원신 UID</li></ul>
+        휴대폰 화면이 좁으면 브라우저 메뉴의 <b>데스크톱 사이트</b>를 켜면 Settings 탭이 보입니다.</li>
+      <li><b>처음 한 번 실행</b> — 저장소의 Actions 탭 → <b>hoyolab-sync</b> → <b>Run workflow</b>. 1~2분 뒤 끝나면 이 앱에서 <b>HoYoLAB 동기화</b>를 누르세요. 그다음부터는 앱을 열 때 자동입니다.</li>
+    </ol>
+    <div class="notice"><p><b>주의</b>: 쿠키는 HoYoLAB 계정 열쇠입니다. GitHub Secrets 말고 다른 곳(채팅, 메모 앱 공유, 다른 사이트)에는 붙여 넣지 마세요. Secrets 값은 저장소 주인도 다시 볼 수 없고, 결과 파일에는 쿠키·UID가 들어가지 않습니다. 다만 받아 온 캐릭터 정보(account/hoyolab.json)는 공개 저장소라 누구나 볼 수 있습니다. HoYoLAB에서 로그아웃하거나 비밀번호를 바꾸면 쿠키가 만료되니, 동기화가 실패하면 2~3단계를 다시 하세요.</p></div>
+    <p class="muted" style="margin:0;font-size:12.5px">PC에서 Inventory Kamera 같은 스캐너로 만든 GOOD 파일이 있으면 <b>GOOD 파일 불러오기</b>로도 한 번에 넣을 수 있습니다(가방 속 성유물까지).</p>
+  </div>
+</dialog>
 
 <dialog id="dlg-char">
   <form class="dlg" id="form-char" method="dialog">
@@ -452,7 +511,12 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
       <label>원소 충전 효율 %<input id="f-er" type="number" min="100" max="400" step="0.1"></label>
       <label id="key-label"><span id="key-name">핵심 스탯</span><input id="f-key" type="number" min="0" max="80000"></label>
     </div>
-    <label class="check" style="margin-top:10px"><input type="checkbox" id="f-main"> 시계·잔·왕관 주옵션이 캐릭터에 맞음</label>
+    <label class="check" style="margin-top:10px" id="main-wrap"><input type="checkbox" id="f-main"> 시계·잔·왕관 주옵션이 캐릭터에 맞음</label>
+    <details class="artbox" id="art-box"><summary>부위별 주옵 · 부옵 입력 (선택 — 넣으면 점수에 반영)</summary>
+      <p class="pick-note">게임의 캐릭터 → 성유물 화면을 보고 부위마다 주옵과 부옵 4줄을 넣으세요. 주옵은 이 캐릭터의 추천 주옵과 비교하고, 부옵은 추천 부옵 순서로 가중치를 매겨 '유효 옵션 수'로 셉니다(성유물 감정 페이지와 같은 기준). HoYoLAB·GOOD 파일로 불러온 캐릭터는 자동으로 채워집니다. 위의 치명·원충·핵심 스탯 합계는 그대로 따로 넣어 주세요.</p>
+      <div class="arts" id="arts"></div>
+      <p class="pick-note" id="art-note"></p>
+    </details>
     </fieldset>
     <div class="dlg-foot">
       <button class="btn danger" type="button" id="btn-del-char">보유 목록에서 삭제</button>
@@ -817,7 +881,8 @@ function dmgFactor(c) {
   const wv = weaponValue(c);
   const wep = 0.75 + 0.25 * clamp(wv.v + (wv.five ? 0.03 : 0.02) * (c.wr - 1));
   const set = 0.8 + 0.2 * setInfo(c).v;
-  const main = c.mainOk ? 1 : 0.85;
+  const ae = artEval(c);
+  const main = ae ? 0.85 + 0.15 * ae.mainS : c.mainOk ? 1 : 0.85;
   // 원소 충전 효율이 모자라면 원소폭발을 매 사이클 못 씀
   const er = 0.7 + 0.3 * clamp(c.er / d.er) ** 2;
   const con = d.r === 5 ? [1, 1.12, 1.2, 1.25, 1.32, 1.4, 1.65][c.cons] : 1 + 0.035 * c.cons;
@@ -874,6 +939,60 @@ function setInfo(c) {
   return { v: [0.55, 0.68, 0.8][hits], mode: 'two', hits, picked: true, label: `${c.sa} 2 + ${c.sb} 2` };
 }
 
+// ───────── 부위별 성유물(주옵·부옵) ─────────
+// 성유물 감정 페이지(gear.js)와 같은 기준: 5성 부옵 1회 최대 상승치, 캐릭터별 부옵 가중치(추천 부옵 순서), 추천 주옵 순위
+const ROLL_MAX = { 'HP': 298.75, '공격력': 19.45, '방어력': 23.15, 'HP%': 5.83, '공격력%': 5.83, '방어력%': 7.29,
+  '원소 마스터리': 23.31, '원소 충전 효율': 6.48, '치명타 확률': 3.89, '치명타 피해': 7.77 };
+const SUB_STATS = Object.keys(ROLL_MAX);
+const ELEM_DMG = ['불 피해%', '물 피해%', '바람 피해%', '번개 피해%', '풀 피해%', '얼음 피해%', '바위 피해%', '물리 피해%'];
+const ART_SLOT = {
+  flower: ['생명의 꽃', ['HP']], plume: ['죽음의 깃털', ['공격력']],
+  sands: ['시간의 모래', ['공격력%', 'HP%', '방어력%', '원소 마스터리', '원소 충전 효율']],
+  goblet: ['공간의 성배', ['공격력%', 'HP%', '방어력%', '원소 마스터리', ...ELEM_DMG]],
+  circlet: ['이성의 왕관', ['치명타 확률', '치명타 피해', '공격력%', 'HP%', '방어력%', '원소 마스터리', '치유 보너스']],
+};
+const MAIN_SLOTS = ['sands', 'goblet', 'circlet'];
+// 다섯 부위 유효 옵션 합 목표: 부위당 평균 5회(성유물 감정 S등급) = 25
+const SUB_GOAL = 25;
+const POS_W = [1, 1, 0.8, 0.6, 0.45, 0.3];
+const GENERIC_W = { '치명타 확률': 1, '치명타 피해': 1, '공격력%': 0.6, '원소 충전 효율': 0.4, '원소 마스터리': 0.4, '공격력': 0.24 };
+// 캐릭터별 부옵 가중치: 추천 부옵 순서대로 1 · 1 · 0.8 · 0.6 · 0.45 · 0.3, 치명 두 옵션은 함께, 깡옵은 같은 % 옵션의 40%
+function subWeights(id) {
+  const b = BUILDS[id];
+  if (!b) return { ...GENERIC_W };
+  const w = {};
+  b.subs.forEach((s, i) => { const k = s === '치명타' ? '치명타 확률' : s; w[k] = Math.max(w[k] || 0, POS_W[i] ?? 0.3); });
+  if (w['치명타 확률'] || w['치명타 피해']) w['치명타 확률'] = w['치명타 피해'] = Math.max(w['치명타 확률'] || 0, w['치명타 피해'] || 0);
+  for (const [flat, pct] of [['HP', 'HP%'], ['공격력', '공격력%'], ['방어력', '방어력%']]) if (w[pct]) w[flat] = Math.max(w[flat] || 0, w[pct] * 0.4);
+  return w;
+}
+// 주옵 판정: best(추천 1순위) / ok(대안) / bad(추천 아님) / fixed(꽃·깃털). 치명 확률·피해 왕관은 같은 순위
+const MAIN_V = { best: 1, fixed: 1, ok: 0.75, bad: 0.2 };
+function mainRank(slot, main, id) {
+  if (!MAIN_SLOTS.includes(slot)) return 'fixed';
+  const b = BUILDS[id];
+  const norm = x => x === '치명타 피해' ? '치명타 확률' : x;
+  if (!b) return slot === 'circlet' && norm(main) === '치명타 확률' ? 'best' : 'ok';
+  const i = [...new Set((b.main[slot] || []).map(norm))].indexOf(norm(main));
+  return i === 0 ? 'best' : i > 0 ? 'ok' : 'bad';
+}
+const bestMain = (slot, id) => (BUILDS[id]?.main[slot] || [])[0] || (slot === 'circlet' ? '치명타 확률' : '공격력%');
+// 입력된 부위별 성유물 평가. 하나도 없으면 null(예전 방식: 합계 스탯 + 주옵 체크)
+function artEval(c) {
+  const arts = (c.arts || []).filter(a => ART_SLOT[a.slot] && a.main);
+  if (!arts.length) return null;
+  const w = subWeights(c.id);
+  const slots = Object.keys(ART_SLOT).map(slot => {
+    const a = arts.find(x => x.slot === slot);
+    if (!a) return { slot, none: true, eff: 0, mv: MAIN_SLOTS.includes(slot) ? 0 : 1 };
+    const eff = (a.subs || []).reduce((t, [k, v]) => t + (ROLL_MAX[k] && v > 0 ? v / ROLL_MAX[k] * (w[k] || 0) : 0), 0);
+    const r = mainRank(slot, a.main[0], c.id);
+    return { slot, main: a.main[0], r, mv: MAIN_V[r], eff };
+  });
+  const eff = slots.reduce((t, x) => t + x.eff, 0);
+  return { slots, eff, mainS: avg(slots.filter(x => MAIN_SLOTS.includes(x.slot)).map(x => x.mv)), subS: clamp(eff / SUB_GOAL) };
+}
+
 function charCalc(c) {
   const d = prof(c);
   // 레벨: 모험 등급이 허용하는 목표 레벨 대비 피해 비율(방어 계수 × 기초 스탯), Lv.60 전에는 두 번째 고유 특성이 잠겨 감점
@@ -889,21 +1008,26 @@ function charCalc(c) {
   const wv = weaponValue(c);
   const wep = clamp(wv.v * wl + (wv.five ? 0.03 : 0.02) * (c.wr - 1));
   const setS = setInfo(c).v;
-  const mainS = c.mainOk ? 1 : 0.4;
+  const ae = artEval(c);
+  const mainS = ae ? ae.mainS : c.mainOk ? 1 : 0.4;
   let critS = clamp(cvOf(c) / critTarget(d));
   if (c.cr > 100) critS *= 0.9;
   if (d.roles[0] === 'main' && c.cr < 45) critS *= 0.85;
   const erS = clamp(c.er / d.er) ** 1.5;
   const keyS = clamp(c.key / keyTarget(d));
-  const art = d.crit
-    ? 0.25 * setS + 0.1 * mainS + 0.35 * critS + 0.15 * erS + 0.15 * keyS
-    : 0.25 * setS + 0.1 * mainS + 0.25 * erS + 0.4 * keyS;
+  // 부위별 성유물을 넣었으면 주옵 비중을 키우고 부옵 품질(유효 옵션 수)을 따로 더함
+  const art = ae
+    ? (d.crit ? 0.2 * setS + 0.15 * mainS + 0.15 * ae.subS + 0.3 * critS + 0.1 * erS + 0.1 * keyS
+      : 0.2 * setS + 0.15 * mainS + 0.15 * ae.subS + 0.2 * erS + 0.3 * keyS)
+    : d.crit
+      ? 0.25 * setS + 0.1 * mainS + 0.35 * critS + 0.15 * erS + 0.15 * keyS
+      : 0.25 * setS + 0.1 * mainS + 0.25 * erS + 0.4 * keyS;
   const con = d.r === 5 ? [0, .35, .55, .65, .75, .85, 1][c.cons] : c.cons / 6;
   const parts = { lv, tal, wep, art, con };
   // 레벨이 낮으면 나머지 육성도 제 힘을 못 내므로 전체 점수에 곱함(Lv.80 ≈ ×0.94, Lv.50 ≈ ×0.7, Lv.1 ≈ ×0.3)
   const lvMult = Math.sqrt(lv);
   const score = (15 * lv + 15 * tal + 20 * wep + 40 * art + 10 * con) * lvMult;
-  return { score, parts, lvMult, setS, critS, erS, keyS };
+  return { score, parts, lvMult, setS, critS, erS, keyS, mainS, ae };
 }
 
 function charIssues(c) {
@@ -929,7 +1053,12 @@ function charIssues(c) {
   const si = setInfo(c);
   if (si.mode === 'broken') out.push(['hi', '성유물 세트 효과 없음']);
   else if (si.picked && si.v < 0.7) out.push(['md', `성유물 ${si.label} — 추천 세트가 아님`]);
-  if (!c.mainOk) out.push(['hi', '시계·잔·왕관 주옵션이 맞지 않음']);
+  const ae = artEval(c);
+  if (ae) {
+    for (const x of ae.slots.filter(x => MAIN_SLOTS.includes(x.slot) && x.r !== 'best' && x.r !== 'fixed' || x.none))
+      out.push(x.none ? ['md', `${ART_SLOT[x.slot][0]} 입력 안 됨`] : [x.r === 'bad' ? 'hi' : 'lo', `${ART_SLOT[x.slot][0]} 주옵 ${x.main} — 추천 ${bestMain(x.slot, c.id)}`]);
+    if (ae.subS < 0.7) out.push([ae.subS < 0.45 ? 'hi' : 'md', `부옵 유효 옵션 ${ae.eff.toFixed(1)}회 — 목표 ${SUB_GOAL}회(부위당 5회)`]);
+  } else if (!c.mainOk) out.push(['hi', '시계·잔·왕관 주옵션이 맞지 않음']);
   if (c.er < d.er - 5) out.push([c.er < d.er - 30 ? 'hi' : 'md', `원충 ${c.er}% — 목표 ${d.er}%`]);
   if (d.crit) {
     const cv = cvOf(c), t = critTarget(d);
@@ -1151,7 +1280,13 @@ function actionsFor(id) {
     add(`${d.name} ${goal} 맞추기`, si.mode === 'broken' ? `세트 효과 없음 → ${goal}` : `${si.label} → ${goal}`, si.mode === 'broken' ? 500 : 380,
       n => { n.set = 'full'; if (topSet) { n.sa = topSet; n.sb = ''; } });
   }
-  if (!c.mainOk) add(`${d.name} 주옵션 교정`, '시계·잔·왕관을 캐릭터에 맞는 주옵으로', 400, n => n.mainOk = true);
+  const ae = artEval(c);
+  if (ae) {
+    const bad = ae.slots.filter(x => MAIN_SLOTS.includes(x.slot) && (x.none || x.r === 'bad'));
+    if (bad.length) add(`${d.name} 주옵션 교정`, bad.map(x => `${ART_SLOT[x.slot][0]} → ${bestMain(x.slot, id)}`).join(', '), 200 * bad.length,
+      n => { n.mainOk = true; n.arts = Object.keys(ART_SLOT).map(slot => { const a = (n.arts || []).find(y => y.slot === slot);
+        return bad.some(x => x.slot === slot) ? { ...(a || { slot, subs: [] }), main: [bestMain(slot, id), 0] } : a; }).filter(Boolean); });
+  } else if (!c.mainOk) add(`${d.name} 주옵션 교정`, '시계·잔·왕관을 캐릭터에 맞는 주옵으로', 400, n => n.mainOk = true);
   if (c.er < d.er - 5) { const to = Math.min(d.er, c.er + 40); add(`${d.name} 원충 보강`, `${c.er}% → ${to}% (원충 시계·부옵·무기)`, 250, n => n.er = to); }
   if (d.crit) {
     const cv = cvOf(c);
@@ -1263,7 +1398,7 @@ function renderParties(ranked) {
 function renderRoster() {
   const v = $('#view-roster');
   const ids = Object.keys(S.roster);
-  const head = `<div class="bar"><h2>내 캐릭터</h2><div class="actions"><button class="btn ghost" type="button" data-act="hoyo-sync" title="GitHub Actions가 3시간마다 받아 둔 HoYoLAB 데이터로 채움">HoYoLAB 동기화</button><button class="btn ghost" type="button" data-act="good-import" title="Inventory Kamera 등 스캐너가 만든 GOOD(JSON) 파일">GOOD 파일 불러오기</button><button class="btn primary" type="button" data-act="new-char">+ 캐릭터 등록</button></div></div>`
+  const head = `<div class="bar"><h2>내 캐릭터</h2><div class="actions"><button class="btn ghost" type="button" data-act="hoyo-sync" title="GitHub Actions가 3시간마다 받아 둔 HoYoLAB 데이터로 채움">HoYoLAB 동기화</button><button class="btn ghost" type="button" data-act="link-help">연동 방법</button><button class="btn ghost" type="button" data-act="good-import" title="Inventory Kamera 등 스캐너가 만든 GOOD(JSON) 파일">GOOD 파일 불러오기</button><button class="btn primary" type="button" data-act="new-char">+ 캐릭터 등록</button></div></div>`
     + (S.hoyoAt ? `<p class="legend">HoYoLAB 동기화: ${esc(new Date(S.hoyoAt).toLocaleString('ko-KR'))} 데이터 · 사이트를 열 때 새 데이터가 있으면 자동으로 반영합니다.</p>` : '');
   if (!ids.length) {
     v.innerHTML = head + `<div class="empty-state"><p>등록된 캐릭터가 없습니다.</p><p>게임의 캐릭터 상세 화면을 보면서 레벨, 특성, 무기, 치명타·원충 수치를 입력하세요.</p></div>`;
@@ -1483,8 +1618,55 @@ function renderGrowth(ranked) {
   if (gs) { gs.value = growthParty; gs.addEventListener('change', e => { growthParty = e.target.value; try { localStorage.setItem(KEY + ':gp', growthParty); } catch (er) {} renderGrowth(rankedParties()); }); }
 }
 
+// ───────── 메인 로비 ─────────
+const FEATURES = [
+  { tab: 'parties', n: '파티 순위', g: '파', c: 'var(--pyro)', d: '내 파티를 가치 순으로 줄 세우고 약점을 진단' },
+  { tab: 'roster', n: '내 캐릭터', g: '캐', c: 'var(--hydro)', d: '레벨·특성·무기·성유물(주옵·부옵) 입력과 육성 점수' },
+  { tab: 'growth', n: '성장 우선순위', g: '성', c: 'var(--dendro)', d: '레진을 어디에 먼저 쓸지 효과 순으로' },
+  { tab: 'meta', n: '메타 · 엔진', g: '메', c: 'var(--electro)', d: '실측 딜량 상위 파티와 코어 조합' },
+  { tab: 'ai', n: 'AI 상담 · 픽업', g: 'AI', c: 'var(--anemo)', d: '픽업 일정과 뽑기·육성 질문' },
+  { href: 'tier.html', n: '티어표', g: '티', c: 'var(--geo)', d: '7.2 메인·서브·서포터별 등급' },
+  { href: 'rate.html', n: '성유물 감정', g: '감', c: 'var(--gold)', d: '성유물 하나의 주옵·부옵 등급과 가방 정리' },
+  { href: 'guide.html', n: '성유물 추천', g: '추', c: 'var(--cryo)', d: '캐릭터별 추천 세트·주옵·부옵' },
+  { href: 'stats.html', n: '종결 스탯 도감', g: '종', c: 'var(--pyro)', d: '합격선·종결 스탯 목표치' },
+  { href: 'farm.html', n: '재료 파밍', g: '재', c: 'var(--dendro)', d: '돌파·특성 재료와 요일 비경' },
+  { href: 'map.html', n: '지도', g: '지', c: 'var(--hydro)', d: '특산물·재료 위치' },
+  { href: 'combo.html', n: '캔슬 연습', g: '캔', c: 'var(--electro)', d: '네페르·마비카·스커크 강공캔·평캔 (모바일 버튼 지원)' },
+];
+function renderHome(ranked) {
+  const n = Object.keys(S.roster).length, today = new Date().toISOString().slice(0, 10);
+  const top = ranked[0], live = BANNERS.find(b => b.from <= today && (!b.to || today <= b.to));
+  const linked = S.hoyoAt ? `HoYoLAB 연동됨 · 마지막 갱신 ${new Date(S.hoyoAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' })}` : 'HoYoLAB 연동 전 — 직접 입력하거나 연동하면 자동으로 채워집니다';
+  const todo = n ? growthList(ranked, null).inParty.slice(0, 3) : [];
+  const cnt = { parties: S.parties.length + '개', roster: n + '명' };
+  $('#view-home').innerHTML = `<div class="lobby">
+    <section class="hero">
+      <div><h2>${S.sample ? '어서 오세요, 여행자' : '내 계정'}</h2>
+        <div class="stats"><div class="stat"><b>${ar()}</b><span>모험 등급</span></div><div class="stat"><b>${n}</b><span>캐릭터</span></div><div class="stat"><b>${S.parties.length}</b><span>파티</span></div></div>
+        <p class="link-st ${S.hoyoAt ? 'ok' : 'muted'}">${linked}</p>
+        <div class="acts"><button class="btn primary" type="button" data-act="hoyo-sync">HoYoLAB 동기화</button><button class="btn" type="button" data-act="link-help">연동 방법 (모바일)</button><button class="btn ghost" type="button" data-act="good-import">GOOD 파일</button></div>
+      </div>
+      <div class="best">${top ? `<span class="muted" style="font-size:12.5px">가장 강한 파티</span><span class="nm">${esc(top.p.name)}</span>
+        <div class="faces">${top.p.m.filter(id => id && DB[id]).map(id => av(id)).join('')}</div>
+        <div><span class="val" style="color:${scoreColor(top.e.value)}">${Math.round(top.e.value)}</span> <span class="muted">/ 100 · ${GRADE(top.e.value)}등급</span></div>
+        <button class="btn sm" type="button" data-act="tab" data-tab="parties">파티 순위 보기</button>`
+        : `<span class="muted">아직 파티가 없습니다.</span><button class="btn sm" type="button" data-act="${n ? 'new-party' : 'new-char'}">${n ? '+ 파티 만들기' : '+ 캐릭터 등록'}</button>`}</div>
+    </section>
+    ${todo.length ? `<section><h2 class="lh">지금 할 일<button class="more" type="button" data-act="tab" data-tab="growth">전체 보기 →</button></h2>
+      <div class="todo">${todo.map((a, i) => `<div class="gitem"><span class="no">${i + 1}</span><div><div class="what">${esc(a.what)}</div><div class="why">${esc(a.why)}</div></div><div class="nums"><span class="cost ${a.cost >= 400 ? 'hi' : a.cost >= 200 ? 'md' : 'lo'}">약 ${a.cost} 레진</span></div></div>`).join('')}</div></section>` : ''}
+    ${live ? `<section><h2 class="lh">지금 픽업 · ${esc(live.v)}<button class="more" type="button" data-act="tab" data-tab="ai">일정 전체 →</button></h2>
+      <div class="bn-who">${[...live.five, ...live.four].filter(id => DB[id]).map(id => `<span class="mchip${live.five.includes(id) ? ' r5' : ''}${S.roster[id] ? ' own' : ''}">${av(id, 'sm')}${esc(DB[id].name)}${S.roster[id] ? ` · ${S.roster[id].cons}돌` : ''}</span>`).join('')}<span class="muted" style="font-size:12.5px">~ ${md(live.to)}</span></div></section>` : ''}
+    <section><h2 class="lh">메뉴</h2>
+      <div class="tiles">${FEATURES.map(f => {
+        const inner = `<span class="gl" style="--c:${f.c}">${f.g}</span><span class="tn">${f.n}${cnt[f.tab] ? `<small>${cnt[f.tab]}</small>` : ''}</span><span class="td">${f.d}</span>`;
+        return f.tab ? `<button class="tile" type="button" data-act="tab" data-tab="${f.tab}">${inner}</button>` : `<a class="tile" href="${f.href}">${inner}</a>`;
+      }).join('')}</div></section>
+  </div>`;
+}
+
 function render() {
   const ranked = rankedParties();
+  renderHome(ranked);
   renderParties(ranked); renderRoster(); renderGrowth(ranked); renderMeta(); renderBanners(); renderRes();
   $('#cnt-p').textContent = S.parties.length;
   $('#cnt-r').textContent = Object.keys(S.roster).length;
@@ -1647,14 +1829,19 @@ aiBusy(false);
 })();
 
 // ───────── 탭 ─────────
-let tab = 'parties';
-try { tab = localStorage.getItem(KEY + ':tab') || 'parties'; } catch (e) {}
+// 주소의 #탭(상단바 링크)이 있으면 그 탭, 없으면 홈(메인 로비)에서 시작
+const TABS = ['home', 'parties', 'roster', 'growth', 'meta', 'ai'];
+const hashTab = () => { const h = location.hash.slice(1); return TABS.includes(h) ? h : null; };
+let tab = hashTab() || 'home';
 function setTab(t) {
+  if (!TABS.includes(t)) t = 'home';
   tab = t;
   for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', b.dataset.tab === t);
-  for (const n of ['parties', 'roster', 'growth', 'meta', 'ai']) $('#view-' + n).hidden = n !== t;
-  try { localStorage.setItem(KEY + ':tab', t); } catch (e) {}
+  for (const n of TABS) $('#view-' + n).hidden = n !== t;
+  if (location.hash.slice(1) !== t) try { history.replaceState(null, '', '#' + t); } catch (e) {}
+  if (window.SHELL) SHELL.mark(t === 'home' ? 'home' : 'party');
 }
+window.addEventListener('hashchange', () => { const h = hashTab(); if (h && h !== tab) { setTab(h); window.scrollTo(0, 0); } });
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) setTab(b.dataset.tab); });
 
 // ───────── 캐릭터 편집 ─────────
@@ -1699,6 +1886,45 @@ function defaultsFor(id) {
   const lv = Math.min(80, lvTarget()), tc = Math.min(6, talCapAt(lv));
   return mk(id, lv, 0, [1, tc, tc], d.r === 5 ? 'four' : 'fourFit', lv, 1, 'two', true, d.crit ? 50 : 5, d.crit ? 100 : 50, d.er, Math.round(keyTarget(d) * 0.8));
 }
+// 편집 창의 부위별 성유물 칸. 불러온 성유물의 세트·레벨 등 화면에 없는 값은 editArts에 두었다가 저장 때 다시 붙임
+let editArts = [];
+const statOpts = (list, v) => `<option value="">—</option>` + list.map(x => `<option${x === v ? ' selected' : ''}>${x}</option>`).join('');
+function fillArts(c) {
+  editArts = (c.arts || []).map(a => ({ ...a }));
+  $('#arts').innerHTML = Object.entries(ART_SLOT).map(([slot, [n, mains]]) => {
+    const a = editArts.find(x => x.slot === slot), subs = a?.subs || [];
+    return `<div class="art" data-slot="${slot}"><div class="ah"><span>${n}</span><span class="v" data-v></span></div>
+      ${mains.length > 1 ? `<select data-k="main" aria-label="${n} 주옵">${statOpts(mains, a?.main[0])}</select>` : `<label class="check fixed"><input type="checkbox" data-k="main" ${a ? 'checked' : ''}> 주옵 ${mains[0]} (입력함)</label>`}
+      ${[0, 1, 2, 3].map(i => `<div class="srow"><select data-k="s${i}" aria-label="${n} 부옵 ${i + 1}">${statOpts(SUB_STATS, subs[i]?.[0])}</select><input data-k="v${i}" type="number" min="0" step="0.1" inputmode="decimal" aria-label="${n} 부옵 ${i + 1} 수치" value="${subs[i]?.[1] ?? ''}"></div>`).join('')}
+    </div>`;
+  }).join('');
+  $('#art-box').open = editArts.length > 0;
+}
+function readArts() {
+  return [...document.querySelectorAll('#arts .art')].map(el => {
+    const slot = el.dataset.slot, q = k => el.querySelector(`[data-k="${k}"]`);
+    const mains = ART_SLOT[slot][1];
+    const main = mains.length > 1 ? q('main').value : q('main').checked ? mains[0] : '';
+    const subs = [0, 1, 2, 3].map(i => [q('s' + i).value, Number(q('v' + i).value) || 0]).filter(([k, v]) => k && v > 0);
+    if (!main && !subs.length) return null;
+    const prev = editArts.find(x => x.slot === slot) || {};
+    return { ...prev, slot, main: [main || mains[0], prev.main && prev.main[0] === main ? prev.main[1] : 0], subs };
+  }).filter(Boolean);
+}
+function artNotes(c) {
+  const ae = artEval(c);
+  for (const el of document.querySelectorAll('#arts .art')) {
+    const x = ae && ae.slots.find(y => y.slot === el.dataset.slot), v = el.querySelector('[data-v]');
+    if (!x || x.none) { v.textContent = ''; continue; }
+    const mt = x.r === 'fixed' ? '' : x.r === 'best' ? '주옵 ✓ · ' : x.r === 'ok' ? '주옵 대안 · ' : '주옵 ✗ · ';
+    v.textContent = `${mt}유효 ${x.eff.toFixed(1)}회`;
+    v.style.color = x.r === 'bad' ? 'var(--bad)' : x.eff >= 5 ? 'var(--good)' : x.eff >= 3.5 ? 'var(--ink)' : 'var(--warn)';
+  }
+  $('#main-wrap').hidden = !!ae;
+  $('#art-note').innerHTML = ae
+    ? `주옵 점수 <b>${Math.round(ae.mainS * 100)}%</b> · 부옵 유효 옵션 합 <b>${ae.eff.toFixed(1)}회</b> / 목표 ${SUB_GOAL}회 (부옵 점수 ${Math.round(ae.subS * 100)}%) · 위의 '주옵 맞음' 체크 대신 이 값으로 평가합니다`
+    : '비워 두면 위의 합계 스탯과 \'주옵 맞음\' 체크로만 평가합니다.';
+}
 function fillChar(c) {
   const d = prof(c);
   $('#f-role').value = d.roles[0]; $('#f-scale').value = d.scale; $('#f-ertgt').value = d.er; $('#f-crit').checked = d.crit; $('#f-perf').value = d.perf;
@@ -1714,6 +1940,7 @@ function fillChar(c) {
   $('#f-sa').value = c.sa || ''; $('#f-sb').value = c.sb || '';
   $('#f-wt').value = c.wt; $('#f-wl').value = c.wl; $('#f-wr').value = c.wr;
   $('#f-main').checked = c.mainOk;
+  fillArts(c);
   legacySet = editId && !c.sa ? c.set : null;
   $('#f-cr').value = c.cr; $('#f-cd').value = c.cd; $('#f-er').value = c.er; $('#f-key').value = c.key;
   for (const i of [0, 1, 2]) $('#f-t' + i).parentElement.style.fontWeight = d.tal.includes(i) ? '600' : '';
@@ -1743,11 +1970,14 @@ function readChar() {
     $('#f-wn').value, sa, sb === sa ? '' : sb);
   if (Object.keys(ov).length) c.ov = ov;
   if (ap) c.ap = true;
+  const arts = readArts();
+  if (arts.length) { c.arts = arts; c.mainOk = MAIN_SLOTS.every(slot => { const a = arts.find(x => x.slot === slot); return a && mainRank(slot, a.main[0], id) !== 'bad'; }); }
   return c;
 }
 function previewChar() {
   const c = readChar(), d = prof(c), a = charCalc(c);
   gearNotes(c);
+  artNotes(c);
   $('#key-name').textContent = `${SCALE[d.scale].n} (권장 ${keyTarget(d).toLocaleString()})`;
   $('#pv-score').textContent = Math.round(a.score);
   $('#pv-score').style.color = scoreColor(a.score);
@@ -1934,6 +2164,8 @@ document.addEventListener('click', e => {
   if (act === 'edit-party') openParty(a.dataset.id);
   if (act === 'hoyo-sync') syncHoyo(true);
   if (act === 'good-import') $('#good-file').click();
+  if (act === 'link-help') $('#dlg-link').showModal();
+  if (act === 'tab') setTab(a.dataset.tab);
 });
 $('#btn-clear').addEventListener('click', () => { S = { sample: false, ar: S.ar, wl: S.wl, roster: {}, parties: [] }; save(); render(); setTab('roster'); toast('예시 데이터를 비웠습니다'); });
 $('#btn-backup').addEventListener('click', () => { $('#bk-text').value = JSON.stringify({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties, res: S.res }); $('#dlg-backup').showModal(); });
