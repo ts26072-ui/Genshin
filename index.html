@@ -1451,6 +1451,9 @@ const BOSS_AKA = { '열공의 마룡': '드발린 · 풍마룡', '북풍의 왕�
   '공포의 취령 버섯': '버섯 닭', '황금 늑대왕': '늑대왕', '꼭두각시 검귀': '검귀', '뇌음의 권현': '번개 새', '물의 정령': '오세아니드 · 순수한 물의 정령' };
 const ALL10 = { pyro: 10, hydro: 10, anemo: 10, electro: 10, dendro: 10, cryo: 10, geo: 10, phys: 10 };
 const BOSS_RES_FIX = { '「아를레키노」': { ...ALL10, pyro: 70 }, '침식된 근원의 불꽃 주인': ALL10, '불멸의 부산물': ALL10 };
+// 게임 자료에 보스로 있지만 분류가 '기타 인간 세력'이라 빠졌던 보스
+if (!BOSSES.some(b => b.n === '수수께끼 영력 수행자')) BOSSES.push({ n: '수수께끼 영력 수행자', k: '필드', res: { ...ALL10, cryo: 70 } });
+BOSSES.sort((x, y) => (x.k !== '주간·강적') - (y.k !== '주간·강적') || x.n.localeCompare(y.n, 'ko'));
 for (const b of BOSSES) { if (BOSS_AKA[b.n]) b.aka = BOSS_AKA[b.n]; if (!b.res && BOSS_RES_FIX[b.n]) b.res = BOSS_RES_FIX[b.n]; }
 let bossCache = {};
 const isDealer = d => d.roles[0] === 'main' || d.roles[0] === 'sub';
