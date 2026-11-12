@@ -144,7 +144,7 @@ const gotKey = (id, p) => `${id}:${p[0]},${p[1]}`;
 const isOculus = id => D.labels[id] && D.labels[id][1] === 'oculus';
 // HoYoLAB 전적에서 받은 개수(신의 눈동자 원소별·보물상자 종류별). 어느 것을 주웠는지는 HoYoLAB도 모르고 개수만 알려 줌
 let HOYO = null;
-const OC_KEY = { anemo: '바람', geo: '바위', electro: '번개', dendro: '풀', hydro: '물', pyro: '불', cryo: '얼음', luno: '달', lunar: '달', moon: '달' };
+const OC_KEY = { anemo: '바람', geo: '바위', electro: '번개', dendro: '풀', hydro: '물', pyro: '불', cryo: '얼음', ice: '얼음', luno: '달', lunar: '달', moon: '달' };
 function hoyoOculus(id) {
   if (!HOYO || !HOYO.summary) return null;
   const n = D.labels[id][0];
@@ -209,7 +209,7 @@ function renderSide() {
     ['그 밖의 특산물', items.filter(([, [n, g]]) => g === 'spec' && !regionOf[n])], ['광물', items.filter(([, [, g]]) => g === 'ore')]];
   groups.unshift(['신의 눈동자', items.filter(([, [, g]]) => g === 'oculus')]);
   const chest = HOYO && HOYO.summary && CHEST.some(([k]) => HOYO.summary[k] != null)
-    ? `<div><h3>보물상자 (HoYoLAB · 연 개수)</h3><p class="hint">${CHEST.filter(([k]) => HOYO.summary[k] != null).map(([k, nm]) => `${nm} ${HOYO.summary[k]}`).join(' · ')}</p>${(HOYO.explore || []).length ? `<p class="hint">탐사도: ${HOYO.explore.map(e => `${GP.esc(e.name)} ${e.pct}%`).join(' · ')}</p>` : ''}<p class="hint">HoYoLAB은 상자를 <b>몇 개</b> 열었는지만 알려 주고 어느 상자인지는 알려 주지 않아서, 상자 위치를 지도에서 빼 줄 수는 없어요.</p></div>` : '';
+    ? `<div><h3>보물상자 (HoYoLAB · 연 개수)</h3><p class="hint">${CHEST.filter(([k]) => HOYO.summary[k] != null).map(([k, nm]) => `${nm} ${HOYO.summary[k]}`).join(' · ')}</p>${(HOYO.explore || []).some(e => e.pct > 0) ? `<p class="hint">탐사도: ${HOYO.explore.filter(e => e.pct > 0).sort((x, y) => y.pct - x.pct).map(e => `${GP.esc(e.name)} ${e.pct}%`).join(' · ')}</p>` : ''}<p class="hint">HoYoLAB은 상자를 <b>몇 개</b> 열었는지만 알려 주고 어느 상자인지는 알려 주지 않아서, 상자 위치를 지도에서 빼 줄 수는 없어요.</p></div>` : '';
   $('#mats').innerHTML = (chest + groups.filter(([, l]) => l.length).map(([t, l]) => `<div><h3>${t}</h3><div class="mlist">${l.map(btn).join('')}</div></div>`).join('')
     || `<p class="hint">${st.need ? '돌파가 남은 내 캐릭터에게 필요한 특산물이 없습니다.' : '검색 결과가 없습니다.'}</p>`);
   const id = st.label;
