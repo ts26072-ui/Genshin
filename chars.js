@@ -215,7 +215,8 @@ const GG_ROLE_C6 = {
   'traveler-anemo':'-/D/-', 'traveler-hydro':'-/D/-',
 };
 
-// 직전 티어표(순위 변동 표시용). 매주 업데이트에서 GG가 바뀌면 바뀌기 전 GG를 여기로 옮기고 v·at을 그 표의 버전·날짜로 고침
+// 직전 티어표(순위·점수 변동 표시용). 매주 업데이트에서 GG가 바뀌면 바뀌기 전 GG를 tier로 옮기고 v·at을 그 표의 버전·날짜로 고침
+// PERF_NAMU(나무위키 점수)를 바꿀 때는 바뀌기 전 값을 namu: { id: 점수 }로 함께 남김(바뀐 캐릭터만 넣어도 됨)
 const GG_NOW = { v: '7.2', at: '2026-11-04' };
 const GG_PREV = { v: '7.1', at: '2026-09-23', tier: {
   'traveler-pyro':'B', 'traveler-hydro':'D', 'traveler-anemo':'D', 'traveler-electro':'C', 'traveler-dendro':'B', 'traveler-cryo':'SS', 'traveler-geo':'D',
@@ -299,11 +300,30 @@ function markAlt(sl) {
   return sl;
 }
 GP.perfAt = (id, cons = null) => Math.max(...GP.slotsAt(id, cons).map(x => x.perf));
-// 직전 티어표 대비 변동: 가장 높은 칸 등급 기준. d > 0 이면 올라감
+// 직전 티어표 대비 변동: 종합 점수(0.6×GamsGo 등급 + 0.4×나무위키) 기준. 점수가 오르면 올라감, 떨어지면 내려감(등급이 같아도)
+// 직전 점수 = 직전 등급(GG_PREV.tier) + 직전 나무위키 점수(GG_PREV.namu, 없으면 지금 PERF_NAMU)
 const TIER_ORDER = ['D', 'C', 'B', 'A', 'A+', 'S', 'SS'];
+GP.prevScore = id => {
+  const t = GG_PREV.tier[id];
+  if (!t) return null;
+  const n = (GG_PREV.namu && GG_PREV.namu[id] != null) ? GG_PREV.namu[id] : (PERF_NAMU[id] ?? null);
+  return n != null ? Math.round(0.6 * GG_SCORE[t] + 0.4 * n) : GG_SCORE[t];
+};
+// 점수 순 전체 순위(같은 점수는 같은 순위)
+const rankOf = get => {
+  const xs = Object.keys(GP.DB).map(id => [id, get(id)]).filter(x => x[1] != null).sort((a, b) => b[1] - a[1]), m = {};
+  xs.forEach(([id, v], i) => { m[id] = i && v === xs[i - 1][1] ? m[xs[i - 1][0]] : i + 1; });
+  m._n = xs.length;
+  return m;
+};
+let RANKS = null;
+// → { now, prev(등급), sNow, sPrev(점수), ds(점수 차), rNow, rPrev(전체 순위), dr(순위 계단, +면 올라감), d(점수 방향 -1·0·1), isNew }
 GP.tierChange = id => {
-  const now = GG[id], prev = GG_PREV.tier[id];
+  const now = GG[id];
   if (!now) return null;
-  if (!prev) return { now, prev: null, d: 0, isNew: true };
-  return { now, prev, d: TIER_ORDER.indexOf(now) - TIER_ORDER.indexOf(prev), isNew: false };
+  if (!RANKS) RANKS = { now: rankOf(x => GG[x] ? GP.DB[x].perf : null), prev: rankOf(GP.prevScore) };
+  const sNow = GP.DB[id].perf, sPrev = GP.prevScore(id), rNow = RANKS.now[id], nNow = RANKS.now._n, nPrev = RANKS.prev._n;
+  if (sPrev == null) return { now, prev: null, sNow, sPrev: null, ds: 0, rNow, rPrev: null, dr: 0, d: 0, isNew: true, nNow, nPrev };
+  const rPrev = RANKS.prev[id], ds = sNow - sPrev;
+  return { now, prev: GG_PREV.tier[id], sNow, sPrev, ds, rNow, rPrev, dr: rPrev - rNow, d: Math.sign(ds), isNew: false, nNow, nPrev };
 };

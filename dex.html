@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>캐릭터 도감 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261112d">
+<link rel="stylesheet" href="common.css?v=20261112e">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -40,6 +40,11 @@
 .fc .attrs { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; font-size: 13.5px; }
 .fc .attrs div { display: flex; justify-content: space-between; gap: 6px; border-bottom: 1px dashed rgb(0 0 0 / .15); padding: 2px 0; }
 .fc .attrs b { font-weight: 900; font-variant-numeric: tabular-nums; }
+.fc .mebadge { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 10.5px; font-weight: 900; background: #2F9D60; color: #fff; padding: 1px 8px; border-radius: 999px; z-index: 1; white-space: nowrap; }
+.viewseg { margin-bottom: 8px; width: 100%; display: flex; } .viewseg button { flex: 1; }
+.ctab .me { font-size: 10.5px; font-weight: 900; background: #2F9D60; color: #fff; padding: 0 6px; border-radius: 999px; }
+#add-mine { font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-width: 220px; }
+.ag .full { grid-column: 1 / -1; }
 .fc .est { position: absolute; top: 10px; right: 12px; font-size: 10.5px; font-weight: 900; background: rgb(0 0 0 / .55); color: #fff; padding: 1px 6px; border-radius: 999px; z-index: 1; }
 .ctrl { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: rgb(14 19 32 / .6); }
@@ -103,16 +108,16 @@
 .ctab .bar i { display: block; height: 100%; background: color-mix(in srgb, var(--gold) 55%, transparent); }
 .ctab .win { color: var(--good); font-weight: 900; }
 .ctab .win .bar i { background: var(--good); }
-@media (max-width: 820px) { .detail { grid-template-columns: 1fr; } .detail .fcw { max-width: 340px; margin: 0 auto; width: 100%; } }
+@media (max-width: 820px) { .detail { grid-template-columns: minmax(0, 1fr); } .detail .fcw { max-width: 340px; margin: 0 auto; width: 100%; } }
 @media (max-width: 640px) { .cmp-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cmp-cards .fc .attrs { grid-template-columns: 1fr; font-size: 12.5px; } .fc .ovr { font-size: 34px; } .ctab th { width: 72px; } }
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261112d"></script>
+<script src="shell.js?v=20261112e"></script>
 <div class="wrap">
   <header class="top">
     <h1><span class="star">✦</span> 캐릭터 도감</h1>
-    <p class="sub">캐릭터를 고르면 선수 카드처럼 종합 능력치가 나오고, 운명의 자리(C0~C6)와 레벨을 바꾸면 바로 다시 계산합니다. 특성·고유 특성·운명의 자리 설명을 보고, 최대 3명을 나란히 비교할 수 있습니다.</p>
+    <p class="sub">캐릭터를 고르면 선수 카드처럼 종합 능력치가 나오고, 운명의 자리(C0~C6)와 레벨을 바꾸면 바로 다시 계산합니다. 특성·고유 특성·운명의 자리 설명을 보고, 최대 3명을 나란히 비교할 수 있습니다. 보유 캐릭터는 <b>내 캐릭터</b>(내 돌파·레벨·무기·실제 성유물) 카드로도 넣을 수 있어, 같은 캐릭터의 내 육성 상태와 기본(C0 · 추천 세팅)을 나란히 볼 수도 있습니다.</p>
   </header>
 
   <div class="filters">
@@ -129,35 +134,61 @@
   <p class="foot-note">종합(OVR) = 그 운명의 자리에서의 성능 점수(티어표와 같은 값: GamsGo 등급 60% + 나무위키 평가 40%, C1~C5는 명함·풀돌 표 사이 추정) × 레벨 계수(핵심 스탯 기초값이 Lv.90의 몇 %인지의 제곱근 — 파티 감정소의 레벨 감점과 같은 방식) × 성유물 계수(0.75 + 0.25 × 성유물 가치: 세트 50% — 추천 4세트 1위 1.0, 순위마다 −0.06, 추천 밖 0.6, 2+2 0.75, 없음 0.35 — + 주옵 25% + 부옵 수준 25%) × 무기 계수(0.75 + 0.25 × 무기 가치. 무기 가치는 파티 감정소와 같이 추천 1위 1.0에서 순위가 내려갈수록 줄고, 추천 밖은 성급별 값, 재련마다 조금 오르며, 무기 레벨이 낮으면 공격력 비율만큼 깎임). 카드의 공격력은 캐릭터 + 무기 기초 공격력이고, 최종 스탯은 여기에 5성 +20 성유물 주옵(꽃 HP 4780 · 깃털 공격력 311 · 시계·성배·왕관), 부옵 수준(다섯 부위 유효 옵션 합 보통 20 · 좋음 28 · 종결 36회를 추천 부옵 상위 4개에 1 · 1 · 0.8 · 0.6 비율로 나눈 가정치), 2세트 스탯 효과를 더한 값입니다(4세트·무기 효과처럼 조건이 붙는 것은 뺌). HP·공격력·방어력·돌파 스탯은 무기·성유물을 뺀 캐릭터 기초값이며, 경계 레벨(20·40·50·60·70·80)은 돌파한 뒤 값입니다. 특성·운명의 자리 설명, 기초 스탯, 무기 스탯·재련 효과는 <a href="https://github.com/theBowja/genshin-db" target="_blank" rel="noopener">genshin-db</a>(게임 데이터, 2026년 11월)에서 가져왔습니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
 </div>
 
-<script src="chars.js?v=20261112d"></script>
-<script src="dex/stats.js?v=20261112d"></script>
-<script src="builds.js?v=20261112d"></script>
-<script src="weapons.js?v=20261112d"></script>
-<script src="gear.js?v=20261112d"></script>
-<script src="dex/artifacts.js?v=20261112d"></script>
-<script src="dex/weapons.js?v=20261112d"></script>
+<script src="chars.js?v=20261112e"></script>
+<script src="dex/stats.js?v=20261112e"></script>
+<script src="builds.js?v=20261112e"></script>
+<script src="weapons.js?v=20261112e"></script>
+<script src="gear.js?v=20261112e"></script>
+<script src="dex/artifacts.js?v=20261112e"></script>
+<script src="dex/weapons.js?v=20261112e"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster();
 const PREF = GP.KEY + ':dex';
-let st = { q: '', el: '', mine: false, cur: '', cmp: [] };
+let st = { q: '', el: '', mine: false, cur: '', cmp: [], view: 'me' };
+// 카드 열쇠: 'hutao' = 기본(C0 · Lv.90 · 추천 무기·성유물), 'me:hutao' = 내 캐릭터(보유 목록의 돌파·레벨·무기·실제 성유물)
+const idOf = k => k.replace(/^me:/, ''), isMe = k => k.startsWith('me:');
+const okKey = k => typeof k === 'string' && !!GP.DB[idOf(k)] && (!isMe(k) || !!own[idOf(k)]);
 try { st = { ...st, ...JSON.parse(localStorage.getItem(PREF)) }; } catch (e) {}
-// 캐릭터별 보기 설정(돌파·레벨). 내 캐릭터는 처음에 내 값, 아니면 C0 · Lv.90
+// 카드별 보기 설정(돌파·레벨·무기·성유물). 내 캐릭터 카드는 처음에 내 값, 기본 카드는 C0 · Lv.90 · 추천
 const conf = {};
 // 무기: 내 캐릭터는 장착 무기, 아니면 추천 1위(추천이 없으면 그 종류의 첫 무기) · R1 · Lv.90
 const recList = id => ((WEAPON_REC[id] && WEAPON_REC[id].list) || []).filter(n => DEX_WEAPONS[n]);
 const weaponsFor = id => (WEAPONS_BY_TYPE[GP.DB[id].wp] || []).filter(n => DEX_WEAPONS[n]);
-function confOf(id) {
-  if (conf[id]) return conf[id];
-  const o = own[id], def = recList(id)[0] || weaponsFor(id)[0] || '';
+// 내 성유물의 실제 부옵 합계와 유효 옵션 횟수(추천 부옵만, 상승치 평균 85% 기준)
+function realSubs(id, arts) {
+  const b = BUILDS[id], good = new Set((b ? b.subs : ['치명타', '공격력%', '원소 충전 효율']).flatMap(x => x === '치명타' ? ['치명타 확률', '치명타 피해'] : [x]));
+  const tot = {}; let R = 0;
+  for (const a of arts) for (const [k, v] of a.subs || []) {
+    if (!ROLL_MAX[k] || !(v > 0)) continue;
+    tot[k] = (tot[k] || 0) + v;
+    if (good.has(k)) R += v / (ROLL_MAX[k] * AVG_ROLL);
+  }
+  return { tot, R, n: arts.length };
+}
+function confOf(key) {
+  if (conf[key]) return conf[key];
+  const id = idOf(key), o = isMe(key) ? own[id] : null, def = recList(id)[0] || weaponsFor(id)[0] || '';
   const b = BUILDS[id], topSet = b ? (b.sets.find(x => x.set) || {}).set || '' : '';
   const ownMain = slot => { const a = o && (o.arts || []).find(x => x.slot === slot); return a && a.main ? a.main[0] : null; };
   const mains = {};
   for (const slot of ['sands', 'goblet', 'circlet']) mains[slot] = ownMain(slot) || (b && b.main[slot][0]) || SLOTS[slot].main[0];
-  return conf[id] = { cons: o ? o.cons || 0 : 0, lv: o ? o.lv || 90 : 90,
+  const arts = o ? (o.arts || []).filter(a => a && a.main) : [];
+  // 착용 성유물 세트: 보유 목록에 적힌 세트, 없으면 실제 성유물에서 4개 이상(4세트)·2개씩(2+2) 센 것
+  let sa = o && o.sa ? o.sa : '', sb = o && o.sa ? o.sb || '' : '';
+  if (o && !sa && arts.length) {
+    const cnt = {}; for (const a of arts) if (a.set) cnt[a.set] = (cnt[a.set] || 0) + 1;
+    const two = Object.keys(cnt).filter(n => cnt[n] >= 2).sort((a, b) => cnt[b] - cnt[a]);
+    if (two[0]) { sa = two[0]; sb = cnt[two[0]] >= 4 ? '' : two[1] || ''; }
+  }
+  const real = arts.some(a => (a.subs || []).length) ? realSubs(id, arts) : null;
+  return conf[key] = { cons: o ? o.cons || 0 : 0, lv: o ? o.lv || 90 : 90,
     wn: o && o.wn && DEX_WEAPONS[o.wn] ? o.wn : def, wr: o && o.wn && DEX_WEAPONS[o.wn] ? o.wr || 1 : 1, wlv: o && o.wl ? o.wl : 90,
-    sa: o && o.sa ? o.sa : topSet, sb: o && o.sa ? o.sb || '' : '', mains, subq: 1 };
+    sa: o ? sa : topSet, sb: o ? sb : '', mains, subq: real ? 'real' : 1, real };
 }
+// 부옵 수준 이름과 유효 횟수(내 실제 성유물이면 실제 횟수)
+const subName = c => c.subq === 'real' ? `내 실제 부옵 (유효 ${c.real.R.toFixed(1)}회)` : SUBQ[c.subq][1];
+const subRolls = c => c.subq === 'real' ? c.real.R : SUBQ[c.subq][0];
 // ───────── 성유물 ─────────
 // 5성 +20 주옵 수치(%는 퍼센트 포인트)
 const MAIN_VAL = { 'HP': 4780, '공격력': 311, 'HP%': 46.6, '공격력%': 46.6, '방어력%': 58.3, '원소 마스터리': 186.5, '원소 충전 효율': 51.8,
@@ -195,7 +226,7 @@ function finalStats(id, c, b, w) {
   if (w) put(w.sp, pp(w.sp, w.spv));
   put('HP', MAIN_VAL.HP); put('공격력', MAIN_VAL['공격력']);
   for (const slot of ['sands', 'goblet', 'circlet']) put(c.mains[slot], MAIN_VAL[c.mains[slot]] || 0);
-  for (const [k, v] of Object.entries(subAlloc(id, c.subq))) put(k, v);
+  for (const [k, v] of Object.entries(c.subq === 'real' ? c.real.tot : subAlloc(id, c.subq))) put(k, v);
   const on = setsOn(c);
   for (const nm of c.sb && c.sb !== c.sa ? on : on.slice(0, 1)) { const x = setStat(nm, d.el); if (x) put(x[0], x[1]); }
   const dmgKey = d.crit && d.scale !== 'em' ? `${GP.EL[d.el]} 피해%` : null;
@@ -211,7 +242,7 @@ function artQ(id, c) {
   const setV = !c.sa ? 0.35 : c.sb && c.sb !== c.sa ? 0.75 : i >= 0 ? Math.max(0.6, 1 - 0.06 * i) : 0.6;
   const MV = { best: 1, fixed: 1, ok: 0.75, bad: 0.2 };
   const mainV = ['sands', 'goblet', 'circlet'].reduce((a, slot) => a + MV[mainVerdict(slot, c.mains[slot], id)], 0) / 3;
-  return { v: 0.5 * setV + 0.25 * mainV + 0.25 * c.subq / 3, setRank: c.sb && c.sb !== c.sa ? null : i, mainV };
+  return { v: 0.5 * setV + 0.25 * mainV + 0.25 * Math.min(1, subRolls(c) / 36), setRank: c.sb && c.sb !== c.sa ? null : i, mainV };
 }
 const setIcon = n => DEX_SETS[n] && DEX_SETS[n][2] ? `https://enka.network/ui/${DEX_SETS[n][2]}.png` : '';
 const setLabel = c => !c.sa ? '세트 없음' : c.sb && c.sb !== c.sa ? `${c.sa} 2 + ${c.sb} 2` : `${c.sa} 4세트`;
@@ -245,21 +276,21 @@ function weaponQ(id, c) {
 const KEY = { hp: 'hp', atk: 'atk', def: 'def', em: 'atk' };
 const POS_SHORT = { main: '메인', sub: '서브', sup: '서폿' };
 // 선수 카드에 쓸 값 묶음
-function card(id) {
-  const d = GP.DB[id], c = confOf(id), b = baseAt(id, c.lv), b90 = baseAt(id, 90);
+function card(key) {
+  const id = idOf(key), d = GP.DB[id], c = confOf(key), b = baseAt(id, c.lv), b90 = baseAt(id, 90);
   const sls = GP.slotsAt(id, c.cons), best = sls.find(x => !x.alt) || sls[0];
   const k = KEY[d.scale] || 'atk';
   const lvf = b && b90 ? Math.sqrt(b[k] / b90[k]) : 1;
   const w = weaponAt(c.wn, c.wlv), wq = weaponQ(id, c), wf = 0.75 + 0.25 * wq.v;
   const aq = artQ(id, c), af = 0.75 + 0.25 * aq.v, fs = finalStats(id, c, b, w);
-  return { d, c, b, w, wq, wf, aq, af, fs, sls, best, lvf, ovr: Math.round(best.perf * lvf * wf * af), est: sls.some(x => x.est) };
+  return { key, me: isMe(key), d, c, b, w, wq, wf, aq, af, fs, sls, best, lvf, ovr: Math.round(best.perf * lvf * wf * af), est: sls.some(x => x.est) };
 }
 const fmtSp = (sp, v) => PCT(sp) ? `${(v * 100).toFixed(1)}%` : Math.round(v).toString();
 const spShort = sp => sp.replace('치명타 ', '치').replace('원소 충전 효율', '원충').replace('원소 마스터리', '마스터리').replace(' 피해%', '피해').replace('치유 보너스', '치유');
-function fcard(id) {
-  const x = card(id), d = x.d, u = GP.iconUrl(id), b = x.b;
+function fcard(key) {
+  const x = card(key), d = x.d, u = GP.iconUrl(d.id), b = x.b;
   const roleTier = p => { const s = x.sls.find(y => y.pos === p); return s ? s.perf : '–'; };
-  return `<div class="fc r${d.r}" style="--c:var(--${d.el})">${x.est ? '<span class="est">추정</span>' : ''}
+  return `<div class="fc r${d.r}" style="--c:var(--${d.el})">${x.est ? '<span class="est">추정</span>' : ''}${x.me ? '<span class="mebadge">내 캐릭터</span>' : ''}
     <div class="top"><div><div class="ovr">${x.ovr}</div><div class="pos">${POS_SHORT[x.best.pos]}</div><div class="el" title="${GP.EL[d.el]}"></div></div>
       <div class="face">${u ? `<img src="${u}" alt="">` : ''}</div></div>
     <div class="nm">${GP.esc(d.name)}</div>
@@ -275,11 +306,11 @@ function fcard(id) {
       <div><span>원충</span><b>${d.er}%</b></div>
     </div>
     ${x.w ? `<div class="wpn"><b>${'★'.repeat(x.w.r)} ${GP.esc(x.c.wn)} R${x.c.wr}</b><span>Lv.${x.c.wlv} · 공 ${Math.round(x.w.atk)} · ${spShort(x.w.sp)} ${fmtSp(x.w.sp, x.w.spv)}${x.wq.rank >= 0 ? ` · 추천 ${x.wq.rank + 1}위` : ''}</span></div>` : ''}
-    <div class="art">${x.c.sa && setIcon(x.c.sa) ? `<img src="${setIcon(x.c.sa)}" alt="">` : ''}<b>${GP.esc(setLabel(x.c))}</b><span>${['sands', 'goblet', 'circlet'].map(k => mainShort(x.c.mains[k])).join('/')} · 부옵 ${SUBQ[x.c.subq][1]}</span></div></div>`;
+    <div class="art">${x.c.sa && setIcon(x.c.sa) ? `<img src="${setIcon(x.c.sa)}" alt="">` : ''}<b>${GP.esc(setLabel(x.c))}</b><span>${['sands', 'goblet', 'circlet'].map(k => mainShort(x.c.mains[k])).join('/')} · 부옵 ${x.c.subq === 'real' ? `실제 ${x.c.real.R.toFixed(0)}회` : SUBQ[x.c.subq][1]}</span></div></div>`;
 }
-function controls(id, where) {
-  const c = confOf(id);
-  return `<div class="ctrl" data-id="${id}" data-where="${where}">
+function controls(key, where) {
+  const c = confOf(key), id = idOf(key);
+  return `<div class="ctrl" data-id="${key}" data-where="${where}">
     <div class="seg" role="group" aria-label="운명의 자리">${[0, 1, 2, 3, 4, 5, 6].map(k => `<button type="button" data-cons="${k}" aria-pressed="${c.cons === k}">C${k}</button>`).join('')}</div>
     <div class="lvrow"><span>레벨</span><input type="range" min="1" max="90" value="${c.lv}" data-lv aria-label="레벨"><b>Lv.${c.lv}</b></div>
     <div class="wrow"><select data-wn aria-label="무기">${weaponOpts(id, c.wn)}</select>
@@ -289,7 +320,8 @@ function controls(id, where) {
       <label class="full">세트 (4세트, 또는 2+2의 첫째)<select data-sa>${setOpts(id, c.sa, true)}</select></label>
       <label class="full">2+2의 둘째 (비우면 4세트)<select data-sb>${setOpts(id, c.sb, false)}</select></label>
       ${['sands', 'goblet', 'circlet'].map(slot => `<label>${SLOTS[slot].n}<select data-main="${slot}">${mainOpts(id, slot, c.mains[slot])}</select></label>`).join('')}
-      <label>부옵 수준<select data-subq>${SUBQ.map(([n, t], i) => `<option value="${i}"${c.subq === i ? ' selected' : ''}>${t}${n ? ` (유효 ${n}회)` : ''}</option>`).join('')}</select></label>
+      <label>부옵 수준<select data-subq>${c.real ? `<option value="real"${c.subq === 'real' ? ' selected' : ''}>${GP.esc(subName({ subq: 'real', real: c.real }))}</option>` : ''}${SUBQ.map(([n, t], i) => `<option value="${i}"${c.subq === i ? ' selected' : ''}>${t}${n ? ` (유효 ${n}회)` : ''}</option>`).join('')}</select></label>
+      ${isMe(key) ? `<button type="button" class="btn sm full" data-act="me-reset" data-id="${key}">내 실제 값으로 되돌리기</button>` : ''}
     </div></details>
   </div>`;
 }
@@ -314,14 +346,14 @@ const dexCache = {};
 let infoTab = 'skills';
 const fmt = s => GP.esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
 async function loadDex(id) {
-  if (!dexCache[id]) dexCache[id] = fetch(`dex/${id}.json?v=20261112d`).then(r => r.ok ? r.json() : null).catch(() => null);
+  if (!dexCache[id]) dexCache[id] = fetch(`dex/${id}.json?v=20261112e`).then(r => r.ok ? r.json() : null).catch(() => null);
   return dexCache[id];
 }
 async function renderInfo(id) {
   const box = $('#info'); if (!box) return;
   const j = await loadDex(id);
   if (st.cur !== id) return;
-  const c = confOf(id);
+  const key = detailKey(), c = confOf(key);
   if (!j) { box.innerHTML = '<p class="muted">이 캐릭터의 특성 자료를 불러오지 못했습니다.</p>'; return; }
   const TABS = [['skills', '특성'], ['passives', '고유 특성'], ['cons', `운명의 자리 · ${GP.esc(j.cons_name)}`], ['weapon', '무기'], ['art', '성유물'], ['about', '소개']];
   let body;
@@ -338,13 +370,13 @@ async function renderInfo(id) {
       : '<p class="muted">이 무기의 자료가 없습니다.</p>';
   }
   else if (infoTab === 'art') {
-    const x = card(id), on = c.sa ? (c.sb && c.sb !== c.sa ? [[c.sa, 2], [c.sb, 2]] : [[c.sa, 4]]) : [];
-    const al = subAlloc(id, c.subq), f = x.fs;
+    const x = card(key), on = c.sa ? (c.sb && c.sb !== c.sa ? [[c.sa, 2], [c.sb, 2]] : [[c.sa, 4]]) : [];
+    const al = c.subq === 'real' ? c.real.tot : subAlloc(id, c.subq), f = x.fs;
     body = (on.length ? on.map(([n, k]) => `<div class="sk"><div class="seteff">${setIcon(n) ? `<img src="${setIcon(n)}" alt="">` : ''}<div><div class="h"><b>${GP.esc(n)}</b><span>${k}세트</span></div>
         <div class="d"><b>2세트</b> ${GP.esc((DEX_SETS[n] || [''])[0])}${k === 4 ? `<br><b>4세트</b> ${GP.esc((DEX_SETS[n] || ['', ''])[1])}` : ''}</div></div></div></div>`).join('') : '<p class="muted">세트를 고르지 않았습니다.</p>')
       + `<div class="sk"><div class="h"><b>주옵 · 부옵</b><span>성유물 가치 ×${x.af.toFixed(2)}</span></div>
         <div class="d">${['sands', 'goblet', 'circlet'].map(k => `${SLOTS[k].n} <b>${GP.esc(c.mains[k])}</b> ${({ best: '추천 1순위', ok: '추천 대안', bad: '추천 아님' })[mainVerdict(k, c.mains[k], id)]}`).join('<br>')}
-        <br>부옵 ${SUBQ[c.subq][1]}${Object.keys(al).length ? ': ' + Object.entries(al).map(([k, v]) => `${GP.esc(k)} +${k === '원소 마스터리' || k === 'HP' || k === '공격력' || k === '방어력' ? Math.round(v) : v.toFixed(1) + '%'}`).join(' · ') : ''}</div></div>
+        <br>부옵 ${GP.esc(subName(c))}${Object.keys(al).length ? ': ' + Object.entries(al).map(([k, v]) => `${GP.esc(k)} +${k === '원소 마스터리' || k === 'HP' || k === '공격력' || k === '방어력' ? Math.round(v) : v.toFixed(1) + '%'}`).join(' · ') : ''}</div></div>
       ${f ? `<div class="sk"><div class="h"><b>최종 스탯</b><span>캐릭터 + 무기 + 성유물 · 4세트·무기 효과처럼 조건이 붙는 것은 뺌</span></div><div class="fstat">
         <div><span>HP</span><b>${Math.round(f.hp).toLocaleString()}</b></div><div><span>공격력</span><b>${Math.round(f.atk).toLocaleString()}</b></div><div><span>방어력</span><b>${Math.round(f.def).toLocaleString()}</b></div>
         <div><span>치명타 확률</span><b>${f.cr.toFixed(1)}%</b></div><div><span>치명타 피해</span><b>${f.cd.toFixed(1)}%</b></div><div><span>원소 충전 효율</span><b>${f.er.toFixed(1)}%</b></div>
@@ -359,31 +391,37 @@ async function renderInfo(id) {
 // ───────── 그리기 ─────────
 $('#els').innerHTML = `<button type="button" class="elchip" data-el="">전체</button>` + GP.ORDER.map(el => `<button type="button" class="elchip" data-el="${el}"><span class="dot" style="--c:var(--${el})"></span>${GP.EL[el]}</button>`).join('');
 $('#mine').disabled = !Object.keys(own).length;
-const save = () => { try { localStorage.setItem(PREF, JSON.stringify({ q: st.q, el: st.el, mine: st.mine, cur: st.cur, cmp: st.cmp })); } catch (e) {} };
+const save = () => { try { localStorage.setItem(PREF, JSON.stringify({ q: st.q, el: st.el, mine: st.mine, cur: st.cur, cmp: st.cmp, view: st.view })); } catch (e) {} };
+// 위쪽 상세 카드: 보유 캐릭터면 '내 캐릭터'/'기본' 중 고른 쪽
+const detailKey = () => own[st.cur] && st.view !== 'base' ? 'me:' + st.cur : st.cur;
+const cmpKeys = () => st.cmp.filter(okKey).slice(0, 3);
 function renderPick() {
   for (const b of document.querySelectorAll('.elchip')) b.setAttribute('aria-pressed', b.dataset.el === st.el);
   $('#q').value = st.q; $('#mine').checked = st.mine;
   const list = Object.values(GP.DB).filter(d => (!st.el || d.el === st.el) && (!st.mine || own[d.id]) && (!st.q.trim() || d.name.includes(st.q.trim())))
     .sort((a, b) => GP.perfAt(b.id) - GP.perfAt(a.id) || b.r - a.r || a.name.localeCompare(b.name, 'ko'));
   $('#pick').innerHTML = list.map(d => `<button type="button" class="pt" data-id="${d.id}" aria-current="${st.cur === d.id}" title="${GP.esc(d.name)}" style="--c:var(--${d.el})">
-    ${st.cmp.includes(d.id) ? '<span class="in">비교</span>' : ''}<span class="pic r${d.r}">${GP.iconUrl(d.id) ? `<img src="${GP.iconUrl(d.id)}" alt="" loading="lazy" decoding="async">` : ''}</span><span class="n">${GP.esc(d.name)}</span></button>`).join('')
+    ${st.cmp.some(k => idOf(k) === d.id) ? '<span class="in">비교</span>' : ''}<span class="pic r${d.r}">${GP.iconUrl(d.id) ? `<img src="${GP.iconUrl(d.id)}" alt="" loading="lazy" decoding="async">` : ''}</span><span class="n">${GP.esc(d.name)}</span></button>`).join('')
     || '<p class="muted" style="grid-column:1/-1;margin:8px">조건에 맞는 캐릭터가 없습니다.</p>';
 }
 function renderDetail() {
   const id = st.cur;
   if (!GP.DB[id]) { $('#detail').innerHTML = ''; return; }
-  const inCmp = st.cmp.includes(id);
-  $('#detail').innerHTML = `<div class="fcw">${fcard(id)}${controls(id, 'detail')}
-      <div class="acts" style="margin-top:10px"><button type="button" class="btn sm" data-act="cmp-toggle">${inCmp ? '비교에서 빼기' : '+ 비교에 추가'}</button><a class="btn sm" href="tier.html">티어표</a><a class="btn sm" href="guide.html#${id}">추천 성유물</a><a class="btn sm" href="stats.html#${id}">종결 스탯</a></div></div>
+  const key = detailKey(), inCmp = st.cmp.includes(key);
+  const view = own[id] ? `<div class="seg viewseg" role="group" aria-label="카드 종류"><button type="button" data-view="me" aria-pressed="${isMe(key)}">내 캐릭터</button><button type="button" data-view="base" aria-pressed="${!isMe(key)}">기본 (C0 · 추천)</button></div>` : '';
+  $('#detail').innerHTML = `<div class="fcw">${view}${fcard(key)}${controls(key, 'detail')}
+      <div class="acts" style="margin-top:10px"><button type="button" class="btn sm" data-act="cmp-toggle">${inCmp ? '비교에서 빼기' : `+ ${isMe(key) ? '내 캐릭터로 ' : ''}비교에 추가`}</button><a class="btn sm" href="tier.html">티어표</a><a class="btn sm" href="guide.html#${id}">추천 성유물</a><a class="btn sm" href="stats.html#${id}">종결 스탯</a></div></div>
     <div class="info" id="info"><p class="muted">불러오는 중…</p></div>`;
   renderInfo(id);
 }
 // 비교: 카드 3칸 + 항목별 표(가장 높은 값 강조)
 function renderCmp() {
-  const ids = st.cmp.filter(id => GP.DB[id]).slice(0, 3);
+  const ids = cmpKeys();
+  const mineOpts = Object.keys(own).filter(id => GP.DB[id] && !ids.includes('me:' + id)).sort((a, b) => GP.DB[a].name.localeCompare(GP.DB[b].name, 'ko'));
+  const addMine = mineOpts.length && ids.length < 3 ? `<select id="add-mine" aria-label="내 캐릭터 넣기"><option value="">+ 내 캐릭터 넣기</option>${mineOpts.map(id => `<option value="${id}">${GP.esc(GP.DB[id].name)} · C${own[id].cons || 0} · Lv.${own[id].lv || 90}</option>`).join('')}</select>` : '';
   const slots = [0, 1, 2].map(i => ids[i] ? `<div class="slot">${fcard(ids[i])}${controls(ids[i], 'cmp')}<button type="button" class="btn sm" data-act="cmp-remove" data-id="${ids[i]}">빼기</button></div>`
-    : `<div class="slot"><div class="ph">위에서 캐릭터를 고른 뒤<br><b>+ 비교에 추가</b>를 누르세요</div></div>`).join('');
-  $('#cmp').innerHTML = `<div class="bar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h2>캐릭터 비교 <span class="muted" style="font-size:14px">${ids.length}/3</span></h2>${ids.length ? '<button type="button" class="btn sm" data-act="cmp-clear">비교 비우기</button>' : ''}</div>
+    : `<div class="slot"><div class="ph">위에서 캐릭터를 고른 뒤<br><b>+ 비교에 추가</b>를 누르세요${Object.keys(own).length ? '<br>또는 위의 <b>내 캐릭터 넣기</b>' : ''}</div></div>`).join('');
+  $('#cmp').innerHTML = `<div class="bar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h2>캐릭터 비교 <span class="muted" style="font-size:14px">${ids.length}/3</span></h2><div style="display:flex;gap:6px;flex-wrap:wrap">${addMine}${ids.length ? '<button type="button" class="btn sm" data-act="cmp-clear">비교 비우기</button>' : ''}</div></div>
     <div class="cmp-cards">${slots}</div><div id="cmp-table">${cmpTable(ids)}</div>`;
 }
 function cmpTable(ids) {
@@ -404,6 +442,7 @@ function cmpTable(ids) {
       ['총 기초 공격력', x => x.b && x.w ? x.b.atk + x.w.atk : null, v => v == null ? '–' : Math.round(v)],
       ['무기 계수', x => x.wf, v => '×' + v.toFixed(2)],
       ['성유물 계수', x => x.af, v => '×' + v.toFixed(2)],
+      ['유효 부옵 횟수', x => subRolls(x.c), v => v ? v.toFixed(1) + '회' : '0회'],
       ['최종 HP', x => x.fs?.hp ?? null, v => v == null ? '–' : Math.round(v).toLocaleString()],
       ['최종 공격력', x => x.fs?.atk ?? null, v => v == null ? '–' : Math.round(v).toLocaleString()],
       ['최종 방어력', x => x.fs?.def ?? null, v => v == null ? '–' : Math.round(v).toLocaleString()],
@@ -413,11 +452,11 @@ function cmpTable(ids) {
       ['원소 마스터리', x => x.fs?.em ?? null, v => v == null ? '–' : Math.round(v)],
       ['원소 피해 보너스', x => x.fs?.dmg ?? null, v => v == null ? '–' : v.toFixed(1) + '%'],
     ];
-    table = `<table class="ctab"><thead><tr><th></th>${xs.map(x => `<th>${GP.esc(x.d.name)} <span class="muted">C${x.c.cons} · Lv.${x.c.lv}</span></th>`).join('')}</tr></thead><tbody>
+    table = `<table class="ctab"><thead><tr><th></th>${xs.map(x => `<th>${x.me ? '<span class="me">내</span> ' : ''}${GP.esc(x.d.name)} <span class="muted">C${x.c.cons} · Lv.${x.c.lv}</span></th>`).join('')}</tr></thead><tbody>
       ${rows.map(([n, f, show]) => { const vs = xs.map(f), mx = Math.max(...vs.filter(v => v != null));
         return `<tr><th>${n}</th>${vs.map(v => `<td><div class="cell${v != null && v === mx && vs.filter(y => y === mx).length < vs.length ? ' win' : ''}"><span>${show(v)}</span><span class="bar"><i style="width:${v == null || !mx ? 0 : v / mx * 100}%"></i></span></div></td>`).join('')}</tr>`; }).join('')}
       <tr><th>무기</th>${xs.map(x => `<td>${x.w ? `${'★'.repeat(x.w.r)} ${GP.esc(x.c.wn)} R${x.c.wr} · Lv.${x.c.wlv}<br><span class="muted">${GP.esc(x.w.sp)} ${fmtSp(x.w.sp, x.w.spv)} · ${x.wq.rank >= 0 ? `추천 ${x.wq.rank + 1}위` : '추천 밖'}</span>` : '–'}</td>`).join('')}</tr>
-      <tr><th>성유물</th>${xs.map(x => `<td>${GP.esc(setLabel(x.c))}<br><span class="muted">${['sands', 'goblet', 'circlet'].map(k => GP.esc(x.c.mains[k])).join(' / ')} · 부옵 ${SUBQ[x.c.subq][1]}</span></td>`).join('')}</tr>
+      <tr><th>성유물</th>${xs.map(x => `<td>${GP.esc(setLabel(x.c))}<br><span class="muted">${['sands', 'goblet', 'circlet'].map(k => GP.esc(x.c.mains[k])).join(' / ')} · 부옵 ${GP.esc(subName(x.c))}</span></td>`).join('')}</tr>
       <tr><th>무기 효과</th>${xs.map(x => `<td class="weff" style="font-size:12.5px">${DEX_WEAPONS[x.c.wn] ? `<b>${GP.esc(DEX_WEAPONS[x.c.wn][7])}</b><br>${weaponEffect(x.c.wn, x.c.wr)}` : '–'}</td>`).join('')}</tr>
       <tr><th>돌파 스탯</th>${xs.map(x => `<td>${x.b ? `${GP.esc(x.b.sp)} ${fmtSp(x.b.sp, x.b.spv)}` : '–'}</td>`).join('')}</tr>
       <tr><th>핵심 스탯</th>${xs.map(x => `<td>${({ atk: '공격력', hp: '최대 HP', def: '방어력', em: '원소 마스터리' })[x.d.scale]} · 원충 ${x.d.er}%</td>`).join('')}</tr>
@@ -440,8 +479,8 @@ function refresh(id) {
       if (el.querySelector(sel).value !== v) el.querySelector(sel).value = v;
     el.querySelector('.lvrow b').textContent = `Lv.${c.lv}`;   // 첫 줄이 캐릭터 레벨
   }
-  if (st.cmp.includes(id) && $('#cmp-table')) $('#cmp-table').innerHTML = cmpTable(st.cmp.filter(x => GP.DB[x]).slice(0, 3));
-  if (id === st.cur) renderInfo(id);
+  if (st.cmp.includes(id) && $('#cmp-table')) $('#cmp-table').innerHTML = cmpTable(cmpKeys());
+  if (id === detailKey()) renderInfo(st.cur);
 }
 
 $('#pick').addEventListener('click', e => { const b = e.target.closest('.pt'); if (!b) return; st.cur = b.dataset.id; history.replaceState(null, '', '#' + st.cur); renderAll(); $('#detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
@@ -450,12 +489,18 @@ $('#q').addEventListener('input', e => { st.q = e.target.value; save(); renderPi
 $('#mine').addEventListener('change', e => { st.mine = e.target.checked; save(); renderPick(); });
 document.addEventListener('click', e => {
   const t = e.target.closest('.tabs2 [data-t]'); if (t) { infoTab = t.dataset.t; renderInfo(st.cur); return; }
+  const vb = e.target.closest('[data-view]'); if (vb) { st.view = vb.dataset.view; save(); renderDetail(); return; }
   const rb = e.target.closest('[data-wr]'); if (rb) { const id = rb.closest('.ctrl').dataset.id; confOf(id).wr = Number(rb.dataset.wr); refresh(id); return; }
   const cb = e.target.closest('[data-cons]'); if (cb) { const id = cb.closest('.ctrl').dataset.id; confOf(id).cons = Number(cb.dataset.cons); refresh(id); return; }
   const a = e.target.closest('[data-act]'); if (!a) return;
-  if (a.dataset.act === 'cmp-toggle') { st.cmp = st.cmp.includes(st.cur) ? st.cmp.filter(x => x !== st.cur) : [...st.cmp, st.cur].slice(-3); renderAll(); }
+  if (a.dataset.act === 'cmp-toggle') { const k = detailKey(); st.cmp = st.cmp.includes(k) ? st.cmp.filter(x => x !== k) : [...cmpKeys(), k].slice(-3); renderAll(); }
+  if (a.dataset.act === 'me-reset') { delete conf[a.dataset.id]; renderAll(); }
   if (a.dataset.act === 'cmp-remove') { st.cmp = st.cmp.filter(x => x !== a.dataset.id); renderAll(); }
   if (a.dataset.act === 'cmp-clear') { st.cmp = []; renderAll(); }
+});
+document.addEventListener('change', e => {
+  if (e.target.id !== 'add-mine' || !e.target.value) return;
+  st.cmp = [...cmpKeys(), 'me:' + e.target.value].slice(-3); renderAll();
 });
 document.addEventListener('input', e => {
   const ctl = e.target.closest('.ctrl'); if (!ctl) return;
@@ -466,14 +511,14 @@ document.addEventListener('input', e => {
   else if (e.target.matches('[data-sa]')) { c.sa = e.target.value; if (!c.sa) c.sb = ''; }
   else if (e.target.matches('[data-sb]')) c.sb = e.target.value;
   else if (e.target.matches('[data-main]')) c.mains[e.target.dataset.main] = e.target.value;
-  else if (e.target.matches('[data-subq]')) c.subq = Number(e.target.value);
+  else if (e.target.matches('[data-subq]')) c.subq = e.target.value === 'real' ? 'real' : Number(e.target.value);
   else return;
   refresh(id);
 });
 document.addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.remove(); }, true);
-// 주소: #캐릭터 또는 #cmp=a,b,c
+// 주소: #캐릭터 또는 #cmp=a,b,c (내 캐릭터는 me:hutao)
 const h = decodeURIComponent(location.hash.slice(1));
-if (h.startsWith('cmp=')) { st.cmp = h.slice(4).split(',').filter(id => GP.DB[id]).slice(0, 3); st.cur = st.cmp[0] || st.cur; }
+if (h.startsWith('cmp=')) { st.cmp = h.slice(4).split(',').filter(okKey).slice(0, 3); st.cur = st.cmp[0] ? idOf(st.cmp[0]) : st.cur; }
 else if (GP.DB[h]) st.cur = h;
 if (!GP.DB[st.cur]) st.cur = Object.keys(own).find(id => GP.DB[id]) || 'mitya';
 renderAll();
