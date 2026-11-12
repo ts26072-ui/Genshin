@@ -87,7 +87,11 @@ async def main():
     out = {
         'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
         'nickname': role.get('nickname', ''), 'ar': role.get('level'),
-        'summary': {k: stats.get(k) for k in ('active_day_number', 'achievement_number', 'avatar_number', 'spiral_abyss') if k in stats},
+        # 숫자 통계 전부(신의 눈동자 원소별 개수 *culus_number, 보물상자 종류별 개수 *_chest_number 등) + 나선 비경
+        'summary': {k: v for k, v in stats.items() if isinstance(v, (int, float)) and not isinstance(v, bool) or k == 'spiral_abyss'},
+        # 지역별 탐사도(%) — 지도에 보여 줌
+        'explore': [{'name': w.get('name', ''), 'pct': round((w.get('exploration_percentage') or 0) / 10, 1)}
+                    for w in idx.get('world_explorations') or [] if w.get('name')],
         'chars': [char_row(c, details['property_map']) for c in details['list']],
     }
     # 내용이 그대로면 파일을 건드리지 않음(갱신 시각만 바뀐 커밋이 쌓이지 않게)
