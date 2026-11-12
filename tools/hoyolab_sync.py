@@ -79,6 +79,33 @@ def char_row(c, pmap):
     }
 
 
+def cookie_hint(cookie, uid):
+    """쿠키가 거절된 이유 추정. 쿠키 값은 절대 출력하지 않고 항목 이름만 봄."""
+    names = {p.split('=', 1)[0].strip() for p in cookie.replace('\n', ';').split(';') if '=' in p}
+    tips = []
+    server = {'1': '중국', '2': '중국', '3': '중국', '5': '중국(B 서버)', '6': '미국', '7': '유럽', '8': '아시아', '9': 'TW·HK·MO'}.get(uid[:1] if len(uid) == 9 else uid[1:2] if len(uid) == 10 else '', '')
+    if server.startswith('중국'):
+        tips.append(f'UID가 {server} 서버라 HoYoLAB(글로벌) 쿠키로는 조회할 수 없습니다(미유셰 쿠키가 필요). HOYOLAB_COOKIE를 지우면 UID 쇼케이스로 받습니다.')
+    need = ['ltoken_v2', 'ltuid_v2', 'ltmid_v2']
+    miss = [n for n in need if n not in names]
+    if miss:
+        tips.append(f'쿠키에 {", ".join(miss)} 항목이 없습니다(들어 있는 항목: {", ".join(sorted(names)) or "없음"}). '
+                    'ltoken_v2는 HttpOnly라 주소창 javascript:document.cookie 로는 안 보입니다 — PC 브라우저 개발자 도구 → Application(저장소) → Cookies → hoyolab.com 에서 복사하세요.')
+    if any(c in cookie for c in '"\'') or cookie.strip().lower().startswith('cookie'):
+        tips.append('값에 따옴표나 "Cookie:" 같은 글자가 섞여 있습니다. ltoken_v2=값; ltuid_v2=값; ltmid_v2=값 형식만 넣으세요.')
+    if not tips:
+        tips.append('항목은 다 있으니 만료된 쿠키일 가능성이 큽니다. hoyolab.com에서 로그아웃하면 쿠키가 바로 무효가 되니, 다시 로그인해 새로 복사한 뒤 로그아웃하지 마세요. '
+                    'ltuid_v2가 그 UID의 HoYoverse 계정 번호와 같은지도 확인하세요(다른 계정 쿠키면 거절됨).')
+    return ' '.join(tips)
+
+
+def fallback_enka():
+    """쿠키가 안 되면 UID 쇼케이스(Enka)로라도 받음 — 아무것도 안 들어오는 것보다 낫게."""
+    print('쿠키 대신 UID 쇼케이스(Enka)로 받습니다.')
+    import runpy
+    runpy.run_path(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'enka_sync.py'), run_name='__main__')
+
+
 async def main():
     foreign_guard(OUT)
     cookie, uid = os.environ.get('HOYOLAB_COOKIE', '').strip(), os.environ.get('GENSHIN_UID', '').strip()
@@ -98,9 +125,11 @@ async def main():
             details['list'] += d.get('list', [])
             details['property_map'].update(d.get('property_map', {}))
     except genshin.InvalidCookies:
-        sys.exit('HoYoLAB 쿠키가 만료됐거나 틀렸습니다. HoYoLAB에 다시 로그인해 쿠키를 새로 넣어 주세요.')
+        print('::warning::HoYoLAB 쿠키가 거절됐습니다. ' + cookie_hint(cookie, str(uid)))
+        return fallback_enka()
     except genshin.DataNotPublic:
-        sys.exit('HoYoLAB 전적 기록이 비공개입니다. HoYoLAB → 전적 → 설정에서 "전적 기록 공개"와 "캐릭터 상세 정보 공개"를 켜 주세요.')
+        print('::warning::HoYoLAB 전적 기록이 비공개입니다. HoYoLAB → 전적 → 설정에서 "전적 기록 공개"와 "캐릭터 상세 정보 공개"를 켜 주세요.')
+        return fallback_enka()
     role = idx.get('role') or {}
     stats = idx.get('stats') or {}
     out = {
