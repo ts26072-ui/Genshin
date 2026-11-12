@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>종결 스탯 도감 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261112m">
+<link rel="stylesheet" href="common.css?v=20261113a">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -59,10 +59,11 @@ dialog::backdrop { background: rgb(10 12 24 / .55); }
 .links { display: flex; flex-wrap: wrap; gap: 6px; }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); margin: -6px 0 14px; align-items: center; }
 .legend i { display: inline-block; vertical-align: middle; margin-right: 5px; }
+.band.top { background: color-mix(in srgb, var(--gold) 45%, transparent); }
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261112m"></script>
+<script src="shell.js?v=20261113a"></script>
 <div class="wrap">
   <header class="top">
     <h1><span class="star">✦</span> 종결 스탯 도감</h1>
@@ -78,17 +79,18 @@ dialog::backdrop { background: rgb(10 12 24 / .55); }
   <div class="legend">
     <span><i style="width:22px;height:8px;border-radius:4px;background:color-mix(in srgb, var(--good) 35%, transparent)"></i>합격선 ~ 종결 구간</span>
     <span><i style="width:4px;height:14px;border-radius:2px;background:var(--ink)"></i>내 현재 값</span>
-    <span class="ok">종결</span><span class="mid">합격</span><span class="low">부족</span>
+    <span><i style="width:22px;height:8px;border-radius:4px;background:color-mix(in srgb, var(--gold) 45%, transparent)"></i>종결 ~ 최상위 구간</span>
+    <span class="ok">최상위 · 종결</span><span class="mid">합격</span><span class="low">부족</span>
   </div>
   <div class="list" id="list"></div>
   <dialog id="dlg" aria-label="캐릭터 종결 스탯"></dialog>
 
-  <p class="foot-note">카드를 누르면 그 캐릭터의 종결 스탯이 열립니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러옵니다. 목표치는 추천 주옵·부옵(genshin-builds.com v7.1)과 캐릭터 역할로 계산한 근사값이며, 공식 수치가 아닙니다. 치명 딜러는 치확 75/90%, 치피 210/260%(합격/종결)를 기준으로 서브 딜러·서포터는 조금 낮게 잡았고(2026년 11월에 예전 종결 기준을 합격선으로 내리고 종결을 올림), 원충은 캐릭터별 목표(파티 감정소와 같은 값)가 합격선, +20%가 종결입니다. 기준은 Lv.90 완성 캐릭터 기준이며 레벨에 따라 바뀌지 않습니다. '상위 약 N%'는 실제 순위 자료(akasha.cv 등)를 받을 수 없어, 항목마다 합격선을 0·종결을 1로 놓은 평균 위치를 합격선 ≈ 상위 35% · 종결 ≈ 상위 3%에 맞춘 곡선으로 바꾼 <b>추정치</b>입니다. 공격력·HP·방어력·마스터리는 캐릭터 상세 화면의 최종 수치 기준입니다. 무기·별자리·파티 버프에 따라 실제 필요한 값은 달라집니다.</p>
+  <p class="foot-note">카드를 누르면 그 캐릭터의 종결 스탯이 열립니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러옵니다. 목표치는 추천 주옵·부옵(genshin-builds.com v7.1)과 캐릭터 역할로 계산한 근사값이며, 공식 수치가 아닙니다. 치명 딜러는 치확 65/80/88%, 치피 150/200/240%(합격/종결/최상위)를 기준으로 서브 딜러·서포터는 조금 낮게 잡았습니다. 근거: 준종결 65/140 · 종결 80/200으로 정리한 세팅 글, 60~70% / 200%+를 목표로 적는 genshin-builds 빌드, 치확:치피 1:2 원칙. 최상위는 순위 사이트 상위 1% 안팎에서 흔히 말하는 성유물당 치명 수치 30 이상 수준입니다. 원충은 캐릭터별 목표(파티 감정소와 같은 값)에서 −10%가 합격선이고 목표가 종결이며, 넘쳐도 더 좋아지지 않아 최상위 단계가 없습니다. 기준은 Lv.90 완성 캐릭터 기준이며 레벨에 따라 바뀌지 않습니다. '상위 약 N%'는 실제 순위 자료(akasha.cv 등)를 받을 수 없어, 항목마다 합격선을 0·종결을 1로 놓은 평균 위치를 합격선 ≈ 상위 45% · 종결 ≈ 상위 10% · 최상위 ≈ 상위 1%에 맞춘 곡선으로 바꾼 <b>추정치</b>입니다. 공격력·HP·방어력·마스터리는 캐릭터 상세 화면의 최종 수치 기준입니다. 무기·별자리·파티 버프에 따라 실제 필요한 값은 달라집니다.</p>
 </div>
 
-<script src="chars.js?v=20261112m"></script>
-<script src="builds.js?v=20261112m"></script>
-<script src="gear.js?v=20261112m"></script>
+<script src="chars.js?v=20261113a"></script>
+<script src="builds.js?v=20261113a"></script>
+<script src="gear.js?v=20261113a"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster();
@@ -105,15 +107,15 @@ const ids = Object.keys(GP.DB).filter(id => BUILDS[id])
 const fmt = (v, unit) => unit === '%' ? `${v}%` : Number(v).toLocaleString();
 
 // 한 줄: 축은 합격선의 50%부터 종결의 125%까지. 축 밖의 값은 막대 양 끝(1~99%)에 붙여서 표시
-function line(label, [pass, end], unit, mine) {
-  const lo = pass * 0.5, hi = end * 1.25;
+function line(label, [pass, end, top], unit, mine) {
+  const lo = pass * 0.5, hi = (top || end) * 1.15;
   const pos = v => clamp((v - lo) / (hi - lo), 0, 1) * 100;
-  const s = mine != null ? stage(mine, [pass, end]) : null;
+  const s = mine != null ? stage(mine, [pass, end, top]) : null;
   return `<div class="srow">
     <div class="shead"><span class="k">${label}</span>${s ? `<span class="mine">${fmt(mine, unit)} <span class="tag ${STAGE_TXT[s][1]}">${STAGE_TXT[s][0]}</span></span>` : ''}</div>
-    <div class="track"><div class="rail"></div><div class="band" style="left:${pos(pass)}%;width:${pos(end) - pos(pass)}%"></div>
+    <div class="track"><div class="rail"></div><div class="band" style="left:${pos(pass)}%;width:${pos(end) - pos(pass)}%"></div>${top ? `<div class="band top" style="left:${pos(end)}%;width:${pos(top) - pos(end)}%"></div>` : ''}
       ${mine != null ? `<div class="me" style="left:${clamp(pos(mine), 1, 99)}%" title="내 값 ${fmt(mine, unit)}"></div>` : ''}</div>
-    <div class="vals">합격 ${fmt(pass, unit)} · <span class="ok">종결 ${fmt(end, unit)}</span>${s === 'short' ? ` · 합격까지 ${fmt(+(pass - mine).toFixed(1), unit)}` : s === 'pass' ? ` · 종결까지 ${fmt(+(end - mine).toFixed(1), unit)}` : ''}</div>
+    <div class="vals">합격 ${fmt(pass, unit)} · <span class="ok">종결 ${fmt(end, unit)}</span>${top ? ` · 최상위 ${fmt(top, unit)}` : ''}${s === 'end' && top ? ` · 최상위까지 ${fmt(+(top - mine).toFixed(1), unit)}` : ''}${s === 'short' ? ` · 합격까지 ${fmt(+(pass - mine).toFixed(1), unit)}` : s === 'pass' ? ` · 종결까지 ${fmt(+(end - mine).toFixed(1), unit)}` : ''}</div>
   </div>`;
 }
 // 파티 감정소의 핵심 스탯 입력값은 그 캐릭터의 핵심 스탯 하나뿐이라, 도감 기준 스탯과 같을 때만 비교
@@ -124,7 +126,8 @@ function verdict(id) {
   if (!c) return null;
   const myKey = myKeyOf(id, t);
   const checks = [t.crit && stage(c.cr, t.cr), t.crit && stage(c.cd, t.cd), stage(c.er, t.er), myKey != null && stage(myKey, t.key)].filter(Boolean);
-  const short = checks.filter(x => x === 'short').length, end = checks.filter(x => x === 'end').length;
+  const short = checks.filter(x => x === 'short').length, end = checks.filter(x => x === 'end' || x === 'top').length;
+  if (!short && checks.length && end === checks.length && checks.some(x => x === 'top')) return '<span class="chip ok">종결 · 최상위 포함</span>';
   return short ? `<span class="chip low">부족 ${short}개</span>` : end === checks.length ? '<span class="chip ok">전 항목 종결</span>' : '<span class="chip mid">실전 합격</span>';
 }
 // 상위 % 추정 칩(보유 캐릭터만)
