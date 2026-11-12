@@ -383,7 +383,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
-<script src="shell.js?v=20261112g"></script>
+<script src="shell.js?v=20261112h"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -480,7 +480,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
     <div class="dlg-head"><h2 id="char-title">캐릭터</h2>
       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><a class="btn ghost sm" id="char-guide" href="guide.html">추천 성유물</a><a class="btn ghost sm" id="char-stats" href="stats.html">종결 스탯</a><button class="btn ghost sm" type="button" data-close>닫기</button></div></div>
     <label id="pick-wrap">캐릭터 선택<select id="f-id"></select></label>
-    <div id="trav-wrap" class="trav" hidden><span class="muted">다른 원소 여행자도 추가 — 레벨·무기·성유물은 이 여행자와 같게, 운명의 자리·특성은 따로</span><div id="trav-add"></div></div>
+    <div id="trav-wrap" class="trav" hidden><span class="muted"><span id="trav-note"></span>다른 원소 여행자도 추가 — 레벨·무기·성유물은 이 여행자와 같게, 운명의 자리 0 · 특성 1/1/1에서 시작(게임에서 보고 고쳐 주세요)</span><div id="trav-add"></div></div>
     <div class="preview"><span class="score" id="pv-score">–</span><span class="muted" id="pv-note"></span></div>
     <fieldset><legend>역할 기준</legend>
       <p id="guess-note" class="muted" hidden style="margin:0 0 8px;font-size:13px">최신 캐릭터라 기본 역할이 추정값입니다. 실제로 쓰는 방식에 맞게 바꿔 주세요.</p>
@@ -562,11 +562,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261112g"></script>
-<script src="weapons.js?v=20261112g"></script>
-<script src="rot.js?v=20261112g"></script>
-<script src="names.js?v=20261112g"></script>
-<script src="account.js?v=20261112g"></script>
+<script src="builds.js?v=20261112h"></script>
+<script src="weapons.js?v=20261112h"></script>
+<script src="rot.js?v=20261112h"></script>
+<script src="names.js?v=20261112h"></script>
+<script src="account.js?v=20261112h"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -2102,7 +2102,9 @@ $('#form-char').addEventListener('submit', e => {
 function renderTravAdd(id) {
   const on = !!id && id.startsWith('traveler-') && !!S.roster[id];
   const miss = on ? TRAV_IDS().filter(t => !S.roster[t]) : [];
-  $('#trav-wrap').hidden = !miss.length;
+  const syncedT = TRAV_IDS().find(t => S.roster[t] && S.roster[t].synced);
+  $('#trav-note').textContent = on && syncedT ? (syncedT === id ? `이 여행자가 ${S.roster[id].synced === 'hoyolab' ? 'HoYoLAB' : '동기화'}에서 받아 온 원소입니다(지금 게임에서 쓰는 원소). ` : `${DB[syncedT].name}이(가) 동기화된 원소입니다. 이 원소의 운명의 자리·특성은 게임에서 보고 직접 넣어 주세요(HoYoLAB은 지금 원소 하나만 알려 줌). `) : '';
+  $('#trav-wrap').hidden = !on;
   $('#trav-add').innerHTML = miss.map(t => `<button type="button" class="btn ghost sm" data-trav="${t}"><span class="dot" style="--c:var(--${DB[t].el})"></span>${EL[DB[t].el]}</button>`).join('');
 }
 $('#trav-add').addEventListener('click', e => {
@@ -2227,7 +2229,8 @@ function charFromRow(id, row, prev, statsOk, boosted) {
 const TRAV_SHARED = ['lv', 'ap', 'wn', 'wt', 'wl', 'wr', 'arts', 'set', 'sa', 'sb', 'cr', 'cd', 'er'];
 const TRAV_IDS = () => Object.keys(DB).filter(id => id.startsWith('traveler-'));
 function travelerFrom(src, id, prev) {
-  const c = { ...(prev || defaultsFor(id)), id };
+  // 새로 추가하는 원소는 운명의 자리 0 · 특성 1/1/1에서 시작(지어낸 값을 넣지 않음)
+  const c = { ...(prev || { ...defaultsFor(id), cons: 0, t: [1, 1, 1] }), id };
   for (const k of TRAV_SHARED) if (src[k] !== undefined) c[k] = Array.isArray(src[k]) ? src[k].map(x => ({ ...x })) : src[k];
   c.t = (c.t || [1, 1, 1]).map(x => Math.min(x, talCapOf(c)));
   if ((c.arts || []).length) c.mainOk = mainOkOf(id, c.arts);
@@ -2246,11 +2249,14 @@ function applyRows(rows, src, statsOk, boosted) {
     const id = idOfRow(row);
     if (!id) { miss.push(row.name || row.key); continue; }
     S.roster[id] = charFromRow(id, row, S.roster[id], statsOk, boosted); n++;
+    if (id.startsWith('traveler-')) { for (const t of TRAV_IDS()) if (S.roster[t]) delete S.roster[t].synced; S.roster[id].synced = src; }
     if (id.startsWith('traveler-')) shareTraveler(id);
   }
   save(); render();
   return { n, miss };
 }
+// 불러오기 규칙이 바뀌면 올려서, 같은 동기화 파일이라도 열 때 한 번 다시 적용
+const IMPORT_VER = 3;
 async function syncHoyo(manual) {
   let h;
   try { h = await ACCT.fetchHoyo(); }
@@ -2258,10 +2264,10 @@ async function syncHoyo(manual) {
     if (manual) toast(e.status === 404 ? '아직 동기화된 데이터가 없습니다. 연동 방법대로 GitHub Secret(GENSHIN_UID)을 넣고 hoyolab-sync를 한 번 실행해 주세요' : 'HoYoLAB 데이터를 불러오지 못했습니다');
     return;
   }
-  if (!manual && (!S.hoyoAuto || S.hoyoAt === h.updated)) return;
+  if (!manual && (!S.hoyoAuto || (S.hoyoAt === h.updated && S.hoyoVer === IMPORT_VER))) return;
   const { n, miss } = applyRows(h.chars || [], 'hoyolab', true, h.source !== 'enka');
   if (h.ar) S.ar = h.ar;
-  S.hoyoAt = h.updated; S.hoyoAuto = true; save(); render();
+  S.hoyoAt = h.updated; S.hoyoVer = IMPORT_VER; S.hoyoAuto = true; save(); render();
   toast(`${h.source === 'enka' ? 'UID 쇼케이스' : 'HoYoLAB'}에서 ${n}명 불러옴${h.ar ? ` · 모험 등급 ${h.ar}` : ''}${miss.length ? ` · 못 찾음: ${miss.join(', ')}` : ''}`);
 }
 const goodInput = document.createElement('input');
