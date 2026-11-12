@@ -88,6 +88,17 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .trav li.cur { font-weight: 700; }
 .tboost { color: #5aa9ff; font-weight: 700; font-size: 12px; }
 .tb-note { font-size: 12px; margin: 8px 0 0; }
+.boss { margin-bottom: 18px; }
+.boss select { font: inherit; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-width: 100%; }
+.bteams { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 10px; }
+.bteam { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; min-width: 0; }
+.bt-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.bt-head .btn { margin-left: auto; }
+.bt-mem { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.bt-m { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 13.5px; font-weight: 600; }
+.bt-m > span:last-child { display: flex; flex-direction: column; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bt-m small { font-weight: 400; color: var(--muted); font-size: 11.5px; }
+.bt-why { font-size: 12.5px; margin: 8px 0 0; }
 .av { --s: 24px; width: var(--s); height: var(--s); border-radius: 50%; flex: none; display: inline-block; vertical-align: middle; overflow: hidden;
   background: color-mix(in srgb, var(--c) 22%, var(--surface)); box-shadow: inset 0 0 0 1.5px var(--c); }
 .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -1426,15 +1437,96 @@ function rotBlock(ids) {
     <ol class="rlist">${steps}</ol>
     <p class="rtip">${r.exact ? '' : '보호막·장판 → 후방 딜 → 버프 → 필드 딜러 순입니다. '}한 바퀴가 끝나면, 깔아 둔 효과가 사라지기 전에 1번부터 다시 돌립니다. E = 원소전투 스킬, Q = 원소폭발.</p></div>`;
 }
+// ───────── 보스별 추천 파티 (보유 캐릭터로) ─────────
+// imm: 그 원소 피해가 안 들어감(면역) → 그 원소 딜러는 빼고 짬. good: 유리한 원소. 확실한 것만 적음(모르는 보스는 특이 사항 없음)
+const BOSSES = [
+  { n: '「시뇨라」', k: '주간', good: ['pyro', 'hydro', 'cryo'], tip: '1페이즈는 얼음 상태라 불이 잘 들고, 2페이즈는 불 상태라 물·얼음이 잘 들어요. 두 원소를 섞은 파티가 편해요.' },
+  { n: '북풍의 왕랑, 울프의 영주', k: '주간' },
+  { n: '타르탈리아', k: '주간' },
+  { n: '마가츠 미타케 나루카미노 미코토', k: '주간' },
+  { n: '「정기(正機)의 신」', k: '주간' },
+  { n: '아펩의 오아시스 파수꾼', k: '주간' },
+  { n: '「아를레키노」', k: '주간' },
+  { n: '무상의 바람', k: '필드', imm: ['anemo'], tip: '바람 원소 면역이라 바람 딜러는 빼요(바람 서포터의 버프는 그대로 들어감).' },
+  { n: '무상의 바위', k: '필드', imm: ['geo'], tip: '바위 원소 면역이라 바위 딜러는 빼요.' },
+  { n: '무상의 뇌전', k: '필드', imm: ['electro'], tip: '번개 원소 면역이라 번개 딜러는 빼요.' },
+  { n: '무상의 물', k: '필드', imm: ['hydro'], tip: '물 원소 면역이라 물 딜러는 빼요.' },
+  { n: '무상의 불', k: '필드', imm: ['pyro'], tip: '불 원소 면역이라 불 딜러는 빼요.' },
+  { n: '무상의 얼음', k: '필드', imm: ['cryo'], tip: '얼음 원소 면역이라 얼음 딜러는 빼요.' },
+  { n: '무상의 풀', k: '필드', imm: ['dendro'], tip: '풀 원소 면역이라 풀 딜러는 빼요.' },
+  { n: '얼음 나무', k: '필드', imm: ['cryo'], good: ['pyro'], tip: '얼음 원소 면역, 불 공격이 잘 들어요.' },
+  { n: '폭염 나무', k: '필드', imm: ['pyro'], good: ['hydro', 'cryo'], tip: '불 원소 면역, 물·얼음 공격이 잘 들어요.' },
+  { n: '번개 나무', k: '필드', imm: ['electro'], tip: '번개 원소 면역이라 번개 딜러는 빼요.' },
+  { n: '물의 정령', k: '필드', imm: ['hydro'], tip: '물 원소 면역. 작은 물 생물을 여럿 불러내서 광역 공격이 편해요.' },
+  { n: '뇌음의 권현', k: '필드', imm: ['electro'], tip: '번개 원소 면역이라 번개 딜러는 빼요.' },
+  { n: '천년 묵은 진주 기린', k: '필드', imm: ['electro'], tip: '번개 원소 면역이라 번개 딜러는 빼요.' },
+  { n: '황금 늑대왕', k: '필드', good: ['geo'], tip: '바위 보호막은 바위 공격으로 빨리 깨져요.' },
+  { n: '영겁의 드레이크', k: '필드', mix: true, tip: '맞은 원소(불·물·번개·얼음)에 저항이 크게 올라가요. 한 원소만 쓰지 말고 두 원소 이상 섞은 파티가 좋아요.' },
+  { n: '꼭두각시 검귀', k: '필드' },
+  { n: '영구 장치 진영', k: '필드' },
+  { n: '고대 바위 용 도마뱀', k: '필드' },
+  { n: '용암철갑 제왕', k: '필드' },
+  { n: '공포의 취령 버섯', k: '필드' },
+];
+let bossCache = {};
+const isDealer = d => d.roles[0] === 'main' || d.roles[0] === 'sub';
+function bossTeams(b) {
+  const key = b.n + '|' + JSON.stringify(S.roster);
+  if (bossCache[key]) return bossCache[key];
+  const imm = new Set(b.imm || []), good = new Set(b.good || []);
+  // 면역 원소 딜러는 빼고, 육성·성능으로 후보를 추림(조합 수를 줄이려고 14명 + 힐러·보호막 2명)
+  const pool = Object.keys(S.roster).filter(id => DB[id]).map(id => { const c = S.roster[id], d = prof(c); return { id, d, sc: charCalc(c).score * 0.5 + d.perf * 0.5 }; })
+    .filter(x => !(imm.has(x.d.el) && isDealer(x.d)));
+  pool.sort((a, b2) => b2.sc - a.sc);
+  const pick = pool.slice(0, 14);
+  for (const x of pool.filter(x => x.d.roles.some(r => r === 'heal' || r === 'shield')).slice(0, 2)) if (!pick.includes(x)) pick.push(x);
+  const ids = pick.map(x => x.id), out = [];
+  const n = ids.length;
+  for (let a = 0; a < n; a++) for (let b1 = a + 1; b1 < n; b1++) for (let c = b1 + 1; c < n; c++) for (let d = c + 1; d < n; d++) {
+    const m = [ids[a], ids[b1], ids[c], ids[d]];
+    if (m.filter(id => id.startsWith('traveler-')).length > 1) continue;   // 여행자는 한 명
+    const e = evalParty({ pid: 'boss', name: '', m });
+    const dealers = e.mem.filter(x => isDealer(x.d));
+    let bonus = 0; const why = [];
+    if (good.size && dealers.some(x => good.has(x.d.el))) { bonus += 4; why.push(`${[...good].map(g => EL[g]).join('·')} 딜러 포함`); }
+    if (b.mix && new Set(dealers.map(x => x.d.el)).size >= 2) { bonus += 3; why.push('딜 원소 2가지 이상'); }
+    out.push({ m, e, v: e.value + bonus, why });
+  }
+  out.sort((x, y) => y.v - x.v);
+  // 한 명만 바꾼 비슷한 파티가 줄줄이 나오지 않게, 앞서 고른 파티와 2명 이상 다른 파티만
+  const res = [];
+  for (const t of out) {
+    if (res.some(r => r.m.filter(id => t.m.includes(id)).length > 2)) continue;
+    res.push(t); if (res.length >= 3) break;
+  }
+  return (bossCache = { [key]: res })[key];
+}
+function bossBlock() {
+  const ids = Object.keys(S.roster);
+  const sel = BOSSES.find(b => b.n === S.boss);
+  const opt = k => `<optgroup label="${k} 보스">${BOSSES.filter(b => b.k === k).map(b => `<option${b.n === S.boss ? ' selected' : ''}>${esc(b.n)}</option>`).join('')}</optgroup>`;
+  let body = '';
+  if (ids.length < 4) body = `<p class="muted">보유 캐릭터가 4명 이상이어야 추천할 수 있어요.</p>`;
+  else if (sel) {
+    const teams = bossTeams(sel);
+    body = (sel.tip ? `<p class="legend">${esc(sel.tip)}</p>` : `<p class="legend">알려진 원소 면역이 없는 보스라 전체적으로 가장 강한 조합을 골랐어요.</p>`)
+      + (teams.length ? `<div class="bteams">${teams.map((t, i) => `<div class="bteam"><div class="bt-head"><span class="rank">#${i + 1}</span><span class="grade sm g-${t.e.grade}">${t.e.grade}</span><span class="val">${t.e.value.toFixed(1)}</span>
+        <button class="btn sm" type="button" data-act="boss-save" data-i="${i}">파티로 저장</button></div>
+        <div class="bt-mem">${t.m.map(id => `<span class="bt-m">${av(id)}<span>${esc(DB[id].name)}<small>${ROLE[prof(S.roster[id]).roles[0]]}</small></span></span>`).join('')}</div>
+        <p class="muted bt-why">${[...t.e.arch.map(a => '✦ ' + a), ...t.e.rx, ...t.why].map(esc).join(' · ') || '반응 없음'} · 딜 ${t.e.dpsScore.toFixed(0)} · 육성 ${t.e.build.toFixed(0)} · 시너지 ${t.e.syn.toFixed(0)}</p></div>`).join('')}</div>`
+        : `<p class="muted">면역 원소를 빼고 나니 4명 파티를 만들 수 없어요.</p>`);
+  } else body = `<p class="muted">보스를 고르면 내 캐릭터로 만들 수 있는 파티 3개를 추천해요(파티 가치 = 딜량·육성·시너지, 면역 원소 딜러 제외).</p>`;
+  return `<section class="boss"><div class="bar"><h2>보스별 추천 파티</h2><div class="actions"><select id="boss-sel" aria-label="보스 고르기"><option value="">보스 고르기</option>${opt('주간')}${opt('필드')}</select></div></div>${body}</section>`;
+}
 function renderParties(ranked) {
   const v = $('#view-parties');
   const head = `<div class="bar"><h2>파티 순위</h2><div class="actions"><button class="btn primary" type="button" data-act="new-party">+ 새 파티</button></div></div>`;
   if (!S.parties.length) {
-    v.innerHTML = head + `<div class="empty-state"><p>아직 파티가 없습니다.</p><p>먼저 <b>내 캐릭터</b>에 보유 캐릭터를 등록한 뒤, 새 파티를 만들어 4명을 배치하세요.</p></div>`;
+    v.innerHTML = bossBlock() + head + `<div class="empty-state"><p>아직 파티가 없습니다.</p><p>먼저 <b>내 캐릭터</b>에 보유 캐릭터를 등록한 뒤, 새 파티를 만들어 4명을 배치하세요.</p></div>`;
     return;
   }
   const open = new Set([...v.querySelectorAll('details.prow[open]')].map(d => d.dataset.pid));
-  v.innerHTML = head + `<div class="plist">` + ranked.map(({ p, e }, i) => {
+  v.innerHTML = bossBlock() + head + `<div class="plist">` + ranked.map(({ p, e }, i) => {
     const mem = p.m.map(id => {
       if (!id || !S.roster[id]) return `<div class="mem empty">빈 슬롯</div>`;
       const d = prof(S.roster[id]), sc = charCalc(S.roster[id]).score;
@@ -2127,9 +2219,9 @@ function renderTravAdd(id) {
     : o.edited ? '이 원소는 직접 넣은 값이에요(동기화가 덮어쓰지 않음). '
     : o.seen ? '예전에 HoYoLAB에서 받아 둔 값이에요. '
     : '이 원소는 아직 정보가 없어 0돌 · 특성 1/1/1이에요. ')
-    + 'HoYoLAB은 지금 게임에서 쓰는 원소 하나만 알려 줘요. 다른 원소도 자동으로 받으려면 게임에서 칠천신상으로 원소를 바꾼 뒤 hoyolab-sync를 실행(또는 3시간 기다림)하고 동기화하세요. 한 번 받은 원소는 앱이 기억해요. 바로 넣으려면 아래 칸에 직접 고쳐 저장해도 돼요. 레벨·무기·성유물은 모든 원소가 같아요.';
+    + 'HoYoLAB은 지금 게임에서 쓰는 원소 하나만 알려 줘요. 게임에서 칠천신상으로 원소를 바꾸고 동기화(3시간마다 자동)되면 그 원소 여행자가 목록에 추가되고, 한 번 받은 원소는 앱이 기억해요. 레벨·무기·성유물은 모든 원소가 같아요.';
   $('#trav-wrap').hidden = !on;
-  $('#trav-add').innerHTML = miss.map(t => `<button type="button" class="btn ghost sm" data-trav="${t}">+ <span class="dot" style="--c:var(--${DB[t].el})"></span>${EL[DB[t].el]}</button>`).join('');
+  $('#trav-add').innerHTML = '';
 }
 $('#trav-add').addEventListener('click', e => {
   const b = e.target.closest('[data-trav]'); if (!b || !editId) return;
@@ -2283,11 +2375,11 @@ function applyRows(rows, src, statsOk, boosted) {
     S.roster[id] = charFromRow(id, row, S.roster[id], statsOk, boosted); n++;
     if (id.startsWith('traveler-')) {
       // HoYoLAB은 지금 쓰는 원소 하나만 알려 줌. 한 번이라도 받아 온 원소(seen)와 직접 고친 원소(edited)는 그 값을 기억하고,
-      // 그 밖의 원소는 예전에 잘못 복사된 운명의 자리·특성을 0돌 · 1/1/1로 되돌림
+      // 정보가 없는 원소는 보유 목록에서 뺌(게임에서 그 원소로 바꾸고 동기화하면 그때 추가됨)
       for (const t of TRAV_IDS()) {
         const o = S.roster[t]; if (!o) continue;
         delete o.synced;
-        if (t !== id && !o.edited && !o.seen) { o.cons = 0; o.t = [1, 1, 1]; if (o.ov) delete o.ov.perf; }
+        if (t !== id && !o.edited && !o.seen) { delete S.roster[t]; for (const p of S.parties || []) p.m = p.m.map(x => x === t ? null : x); }
       }
       S.roster[id].synced = src; S.roster[id].seen = new Date().toISOString().slice(0, 10); delete S.roster[id].edited;
       shareTraveler(id);
@@ -2297,7 +2389,7 @@ function applyRows(rows, src, statsOk, boosted) {
   return { n, miss };
 }
 // 불러오기 규칙이 바뀌면 올려서, 같은 동기화 파일이라도 열 때 한 번 다시 적용
-const IMPORT_VER = 5;
+const IMPORT_VER = 6;
 async function syncHoyo(manual) {
   let h;
   try { h = await ACCT.fetchHoyo(); }
@@ -2338,7 +2430,13 @@ document.addEventListener('click', e => {
   if (act === 'good-import') $('#good-file').click();
   if (act === 'link-help') $('#dlg-link').showModal();
   if (act === 'tab') setTab(a.dataset.tab);
+  if (act === 'boss-save') {
+    const b = BOSSES.find(x => x.n === S.boss), t = b && bossTeams(b)[+a.dataset.i]; if (!t) return;
+    S.parties.push({ pid: 'p' + Date.now(), name: `${b.n} 추천 ${+a.dataset.i + 1}`, m: t.m.slice() });
+    save(); render(); toast(`${b.n} 추천 파티를 저장했어요`);
+  }
 });
+document.addEventListener('change', e => { if (e.target.id === 'boss-sel') { S.boss = e.target.value; save(); render(); } });
 $('#btn-clear').addEventListener('click', () => { S = { sample: false, ar: S.ar, wl: S.wl, roster: {}, parties: [] }; save(); render(); setTab('roster'); toast('예시 데이터를 비웠습니다'); });
 $('#btn-backup').addEventListener('click', () => { $('#bk-text').value = JSON.stringify({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties, res: S.res }); $('#dlg-backup').showModal(); });
 $('#bk-copy').addEventListener('click', () => {
