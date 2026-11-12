@@ -175,6 +175,58 @@ const GG_ROLE = {
   eula:'C/-/-', yanfei:'D/-/-', xinyan:'D/D/D', heizou:'D/-/-', 'traveler-geo':'-/D/-', kaveh:'D/-/-', amber:'-/D/-', freminet:'D/-/-',
   'traveler-anemo':'-/D/-', ningguang:'D/-/-', 'traveler-hydro':'-/D/-', aloy:'D/-/-',
 };
+// GamsGo 7.2 명함(C0) 티어표의 역할별 등급 '메인/서브/서포터'
+const GG_ROLE_C0 = {
+  sandrone:'SS/-/-', odette:'-/SS/SS', mitya:'SS/-/SS', columbina:'-/SS/SS', vesna:'SS/-/-', ineffa:'-/SS/SS', 'traveler-cryo':'SS/-/-',
+  lauma:'-/SS/SS', zibai:'SS/-/-', linnea:'-/SS/SS', nicole:'-/-/SS', mavuika:'SS/S/-', yae:'-/SS/-', nefer:'SS/-/-', bennett:'-/-/SS', flins:'SS/-/-',
+  iansan:'-/-/SS', citlali:'-/-/SS', wriothesley:'S/-/-', vodyanitsa:'-/-/S', cyno:'S/-/-', furina:'-/S/S', qiqi:'-/-/S', mizuki:'S/-/C',
+  escoffier:'-/S/S', skirk:'S/-/-', durin:'-/S/-', xilonen:'-/-/S', barca:'S/-/-', sucrose:'-/A/S', chevreuse:'-/-/S', mualani:'A+/-/-',
+  yelan:'-/A+/-', nahida:'-/A+/A+', varesa:'A+/-/-', fischl:'-/A+/-', mona:'-/A/A+', chasca:'A+/-/-', kazuha:'-/-/A+', roen:'A+/-/-', albedo:'-/A+/-',
+  xianyun:'-/-/A+', kinich:'A+/-/-', emilie:'-/A+/-', baizhu:'-/-/A+', xingqiu:'-/A+/-', zhongli:'-/-/A+', xiangling:'-/A+/-', shenhe:'-/-/A+',
+  venti:'A/A+/-', arlecchino:'A/-/-', raiden:'B/A/-', prune:'-/A/A', neuvillette:'A/-/-', nilou:'-/A/-', alyosha:'-/-/A', klee:'A/-/-',
+  shinobu:'-/A/A', valery:'-/-/A', ayaka:'A/-/-', ororon:'-/A/-', jean:'-/-/A', kokomi:'-/B/A', yaoyao:'-/-/A', lanyan:'-/-/A', aino:'-/A/-',
+  layla:'-/-/A', chiori:'-/A/-', illuga:'-/-/A', clorinde:'B/-/-', rosaria:'-/B/C', sigewinne:'-/-/B', gaming:'B/-/-', ganyu:'C/B/-', diona:'-/-/B',
+  navia:'B/-/-', faruzan:'-/-/B', alhaitham:'B/-/-', 'traveler-pyro':'-/B/-', yunjin:'-/-/B', lyney:'B/-/-', thoma:'-/B/C', gorou:'-/-/B',
+  hutao:'B/-/-', beidou:'-/B/-', charlotte:'-/-/B', xiao:'B/-/-', collei:'-/B/-', kirara:'-/-/B', razor:'B/-/-', jahoda:'-/B/C', dehya:'D/C/B',
+  lynette:'-/B/-', sara:'-/-/B', tartaglia:'B/-/-', 'traveler-dendro':'-/B/-', wanderer:'B/-/-', kaeya:'-/B/-', yoimiya:'C/-/-', kachina:'-/C/-',
+  diluc:'C/-/-', mika:'-/-/C', itto:'C/-/-', lisa:'-/C/D', ayato:'C/-/-', chongyun:'-/C/D', dahlia:'-/-/C', sayu:'-/C/C', barbara:'-/-/C',
+  tighnari:'C/-/-', sethos:'C/-/-', candace:'-/-/C', ifa:'C/-/-', keqing:'C/-/-', noelle:'C/-/D', eula:'C/-/-', yanfei:'D/-/-', xinyan:'D/D/D',
+  dori:'-/-/D', heizou:'D/-/-', amber:'-/D/-', kaveh:'D/-/-', 'traveler-geo':'-/D/-', freminet:'D/-/-', 'traveler-anemo':'-/D/-',
+  'traveler-electro':'-/-/D', ningguang:'D/-/-', 'traveler-hydro':'-/D/-', aloy:'D/-/-',
+};
+
+// GamsGo 7.2 풀돌(C6) 티어표의 역할별 등급 '메인/서브/서포터'
+const GG_ROLE_C6 = {
+  sandrone:'SS/-/-', odette:'-/SS/SS', nicole:'-/-/SS', mitya:'SS/-/SS', columbina:'-/SS/SS', vesna:'SS/-/-', furina:'A+/SS/SS', zibai:'SS/-/-',
+  durin:'-/SS/-', mavuika:'SS/SS/S', vodyanitsa:'-/-/SS', mualani:'SS/-/-', yae:'-/SS/-', chasca:'SS/-/-', citlali:'-/-/SS', skirk:'SS/-/-',
+  lauma:'-/S/SS', flins:'SS/-/-', linnea:'-/S/SS', nefer:'SS/-/-', ineffa:'-/S/SS', 'traveler-cryo':'SS/-/-', xilonen:'-/-/SS', wriothesley:'SS/-/-',
+  escoffier:'-/S/SS', cyno:'SS/-/-', barca:'S/-/-', nahida:'-/S/S', neuvillette:'S/-/-', bennett:'-/-/S', arlecchino:'S/-/-', iansan:'-/-/S',
+  mizuki:'S/-/B', prune:'-/A+/S', navia:'S/-/-', yelan:'A+/S/-', sucrose:'-/A/S', varesa:'S/-/-', qiqi:'-/-/S', roen:'S/-/-', fischl:'-/S/-',
+  chevreuse:'-/-/S', emilie:'-/S/-', kazuha:'-/-/S', albedo:'-/S/-', alyosha:'-/-/S', valery:'-/-/S', shenhe:'-/-/S', chiori:'A+/A/-', nilou:'-/A+/-',
+  xianyun:'A/-/A+', kinich:'A+/-/-', raiden:'A/A+/-', baizhu:'-/-/A+', mona:'-/A+/A+', clorinde:'A+/-/-', xiangling:'-/A+/-', faruzan:'-/-/A+',
+  lyney:'A+/-/-', xingqiu:'-/A+/-', illuga:'-/-/A+', venti:'A+/A+/-', zhongli:'-/-/A+', wanderer:'A+/-/-', jean:'-/-/A+', xiao:'A+/-/-',
+  shinobu:'-/A+/A', klee:'A+/-/-', ayaka:'A+/-/-', gaming:'A/-/-', ororon:'-/A/-', kokomi:'-/B/A', alhaitham:'A/-/-', aino:'-/A/-', lanyan:'-/-/A',
+  hutao:'A/-/-', gorou:'-/-/A', diona:'-/-/A', ayato:'A/-/-', rosaria:'-/A/C', yaoyao:'-/-/A', ganyu:'B/A/-', charlotte:'-/-/A', itto:'A/-/-',
+  razor:'A/-/-', layla:'-/-/A', tighnari:'A/-/-', kirara:'-/-/A', sigewinne:'-/-/B', eula:'B/-/-', thoma:'-/B/B', jahoda:'-/-/B', diluc:'B/-/-',
+  collei:'-/B/-', yunjin:'-/-/B', tartaglia:'B/-/-', 'traveler-pyro':'-/B/-', sara:'-/-/B', yoimiya:'B/-/-', beidou:'-/B/-', sethos:'B/-/-',
+  dehya:'C/B/B', ifa:'B/-/-', kaeya:'-/B/-', lynette:'-/B/-', 'traveler-dendro':'-/B/-', keqing:'C/-/-', kachina:'-/C/-', mika:'-/-/C', noelle:'C/-/D',
+  lisa:'-/C/D', sayu:'-/C/C', yanfei:'C/-/-', chongyun:'-/C/D', dahlia:'-/-/C', barbara:'-/-/C', heizou:'C/-/-', candace:'-/-/C', kaveh:'C/-/-',
+  'traveler-electro':'-/-/C', ningguang:'C/-/-', freminet:'C/-/-', dori:'-/-/C', xinyan:'D/D/D', 'traveler-geo':'-/D/-', amber:'-/D/-',
+  'traveler-anemo':'-/D/-', 'traveler-hydro':'-/D/-',
+};
+
+// 직전 티어표(순위 변동 표시용). 매주 업데이트에서 GG가 바뀌면 바뀌기 전 GG를 여기로 옮기고 v·at을 그 표의 버전·날짜로 고침
+const GG_NOW = { v: '7.2', at: '2026-11-04' };
+const GG_PREV = { v: '7.1', at: '2026-09-23', tier: {
+  'traveler-pyro':'B', 'traveler-hydro':'D', 'traveler-anemo':'D', 'traveler-electro':'C', 'traveler-dendro':'B', 'traveler-cryo':'SS', 'traveler-geo':'D',
+  amber:'D', xiangling:'A+', bennett:'S', diluc:'C', klee:'A', xinyan:'D', hutao:'B', yanfei:'D', yoimiya:'C', thoma:'B', dehya:'B', lyney:'B', chevreuse:'S', gaming:'B', arlecchino:'A', mavuika:'SS', durin:'S', nicole:'SS',
+  barbara:'C', xingqiu:'A+', mona:'A+', tartaglia:'B', kokomi:'A', ayato:'C', yelan:'A+', candace:'C', nilou:'A', neuvillette:'A', furina:'S', sigewinne:'B', mualani:'A+', dahlia:'C', aino:'A', columbina:'SS', vodyanitsa:'S',
+  sucrose:'SS', jean:'A', venti:'A+', xiao:'B', kazuha:'A+', sayu:'C', heizou:'D', faruzan:'A', wanderer:'B', lynette:'B', xianyun:'A', chasca:'A+', lanyan:'A', mizuki:'S', ifa:'C', jahoda:'A', barca:'S', prune:'A+', vesna:'SS',
+  lisa:'C', razor:'B', beidou:'B', fischl:'S', keqing:'C', sara:'B', raiden:'A', yae:'SS', shinobu:'A', dori:'C', cyno:'SS', sethos:'C', clorinde:'B', ororon:'A', iansan:'SS', varesa:'A+', ineffa:'SS', flins:'SS', alyosha:'S',
+  collei:'B', tighnari:'C', nahida:'A+', yaoyao:'A', alhaitham:'B', kaveh:'D', baizhu:'A', kirara:'A', emilie:'A+', kinich:'A+', lauma:'SS', nefer:'SS',
+  kaeya:'B', chongyun:'C', qiqi:'S', diona:'A', ganyu:'B', rosaria:'A', eula:'C', ayaka:'B', aloy:'D', shenhe:'A+', layla:'A', mika:'C', freminet:'D', wriothesley:'S', charlotte:'A', citlali:'SS', escoffier:'S', skirk:'S', roen:'A+', sandrone:'SS', odette:'SS',
+  ningguang:'D', noelle:'C', zhongli:'A', albedo:'A+', gorou:'A', itto:'C', yunjin:'B', navia:'B', chiori:'A', kachina:'C', xilonen:'S', illuga:'A+', zibai:'SS', linnea:'SS',
+} };
 const PERF = {};
 for (const id of new Set([...Object.keys(PERF_NAMU), ...Object.keys(GG)])) {
   const n = PERF_NAMU[id], g = GG[id] ? GG_SCORE[GG[id]] : null;
@@ -210,3 +262,48 @@ const ICON = {
   illuga:'Illuga', zibai:'Zibai', linnea:'Linnea', mitya:'Mitya', valery:'Valeriy',
 };
 GP.iconUrl = id => { const n = ICON[id] || (id.startsWith('traveler') ? 'PlayerGirl' : null); return n ? `https://enka.network/ui/UI_AvatarIcon_${n}.png` : null; };
+
+// ───────── 역할별 · 운명의 자리별 성능 ─────────
+// 칸 점수 = 그 칸 GamsGo 등급 점수 60% + 나무위키 40%(한쪽만 있으면 그 값)
+GP.POS = [['main', '메인 딜러'], ['sub', '서브 딜러'], ['sup', '서포터 · 힐러 · 보호막']];
+GP.roleScore = (id, t) => { const n = PERF_NAMU[id] ?? null; return n != null ? Math.round(0.6 * GG_SCORE[t] + 0.4 * n) : GG_SCORE[t]; };
+// 운명의 자리 가치 곡선(C0 → C6 사이를 채우는 비율): 5성은 1돌·2돌이 크고 뒤로 갈수록 작음, 4성은 고르게
+GP.CONS_W = { 5: [0, .35, .55, .65, .75, .85, 1], 4: [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1] };
+const roleArr = s => s ? s.split('/').map(x => x === '-' ? null : x) : null;
+// 캐릭터가 들어갈 칸들. cons = null이면 종합 표, 0·6이면 명함·풀돌 표, 1~5는 두 표 사이를 곡선으로 채운 추정
+// → [{ pos, tier, perf, est, alt }]  (alt: 그 캐릭터의 가장 높은 칸이 아님)
+GP.slotsAt = (id, cons = null) => {
+  const d = GP.DB[id], out = [];
+  const fallback = () => [{ pos: d.roles[0] === 'heal' || d.roles[0] === 'shield' ? 'sup' : d.roles[0], tier: null, perf: d.perf, est: false }];
+  if (cons == null) {
+    const g = roleArr(GG_ROLE[id]);
+    if (!g) return markAlt(fallback());
+    g.forEach((t, i) => t && out.push({ pos: GP.POS[i][0], tier: t, perf: GP.roleScore(id, t), est: false }));
+    return markAlt(out);
+  }
+  const a = roleArr(GG_ROLE_C0[id]) || roleArr(GG_ROLE[id]), b = roleArr(GG_ROLE_C6[id]) || a;
+  if (!a) return markAlt(fallback());
+  const w = GP.CONS_W[d.r === 5 ? 5 : 4][cons];
+  for (let i = 0; i < 3; i++) {
+    const ta = a[i], tb = b[i];
+    if (!(ta && w < 1) && !(tb && w >= 0.5)) continue;
+    const sa = ta ? GP.roleScore(id, ta) : null, sb = tb ? GP.roleScore(id, tb) : null;
+    const perf = sa != null && sb != null ? Math.round(sa + (sb - sa) * w) : (sa ?? sb);
+    out.push({ pos: GP.POS[i][0], tier: cons === 0 ? ta : cons === 6 ? tb : null, perf, est: cons > 0 && cons < 6 && ta !== tb });
+  }
+  return markAlt(out.length ? out : fallback());
+};
+function markAlt(sl) {
+  const top = Math.max(...sl.map(x => x.perf)), first = sl.findIndex(x => x.perf === top);
+  sl.forEach((x, i) => x.alt = i !== first);
+  return sl;
+}
+GP.perfAt = (id, cons = null) => Math.max(...GP.slotsAt(id, cons).map(x => x.perf));
+// 직전 티어표 대비 변동: 가장 높은 칸 등급 기준. d > 0 이면 올라감
+const TIER_ORDER = ['D', 'C', 'B', 'A', 'A+', 'S', 'SS'];
+GP.tierChange = id => {
+  const now = GG[id], prev = GG_PREV.tier[id];
+  if (!now) return null;
+  if (!prev) return { now, prev: null, d: 0, isNew: true };
+  return { now, prev, d: TIER_ORDER.indexOf(now) - TIER_ORDER.indexOf(prev), isNew: false };
+};

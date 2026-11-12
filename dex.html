@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>캐릭터 도감 · 원신 파티 감정소</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="common.css?v=20261112b">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0e1320">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="파티 감정소">
+<style>
+/* 캐릭터 도감: 위는 캐릭터 고르기, 아래는 고른 캐릭터의 선수 카드(돌파·레벨 조절) + 특성·운명의 자리, 맨 아래는 최대 3명 비교 */
+.pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 8px; max-height: 236px; overflow-y: auto; padding: 4px; margin-bottom: 20px;
+  border: 1px solid var(--line); border-radius: 12px; background: rgb(14 19 32 / .45); }
+.pt { font: inherit; background: none; border: 0; padding: 0; cursor: pointer; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 2px; position: relative; }
+.pt .pic { width: 54px; height: 54px; border-radius: 10px; overflow: hidden; background: var(--rar); box-shadow: inset 0 -3px 0 var(--c); }
+.r5 { --rar: linear-gradient(160deg, #8a5a2b, #c48a3f); } .r4 { --rar: linear-gradient(160deg, #5a4a8a, #8a6ac4); }
+.pt .pic img, .fc .face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pt .n { font-size: 11px; max-width: 62px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pt[aria-current="true"] .pic { outline: 2px solid var(--gold); outline-offset: 2px; }
+.pt .in { position: absolute; top: -3px; right: 2px; font-size: 10px; font-weight: 900; background: var(--gold); color: #1b1b1b; border-radius: 999px; padding: 0 5px; }
+
+.detail { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: start; margin-bottom: 28px; }
+/* 선수 카드 */
+.fc { position: relative; border-radius: 18px 18px 26px 26px; padding: 14px 14px 16px; color: #2a2112; overflow: hidden;
+  background: linear-gradient(165deg, #f7e7b4, #d9b765 45%, #b8913c); box-shadow: 0 0 0 2px #f4e2a8, 0 10px 26px rgb(0 0 0 / .45); }
+.fc.r4 { background: linear-gradient(165deg, #e6dcff, #b59ae6 45%, #7f66c2); box-shadow: 0 0 0 2px #e2d6ff, 0 10px 26px rgb(0 0 0 / .45); color: #1f1636; }
+.fc::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 80% 10%, rgb(255 255 255 / .35), transparent 45%); pointer-events: none; }
+.fc .top { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 4px 10px; align-items: start; }
+.fc .ovr { font-size: 44px; font-weight: 900; line-height: .95; text-align: center; }
+.fc .pos { font-size: 13px; font-weight: 900; text-align: center; letter-spacing: .02em; }
+.fc .el { width: 22px; height: 22px; border-radius: 50%; margin: 4px auto 0; background: var(--c); box-shadow: 0 0 0 2px rgb(255 255 255 / .7); }
+.fc .face { width: 100%; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: rgb(255 255 255 / .25); }
+.fc .nm { font-size: 20px; font-weight: 900; text-align: center; margin: 8px 0 2px; border-bottom: 1px solid rgb(0 0 0 / .2); padding-bottom: 6px; }
+.fc .sub2 { text-align: center; font-size: 12px; font-weight: 600; opacity: .8; margin-bottom: 8px; }
+.fc .attrs { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; font-size: 13.5px; }
+.fc .attrs div { display: flex; justify-content: space-between; gap: 6px; border-bottom: 1px dashed rgb(0 0 0 / .15); padding: 2px 0; }
+.fc .attrs b { font-weight: 900; font-variant-numeric: tabular-nums; }
+.fc .est { position: absolute; top: 10px; right: 12px; font-size: 10.5px; font-weight: 900; background: rgb(0 0 0 / .55); color: #fff; padding: 1px 6px; border-radius: 999px; z-index: 1; }
+.ctrl { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: rgb(14 19 32 / .6); }
+.seg button { font: inherit; font-size: 12.5px; font-weight: 700; border: 0; background: none; color: var(--muted); padding: 5px 0; width: 36px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #ECE5D8; color: #3B4255; }
+.lvrow { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.lvrow input[type="range"] { flex: 1; padding: 0; accent-color: #D3BC8E; }
+.lvrow b { min-width: 74px; text-align: right; font-variant-numeric: tabular-nums; }
+.acts { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* 특성 · 운명의 자리 */
+.info .tabs2 { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 12px; overflow-x: auto; }
+.info .tabs2 button { font: inherit; font-weight: 600; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted); padding: 9px 12px; cursor: pointer; white-space: nowrap; }
+.info .tabs2 button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--gold); }
+.sk { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+.sk .h { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-bottom: 6px; }
+.sk .h b { font-size: 15.5px; }
+.sk .h span { font-size: 12px; color: var(--muted); }
+.sk .h .lk { margin-left: auto; font-size: 11.5px; font-weight: 700; padding: 0 8px; border-radius: 999px; border: 1px solid currentColor; }
+.sk .d { font-size: 13.5px; line-height: 1.65; color: var(--ink); }
+.sk .d b { color: var(--gold); font-weight: 700; }
+.sk.locked { opacity: .55; }
+.intro { font-size: 13.5px; color: var(--muted); margin: 0 0 12px; }
+
+/* 비교 */
+.cmp { margin-top: 8px; }
+.cmp-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 12px 0 16px; }
+.cmp-cards .slot { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.cmp-cards .ph { border: 1px dashed var(--line); border-radius: 18px; min-height: 200px; display: grid; place-items: center; color: var(--muted); font-size: 13px; text-align: center; padding: 14px; }
+.ctab { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.ctab th { text-align: left; font-weight: 600; color: var(--muted); padding: 7px 8px; white-space: nowrap; width: 110px; }
+.ctab td { padding: 7px 8px; border-top: 1px solid var(--line); }
+.ctab .cell { display: flex; flex-direction: column; gap: 3px; }
+.ctab .bar { height: 6px; border-radius: 3px; background: var(--sunk); overflow: hidden; }
+.ctab .bar i { display: block; height: 100%; background: color-mix(in srgb, var(--gold) 55%, transparent); }
+.ctab .win { color: var(--good); font-weight: 900; }
+.ctab .win .bar i { background: var(--good); }
+@media (max-width: 820px) { .detail { grid-template-columns: 1fr; } .detail .fcw { max-width: 340px; margin: 0 auto; width: 100%; } }
+@media (max-width: 640px) { .cmp-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cmp-cards .fc .attrs { grid-template-columns: 1fr; font-size: 12.5px; } .fc .ovr { font-size: 34px; } .ctab th { width: 72px; } }
+</style>
+</head>
+<body>
+<script src="shell.js?v=20261112b"></script>
+<div class="wrap">
+  <header class="top">
+    <h1><span class="star">✦</span> 캐릭터 도감</h1>
+    <p class="sub">캐릭터를 고르면 선수 카드처럼 종합 능력치가 나오고, 운명의 자리(C0~C6)와 레벨을 바꾸면 바로 다시 계산합니다. 특성·고유 특성·운명의 자리 설명을 보고, 최대 3명을 나란히 비교할 수 있습니다.</p>
+  </header>
+
+  <div class="filters">
+    <input type="search" id="q" placeholder="캐릭터 이름 검색" aria-label="검색">
+    <div class="elchips" id="els"></div>
+    <label class="check" for="mine"><input type="checkbox" id="mine"> 내 캐릭터만</label>
+  </div>
+  <div class="pick" id="pick" aria-label="캐릭터 고르기"></div>
+
+  <section class="detail" id="detail"></section>
+
+  <section class="cmp" id="cmp"></section>
+
+  <p class="foot-note">종합(OVR) = 그 운명의 자리에서의 성능 점수(티어표와 같은 값: GamsGo 등급 60% + 나무위키 평가 40%, C1~C5는 명함·풀돌 표 사이 추정) × 레벨 계수(핵심 스탯 기초값이 Lv.90의 몇 %인지의 제곱근 — 파티 감정소의 레벨 감점과 같은 방식). HP·공격력·방어력·돌파 스탯은 무기·성유물을 뺀 캐릭터 기초값이며, 경계 레벨(20·40·50·60·70·80)은 돌파한 뒤 값입니다. 특성·운명의 자리 설명과 기초 스탯은 <a href="https://github.com/theBowja/genshin-db" target="_blank" rel="noopener">genshin-db</a>(게임 데이터, 2026년 11월)에서 가져왔습니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
+</div>
+
+<script src="chars.js?v=20261112b"></script>
+<script src="dex/stats.js?v=20261112b"></script>
+<script>
+const $ = s => document.querySelector(s);
+const own = GP.roster();
+const PREF = GP.KEY + ':dex';
+let st = { q: '', el: '', mine: false, cur: '', cmp: [] };
+try { st = { ...st, ...JSON.parse(localStorage.getItem(PREF)) }; } catch (e) {}
+// 캐릭터별 보기 설정(돌파·레벨). 내 캐릭터는 처음에 내 값, 아니면 C0 · Lv.90
+const conf = {};
+const confOf = id => conf[id] || (conf[id] = own[id] ? { cons: own[id].cons || 0, lv: own[id].lv || 90 } : { cons: 0, lv: 90 });
+const ascAt = lv => lv >= 80 ? 6 : lv >= 70 ? 5 : lv >= 60 ? 4 : lv >= 50 ? 3 : lv >= 40 ? 2 : lv >= 20 ? 1 : 0;
+const PCT = s => s !== '원소 마스터리';
+// 레벨·돌파 단계의 기초 스탯
+function baseAt(id, lv) {
+  const s = DEX_STATS[id]; if (!s) return null;
+  const [h, a, d, ch, ca, sp, pr] = s, p = pr[ascAt(lv)] || [0, 0, 0, 0];
+  return { hp: h * DEX_CURVE[ch][lv - 1] + p[0], atk: a * DEX_CURVE[ca][lv - 1] + p[1], def: d * DEX_CURVE[ch][lv - 1] + p[2], sp, spv: p[3] };
+}
+const KEY = { hp: 'hp', atk: 'atk', def: 'def', em: 'atk' };
+const POS_SHORT = { main: '메인', sub: '서브', sup: '서폿' };
+// 선수 카드에 쓸 값 묶음
+function card(id) {
+  const d = GP.DB[id], c = confOf(id), b = baseAt(id, c.lv), b90 = baseAt(id, 90);
+  const sls = GP.slotsAt(id, c.cons), best = sls.find(x => !x.alt) || sls[0];
+  const k = KEY[d.scale] || 'atk';
+  const lvf = b && b90 ? Math.sqrt(b[k] / b90[k]) : 1;
+  return { d, c, b, sls, best, lvf, ovr: Math.round(best.perf * lvf), est: sls.some(x => x.est) };
+}
+const fmtSp = (sp, v) => PCT(sp) ? `${(v * 100).toFixed(1)}%` : Math.round(v).toString();
+const spShort = sp => sp.replace('치명타 ', '치').replace('원소 충전 효율', '원충').replace('원소 마스터리', '마스터리').replace(' 피해%', '피해').replace('치유 보너스', '치유');
+function fcard(id) {
+  const x = card(id), d = x.d, u = GP.iconUrl(id), b = x.b;
+  const roleTier = p => { const s = x.sls.find(y => y.pos === p); return s ? s.perf : '–'; };
+  return `<div class="fc r${d.r}" style="--c:var(--${d.el})">${x.est ? '<span class="est">추정</span>' : ''}
+    <div class="top"><div><div class="ovr">${x.ovr}</div><div class="pos">${POS_SHORT[x.best.pos]}</div><div class="el" title="${GP.EL[d.el]}"></div></div>
+      <div class="face">${u ? `<img src="${u}" alt="">` : ''}</div></div>
+    <div class="nm">${GP.esc(d.name)}</div>
+    <div class="sub2">${'★'.repeat(d.r)} · ${GP.EL[d.el]} · ${GP.WPN[d.wp] || ''} · C${x.c.cons} · Lv.${x.c.lv}</div>
+    <div class="attrs">
+      <div><span>HP</span><b>${b ? Math.round(b.hp).toLocaleString() : '–'}</b></div>
+      <div><span>메인</span><b>${roleTier('main')}</b></div>
+      <div><span>공격력</span><b>${b ? Math.round(b.atk) : '–'}</b></div>
+      <div><span>서브</span><b>${roleTier('sub')}</b></div>
+      <div><span>방어력</span><b>${b ? Math.round(b.def) : '–'}</b></div>
+      <div><span>서폿</span><b>${roleTier('sup')}</b></div>
+      <div><span>${b ? spShort(b.sp) : '돌파'}</span><b>${b ? fmtSp(b.sp, b.spv) : '–'}</b></div>
+      <div><span>원충</span><b>${d.er}%</b></div>
+    </div></div>`;
+}
+function controls(id, where) {
+  const c = confOf(id);
+  return `<div class="ctrl" data-id="${id}" data-where="${where}">
+    <div class="seg" role="group" aria-label="운명의 자리">${[0, 1, 2, 3, 4, 5, 6].map(k => `<button type="button" data-cons="${k}" aria-pressed="${c.cons === k}">C${k}</button>`).join('')}</div>
+    <div class="lvrow"><span>레벨</span><input type="range" min="1" max="90" value="${c.lv}" data-lv aria-label="레벨"><b>Lv.${c.lv}</b></div>
+  </div>`;
+}
+
+// ───────── 특성 · 운명의 자리 ─────────
+const dexCache = {};
+let infoTab = 'skills';
+const fmt = s => GP.esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+async function loadDex(id) {
+  if (!dexCache[id]) dexCache[id] = fetch(`dex/${id}.json?v=20261112b`).then(r => r.ok ? r.json() : null).catch(() => null);
+  return dexCache[id];
+}
+async function renderInfo(id) {
+  const box = $('#info'); if (!box) return;
+  const j = await loadDex(id);
+  if (st.cur !== id) return;
+  const c = confOf(id);
+  if (!j) { box.innerHTML = '<p class="muted">이 캐릭터의 특성 자료를 불러오지 못했습니다.</p>'; return; }
+  const TABS = [['skills', '특성'], ['passives', '고유 특성'], ['cons', `운명의 자리 · ${GP.esc(j.cons_name)}`], ['about', '소개']];
+  let body;
+  if (infoTab === 'skills') body = j.skills.map(s => `<div class="sk"><div class="h"><b>${GP.esc(s.n)}</b><span>${s.k}</span></div><div class="d">${fmt(s.d)}</div></div>`).join('');
+  else if (infoTab === 'passives') body = j.passives.map((s, i) => `<div class="sk"><div class="h"><b>${GP.esc(s.n)}</b><span>${i < 2 ? `${i === 0 ? '1' : '4'}단계 돌파에서 해금` : '기타'}</span></div><div class="d">${fmt(s.d)}</div></div>`).join('');
+  else if (infoTab === 'cons') body = j.cons.map((s, i) => `<div class="sk${i + 1 > c.cons ? ' locked' : ''}"><div class="h"><b>C${i + 1} · ${GP.esc(s.n)}</b><span class="lk" style="color:${i + 1 <= c.cons ? 'var(--good)' : 'var(--muted)'}">${i + 1 <= c.cons ? '해금' : '잠김'}</span></div><div class="d">${fmt(s.d)}</div></div>`).join('');
+  else body = `<div class="sk"><div class="h"><b>${GP.esc(GP.DB[id].name)}</b><span>${GP.esc(j.title)}</span></div><div class="d">${fmt(j.desc)}<br><br>소속: ${GP.esc([j.region, j.aff].filter(Boolean).join(' · ') || '—')}${j.birthday ? ` · 생일 ${GP.esc(j.birthday)}` : ''}</div></div>`;
+  box.innerHTML = `<div class="tabs2" role="tablist">${TABS.map(([k, n]) => `<button type="button" role="tab" data-t="${k}" aria-selected="${infoTab === k}">${n}</button>`).join('')}</div>
+    ${infoTab === 'cons' ? `<p class="intro">선수 카드에서 고른 C${c.cons}까지 해금된 것으로 표시합니다.</p>` : ''}${body}`;
+}
+
+// ───────── 그리기 ─────────
+$('#els').innerHTML = `<button type="button" class="elchip" data-el="">전체</button>` + GP.ORDER.map(el => `<button type="button" class="elchip" data-el="${el}"><span class="dot" style="--c:var(--${el})"></span>${GP.EL[el]}</button>`).join('');
+$('#mine').disabled = !Object.keys(own).length;
+const save = () => { try { localStorage.setItem(PREF, JSON.stringify({ q: st.q, el: st.el, mine: st.mine, cur: st.cur, cmp: st.cmp })); } catch (e) {} };
+function renderPick() {
+  for (const b of document.querySelectorAll('.elchip')) b.setAttribute('aria-pressed', b.dataset.el === st.el);
+  $('#q').value = st.q; $('#mine').checked = st.mine;
+  const list = Object.values(GP.DB).filter(d => (!st.el || d.el === st.el) && (!st.mine || own[d.id]) && (!st.q.trim() || d.name.includes(st.q.trim())))
+    .sort((a, b) => GP.perfAt(b.id) - GP.perfAt(a.id) || b.r - a.r || a.name.localeCompare(b.name, 'ko'));
+  $('#pick').innerHTML = list.map(d => `<button type="button" class="pt" data-id="${d.id}" aria-current="${st.cur === d.id}" title="${GP.esc(d.name)}" style="--c:var(--${d.el})">
+    ${st.cmp.includes(d.id) ? '<span class="in">비교</span>' : ''}<span class="pic r${d.r}">${GP.iconUrl(d.id) ? `<img src="${GP.iconUrl(d.id)}" alt="" loading="lazy" decoding="async">` : ''}</span><span class="n">${GP.esc(d.name)}</span></button>`).join('')
+    || '<p class="muted" style="grid-column:1/-1;margin:8px">조건에 맞는 캐릭터가 없습니다.</p>';
+}
+function renderDetail() {
+  const id = st.cur;
+  if (!GP.DB[id]) { $('#detail').innerHTML = ''; return; }
+  const inCmp = st.cmp.includes(id);
+  $('#detail').innerHTML = `<div class="fcw">${fcard(id)}${controls(id, 'detail')}
+      <div class="acts" style="margin-top:10px"><button type="button" class="btn sm" data-act="cmp-toggle">${inCmp ? '비교에서 빼기' : '+ 비교에 추가'}</button><a class="btn sm" href="tier.html">티어표</a><a class="btn sm" href="guide.html#${id}">추천 성유물</a><a class="btn sm" href="stats.html#${id}">종결 스탯</a></div></div>
+    <div class="info" id="info"><p class="muted">불러오는 중…</p></div>`;
+  renderInfo(id);
+}
+// 비교: 카드 3칸 + 항목별 표(가장 높은 값 강조)
+function renderCmp() {
+  const ids = st.cmp.filter(id => GP.DB[id]).slice(0, 3);
+  const slots = [0, 1, 2].map(i => ids[i] ? `<div class="slot">${fcard(ids[i])}${controls(ids[i], 'cmp')}<button type="button" class="btn sm" data-act="cmp-remove" data-id="${ids[i]}">빼기</button></div>`
+    : `<div class="slot"><div class="ph">위에서 캐릭터를 고른 뒤<br><b>+ 비교에 추가</b>를 누르세요</div></div>`).join('');
+  $('#cmp').innerHTML = `<div class="bar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h2>캐릭터 비교 <span class="muted" style="font-size:14px">${ids.length}/3</span></h2>${ids.length ? '<button type="button" class="btn sm" data-act="cmp-clear">비교 비우기</button>' : ''}</div>
+    <div class="cmp-cards">${slots}</div><div id="cmp-table">${cmpTable(ids)}</div>`;
+}
+function cmpTable(ids) {
+  let table = '';
+  if (ids.length >= 2) {
+    const xs = ids.map(card);
+    const rows = [
+      ['종합(OVR)', x => x.ovr, v => v],
+      ['성능 점수', x => x.best.perf, v => v],
+      ['메인 딜러', x => x.sls.find(s => s.pos === 'main')?.perf ?? null, v => v ?? '–'],
+      ['서브 딜러', x => x.sls.find(s => s.pos === 'sub')?.perf ?? null, v => v ?? '–'],
+      ['서포터', x => x.sls.find(s => s.pos === 'sup')?.perf ?? null, v => v ?? '–'],
+      ['기초 HP', x => x.b?.hp ?? null, v => v == null ? '–' : Math.round(v).toLocaleString()],
+      ['기초 공격력', x => x.b?.atk ?? null, v => v == null ? '–' : Math.round(v)],
+      ['기초 방어력', x => x.b?.def ?? null, v => v == null ? '–' : Math.round(v)],
+      ['레벨 계수', x => x.lvf, v => '×' + v.toFixed(2)],
+    ];
+    table = `<table class="ctab"><thead><tr><th></th>${xs.map(x => `<th>${GP.esc(x.d.name)} <span class="muted">C${x.c.cons} · Lv.${x.c.lv}</span></th>`).join('')}</tr></thead><tbody>
+      ${rows.map(([n, f, show]) => { const vs = xs.map(f), mx = Math.max(...vs.filter(v => v != null));
+        return `<tr><th>${n}</th>${vs.map(v => `<td><div class="cell${v != null && v === mx && vs.filter(y => y === mx).length < vs.length ? ' win' : ''}"><span>${show(v)}</span><span class="bar"><i style="width:${v == null || !mx ? 0 : v / mx * 100}%"></i></span></div></td>`).join('')}</tr>`; }).join('')}
+      <tr><th>돌파 스탯</th>${xs.map(x => `<td>${x.b ? `${GP.esc(x.b.sp)} ${fmtSp(x.b.sp, x.b.spv)}` : '–'}</td>`).join('')}</tr>
+      <tr><th>핵심 스탯</th>${xs.map(x => `<td>${({ atk: '공격력', hp: '최대 HP', def: '방어력', em: '원소 마스터리' })[x.d.scale]} · 원충 ${x.d.er}%</td>`).join('')}</tr>
+    </tbody></table>`;
+  }
+  return table || (ids.length ? '<p class="muted">한 명 더 넣으면 항목별로 비교합니다.</p>' : '');
+}
+function renderAll() { save(); renderPick(); renderDetail(); renderCmp(); }
+// 카드 값만 바뀌면 카드·표만 다시 그림(슬라이더를 끄는 중에 입력이 끊기지 않게 슬라이더는 그대로 둠)
+function refresh(id) {
+  for (const el of document.querySelectorAll(`.ctrl[data-id="${id}"]`)) {
+    const fc = el.previousElementSibling; if (fc && fc.classList.contains('fc')) fc.outerHTML = fcard(id);
+    const c = confOf(id);
+    for (const b of el.querySelectorAll('[data-cons]')) b.setAttribute('aria-pressed', Number(b.dataset.cons) === c.cons);
+    el.querySelector('.lvrow b').textContent = `Lv.${c.lv}`;
+  }
+  if (st.cmp.includes(id) && $('#cmp-table')) $('#cmp-table').innerHTML = cmpTable(st.cmp.filter(x => GP.DB[x]).slice(0, 3));
+  if (id === st.cur) renderInfo(id);
+}
+
+$('#pick').addEventListener('click', e => { const b = e.target.closest('.pt'); if (!b) return; st.cur = b.dataset.id; history.replaceState(null, '', '#' + st.cur); renderAll(); $('#detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+$('#els').addEventListener('click', e => { const b = e.target.closest('.elchip'); if (b) { st.el = b.dataset.el; save(); renderPick(); } });
+$('#q').addEventListener('input', e => { st.q = e.target.value; save(); renderPick(); });
+$('#mine').addEventListener('change', e => { st.mine = e.target.checked; save(); renderPick(); });
+document.addEventListener('click', e => {
+  const t = e.target.closest('.tabs2 [data-t]'); if (t) { infoTab = t.dataset.t; renderInfo(st.cur); return; }
+  const cb = e.target.closest('[data-cons]'); if (cb) { const id = cb.closest('.ctrl').dataset.id; confOf(id).cons = Number(cb.dataset.cons); refresh(id); return; }
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  if (a.dataset.act === 'cmp-toggle') { st.cmp = st.cmp.includes(st.cur) ? st.cmp.filter(x => x !== st.cur) : [...st.cmp, st.cur].slice(-3); renderAll(); }
+  if (a.dataset.act === 'cmp-remove') { st.cmp = st.cmp.filter(x => x !== a.dataset.id); renderAll(); }
+  if (a.dataset.act === 'cmp-clear') { st.cmp = []; renderAll(); }
+});
+document.addEventListener('input', e => {
+  if (!e.target.matches('[data-lv]')) return;
+  const id = e.target.closest('.ctrl').dataset.id; confOf(id).lv = Number(e.target.value);
+  refresh(id);
+});
+document.addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.remove(); }, true);
+// 주소: #캐릭터 또는 #cmp=a,b,c
+const h = decodeURIComponent(location.hash.slice(1));
+if (h.startsWith('cmp=')) { st.cmp = h.slice(4).split(',').filter(id => GP.DB[id]).slice(0, 3); st.cur = st.cmp[0] || st.cur; }
+else if (GP.DB[h]) st.cur = h;
+if (!GP.DB[st.cur]) st.cur = Object.keys(own).find(id => GP.DB[id]) || 'mitya';
+renderAll();
+</script>
+<script>if ('serviceWorker' in navigator && /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+</body>
+</html>

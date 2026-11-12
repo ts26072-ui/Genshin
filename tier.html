@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>티어표 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261112">
+<link rel="stylesheet" href="common.css?v=20261112b">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -53,6 +53,33 @@ button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: poin
 .parts .pbar i { display: block; height: 100%; background: var(--gold); }
 .parts .v { font-weight: 700; text-align: right; white-space: nowrap; }
 .sc .links { display: flex; flex-wrap: wrap; gap: 6px; }
+/* 기준 고르기 · 순위 변동 */
+.seg-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 6px; }
+.seg-l { font-weight: 700; font-size: 13.5px; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: rgb(14 19 32 / .6); }
+.seg button { font: inherit; font-size: 13px; font-weight: 600; border: 0; background: none; color: var(--muted); padding: 6px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: #ECE5D8; color: #3B4255; }
+.mode-note { margin: 0 0 14px; font-size: 12.5px; color: var(--muted); }
+.changes { background: rgb(14 19 32 / .55); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; }
+.changes > summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; font-size: 14px; }
+.changes .cnt { font-size: 12.5px; font-weight: 700; padding: 0 8px; border-radius: 999px; border: 1px solid var(--line); }
+.changes .cnt.mine { color: var(--gold); }
+.changes .fresh { font-size: 11px; font-weight: 900; padding: 1px 7px; border-radius: 999px; background: var(--bad); color: #fff; }
+.cgroup { margin-top: 10px; }
+.cgroup h3 { margin-bottom: 6px; }
+.clist { display: flex; flex-wrap: wrap; gap: 6px; }
+.cchip { font: inherit; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 2px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.cchip img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+.cchip.mine { border-color: var(--gold); }
+.cchip b { font-weight: 700; color: var(--muted); }
+.tt .pic { position: relative; }
+.chg { position: absolute; right: 2px; bottom: 2px; font-size: 10px; font-weight: 900; line-height: 1; padding: 2px 3px; border-radius: 4px; color: #fff; }
+.chg.up { background: #2F9D60; } .chg.down { background: #C4473A; } .chg.new { background: #3A7FD9; }
+.ccurve { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; align-items: end; height: 92px; }
+.cc { display: flex; flex-direction: column; align-items: center; justify-content: end; height: 100%; gap: 2px; font-size: 11px; color: var(--muted); }
+.cc i { display: block; width: 70%; background: color-mix(in srgb, var(--gold) 45%, transparent); border-radius: 4px 4px 0 0; }
+.cc b { font-size: 12px; color: var(--ink); }
+.cc.on i { background: var(--gold); } .cc.on span { color: var(--ink); font-weight: 700; }
 @media (max-width: 760px) {
   .tgrid { grid-template-columns: 1fr; gap: 6px; }
   .thead { display: none; }
@@ -64,12 +91,30 @@ button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: poin
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261112"></script>
+<script src="shell.js?v=20261112b"></script>
 <div class="wrap" style="max-width:1200px">
   <header class="top">
     <h1><span class="star">✦</span> 캐릭터 티어표</h1>
-    <p class="sub">원신 7.2 기준 캐릭터 성능 등급을 포지션별로 나눴습니다. 메인 딜러와 서브 딜러처럼 여러 자리에서 쓰는 캐릭터는 각 칸에 그 자리 등급으로 들어갑니다. 내 캐릭터는 돌파 수가 붙고, 캐릭터를 누르면 점수와 그 근거가 나옵니다.</p>
+    <p class="sub">원신 7.2 기준 캐릭터 성능 등급을 포지션별로 나눴습니다. 운명의 자리(돌파) 단계마다 등급이 달라지니 위에서 C0~C6이나 내 돌파를 골라 보세요. 여러 자리에서 쓰는 캐릭터는 각 칸에 그 자리 등급으로 들어가고, 캐릭터를 누르면 점수와 근거가 나옵니다.</p>
   </header>
+
+  <div class="seg-row">
+    <span class="seg-l">기준</span>
+    <div class="seg" id="mode" role="group" aria-label="티어 기준">
+      <button type="button" data-m="all">종합</button>
+      <button type="button" data-m="0">C0</button>
+      <button type="button" data-m="1">C1</button>
+      <button type="button" data-m="2">C2</button>
+      <button type="button" data-m="3">C3</button>
+      <button type="button" data-m="4">C4</button>
+      <button type="button" data-m="5">C5</button>
+      <button type="button" data-m="6">C6</button>
+      <button type="button" data-m="mine">내 돌파</button>
+    </div>
+  </div>
+  <p class="mode-note" id="mode-note"></p>
+
+  <details class="changes" id="changes"></details>
 
   <div class="filters">
     <div class="elchips" id="els"></div>
@@ -79,72 +124,100 @@ button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: poin
   <div class="tgrid" id="tiers"></div>
   <dialog id="dlg" aria-label="캐릭터 점수"></dialog>
 
-  <p class="foot-note">등급은 캐릭터 성능 점수 하나로 매깁니다: GamsGo 원신 7.2 종합 티어표(2026년 11월 4일, SS 92 · S 84 · A+ 76 · A 68 · B 56 · C 44 · D 30점) 60% + 나무위키 각 캐릭터 문서의 '평가'를 읽고 매긴 점수 40%. 파티 감정소의 캐릭터 성능 점수와 같은 값이며, 한쪽 평가만 있으면 그 값을 씁니다. SS 85점 이상 · S 72점 이상 · A 58점 이상 · B 45점 이상 · C 그 아래. 포지션은 GamsGo 표의 메인 딜러·서브 딜러·서포터 칸을 그대로 따르고(힐러·보호막은 서포터 칸), 한 캐릭터가 여러 칸에 있으면 칸마다 그 자리 등급으로 점수를 매깁니다. 가장 높은 자리의 점수가 파티 감정소의 성능 점수이고, 다른 자리 타일에는 '부' 표시가 붙습니다. 같은 칸 안에서는 점수가 높은 순입니다. 매주 목요일 자동 업데이트에서 갱신됩니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
+  <p class="foot-note">점수 = 그 칸의 GamsGo 등급 점수(SS 92 · S 84 · A+ 76 · A 68 · B 56 · C 44 · D 30) 60% + 나무위키 각 캐릭터 문서의 '평가'를 읽고 매긴 점수 40%(한쪽만 있으면 그 값). 행은 SS 85점 이상 · S 72 · A 58 · B 45 · C 그 아래. 종합은 GamsGo 원신 7.2 종합 티어표, C0·C6은 같은 글의 명함(0돌)·풀돌(6돌) 티어표(2026년 11월 4일)를 그대로 쓰고, C1~C5는 두 표 사이를 운명의 자리 가치 곡선(5성 0 · 35 · 55 · 65 · 75 · 85 · 100%, 4성은 고르게)으로 채운 <b>추정</b>입니다. 포지션은 GamsGo 표의 메인 딜러·서브 딜러·서포터 칸(힐러·보호막은 서포터 칸)을 따르고, 한 캐릭터가 여러 칸에 있으면 가장 높은 칸이 아닌 타일에 '부'가 붙습니다. 순위 변동은 직전 GamsGo 표(7.1, 2026년 9월 23일)의 가장 높은 칸 등급과 비교합니다. 매주 목요일 자동 업데이트에서 갱신됩니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
 </div>
 
-<script src="chars.js?v=20261112"></script>
+<script src="chars.js?v=20261112b"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster();
 const PREF = GP.KEY + ':tier';
-let st = { el: '', mine: false };
+let st = { el: '', mine: false, mode: 'all' };
 try { st = { ...st, ...JSON.parse(localStorage.getItem(PREF)) }; } catch (e) {}
 
 const ROWS = [['SS', '#d4553b', 85, '85+'], ['S', '#e08a3c', 72, '72+'], ['A', '#7fae4a', 58, '58+'], ['B', '#4a9fae', 45, '45+'], ['C', '#8a7a9a', 0, '45 미만']];
-const POS = [['main', '메인 딜러'], ['sub', '서브 딜러'], ['sup', '서포터 · 힐러 · 보호막']];
-const posOf = d => d.roles[0] === 'heal' || d.roles[0] === 'shield' ? 'sup' : d.roles[0];
+const POS = GP.POS;
+const posName = p => POS.find(x => x[0] === p)[1];
 const rowOf = perf => ROWS.find(r => perf >= r[2])[0];
-// 캐릭터가 들어갈 칸과 그 칸의 점수: GamsGo 역할별 등급 60% + 나무위키 40%. 역할별 등급이 없으면 주 역할 칸 하나
-function slots(d) {
-  const g = GG_ROLE[d.id], n = PERF_NAMU[d.id] ?? null;
-  if (!g) return [{ pos: posOf(d), perf: d.perf, tier: null }];
-  const out = g.split('/').map((t, i) => t === '-' ? null : { pos: POS[i][0], tier: t, perf: n != null ? Math.round(0.6 * GG_SCORE[t] + 0.4 * n) : GG_SCORE[t] }).filter(Boolean);
-  const top = Math.max(...out.map(x => x.perf));
-  out.forEach(x => x.alt = x.perf < top || out.findIndex(y => y.perf === top) !== out.indexOf(x));
-  return out;
-}
+// 지금 기준에서 이 캐릭터의 돌파 수: 종합은 null, C0~C6은 그 값, 내 돌파는 보유 캐릭터면 내 돌파 수(없으면 0)
+const consOf = id => st.mode === 'all' ? null : st.mode === 'mine' ? (own[id] ? own[id].cons || 0 : 0) : Number(st.mode);
+const slots = d => GP.slotsAt(d.id, consOf(d.id));
 
 $('#els').innerHTML = `<button type="button" class="elchip" data-el="">전체</button>` + GP.ORDER.map(el => `<button type="button" class="elchip" data-el="${el}"><span class="dot" style="--c:var(--${el})"></span>${GP.EL[el]}</button>`).join('');
 $('#mine').disabled = !Object.keys(own).length;
 
+const chg = c => !c ? '' : c.isNew ? '<span class="chg new" title="새로 들어옴">N</span>' : c.d > 0 ? `<span class="chg up" title="${c.prev} → ${c.now}">▲</span>` : c.d < 0 ? `<span class="chg down" title="${c.prev} → ${c.now}">▼</span>` : '';
 function tile(d, sl) {
   const u = GP.iconUrl(d.id), o = own[d.id];
-  return `<button type="button" class="tt r${d.r}${st.mine && !o ? ' dim' : ''}" data-id="${d.id}" title="${GP.esc(d.name)} · ${POS.find(p => p[0] === sl.pos)[1]} ${sl.perf}점" style="--c:var(--${d.el})">
-    ${sl.alt ? '<span class="alt">부</span>' : ''}<span class="pic">${u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : ''}</span>
+  const c = st.mode === 'all' && !sl.alt ? GP.tierChange(d.id) : null;
+  return `<button type="button" class="tt r${d.r}${st.mine && !o ? ' dim' : ''}" data-id="${d.id}" title="${GP.esc(d.name)} · ${posName(sl.pos)} ${sl.perf}점${sl.est ? ' (추정)' : ''}" style="--c:var(--${d.el})">
+    ${sl.alt ? '<span class="alt">부</span>' : ''}<span class="pic">${u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : ''}${chg(c)}</span>
     <span class="n">${GP.esc(d.name)}</span>${o ? `<span class="own">${o.cons}돌</span>` : ''}</button>`;
 }
-// 캐릭터를 누르면 뜨는 점수 창: 종합 점수와 그 근거(GamsGo 등급 점수·나무위키 평가 점수)
+// 캐릭터를 누르면 뜨는 점수 창: 지금 기준 점수, 역할별 점수, C0~C6 점수 흐름, 근거, 직전 표 대비 변동
 function scoreCard(id) {
-  const d = GP.DB[id], o = own[id], row = ROWS.find(r => r[0] === rowOf(d.perf)), sls = slots(d), best = sls.find(x => !x.alt) || sls[0];
-  const g = GG[id], gs = g ? GG_SCORE[g] : null, n = PERF_NAMU[id] ?? null;
-  const part = (k, v, label) => `<span>${k}</span><span class="pbar"><i style="width:${v ?? 0}%"></i></span><span class="v">${label}</span>`;
-  const how = gs != null && n != null ? 'GamsGo 60% + 나무위키 40%' : gs != null ? 'GamsGo 등급만 있음' : n != null ? '나무위키 평가만 있음' : '평가 없음 — 기본값';
+  const d = GP.DB[id], o = own[id], sls = slots(d), best = sls.find(x => !x.alt) || sls[0], row = ROWS.find(r => r[0] === rowOf(best.perf));
+  const n = PERF_NAMU[id] ?? null, cons = consOf(id);
   const inPos = Object.values(GP.DB).map(x => ({ id: x.id, s: slots(x).find(y => y.pos === best.pos) })).filter(x => x.s).sort((a, b) => b.s.perf - a.s.perf);
-  const rank = inPos.findIndex(x => x.id === id) + 1, total = inPos.length;
+  const rank = inPos.findIndex(x => x.id === id) + 1;
+  const curve = [0, 1, 2, 3, 4, 5, 6].map(k => GP.perfAt(id, k));
+  const c = GP.tierChange(id);
+  const label = cons == null ? '종합' : `C${cons}${st.mode === 'mine' ? ' (내 돌파)' : ''}`;
   return `<div class="sc" style="--c:var(--${d.el})">
     <div class="sc-head"><div class="pic r${d.r}">${GP.iconUrl(id) ? `<img src="${GP.iconUrl(id)}" alt="">` : ''}</div>
-      <div><div class="nm">${GP.esc(d.name)}</div><div class="meta">${'★'.repeat(d.r)} · ${GP.EL[d.el]}${d.wp ? ' · ' + GP.WPN[d.wp] : ''} · ${d.roles.map(r => GP.ROLE[r]).join(' / ')}${d.guess ? ' (역할 추정)' : ''}</div>
+      <div><div class="nm">${GP.esc(d.name)}</div><div class="meta">${'★'.repeat(d.r)} · ${GP.EL[d.el]}${d.wp ? ' · ' + GP.WPN[d.wp] : ''}</div>
       ${o ? `<div class="meta">내 캐릭터 · Lv.${o.lv} · ${o.cons}돌파</div>` : ''}</div>
       <button type="button" class="btn sm" data-close>닫기</button></div>
     <div class="big"><span class="grade" style="--tc:${row[1]}">${row[0]}</span>
-      <div><div class="pts">${d.perf}<small> / 100점</small></div><div class="meta muted" style="font-size:12.5px">${POS.find(p => p[0] === best.pos)[1]} ${total}명 중 ${rank}위 · ${how}</div></div></div>
-    ${sls.length > 1 || sls[0].tier ? `<div class="roles">${sls.map(x => `<span>${POS.find(p => p[0] === x.pos)[1]}<b>${x.tier || ''} ${x.perf}점</b></span>`).join('')}</div>` : ''}
+      <div><div class="pts">${best.perf}<small> / 100점 · ${label}${best.est ? ' 추정' : ''}</small></div><div class="meta muted" style="font-size:12.5px">${posName(best.pos)} ${inPos.length}명 중 ${rank}위</div></div></div>
+    <div class="roles">${sls.map(x => `<span>${posName(x.pos)}<b>${x.tier || ''} ${x.perf}점</b></span>`).join('')}</div>
+    <div><h3>운명의 자리별 점수</h3><div class="ccurve">${curve.map((v, k) => `<div class="cc${cons === k ? ' on' : ''}"><i style="height:${Math.max(4, v - 30) / 70 * 100}%"></i><b>${v}</b><span>C${k}</span></div>`).join('')}</div>
+      <p class="muted" style="margin:4px 0 0;font-size:12px">C0·C6은 GamsGo 명함·풀돌 표, C1~C5는 그 사이 추정</p></div>
     <div class="parts">
-      ${part('GamsGo 티어', gs, g ? `${g} · ${gs}점` : '없음')}
-      ${part('나무위키 평가', n, n != null ? `${n}점` : '없음')}
+      <span>GamsGo 종합</span><span class="pbar"><i style="width:${GG[id] ? GG_SCORE[GG[id]] : 0}%"></i></span><span class="v">${GG[id] ? `${GG[id]} · ${GG_SCORE[GG[id]]}점` : '없음'}</span>
+      <span>나무위키 평가</span><span class="pbar"><i style="width:${n ?? 0}%"></i></span><span class="v">${n != null ? `${n}점` : '없음'}</span>
     </div>
-    <div class="links"><a class="btn sm" href="stats.html#${id}">종결 스탯</a><a class="btn sm" href="guide.html#${id}">추천 성유물</a><a class="btn sm" href="farm.html#${id}">육성 재료</a></div>
+    ${c ? `<p class="meta" style="margin:0">${c.isNew ? `${GG_NOW.v} 표에 새로 들어옴 (${c.now})` : c.d ? `${GG_PREV.v} ${c.prev} → ${GG_NOW.v} ${c.now} <b class="${c.d > 0 ? 'ok' : 'low'}">${c.d > 0 ? '상승' : '하락'}</b>` : `${GG_PREV.v} → ${GG_NOW.v} 등급 그대로 (${c.now})`}</p>` : ''}
+    <div class="links"><a class="btn sm" href="dex.html#${id}">도감 · 특성 · 비교</a><a class="btn sm" href="stats.html#${id}">종결 스탯</a><a class="btn sm" href="guide.html#${id}">추천 성유물</a><a class="btn sm" href="farm.html#${id}">육성 재료</a></div>
   </div>`;
 }
 const dlg = document.getElementById('dlg');
 $('#tiers').addEventListener('click', e => { const b = e.target.closest('.tt'); if (!b) return; dlg.innerHTML = scoreCard(b.dataset.id); dlg.showModal(); });
+$('#changes').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (!b) return; dlg.innerHTML = scoreCard(b.dataset.id); dlg.showModal(); });
 dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); });
+
+// 순위 변동: 직전 표 대비 등급이 바뀐 캐릭터. 새 표를 처음 보는 거면 펼치고 '새 표' 표시
+const SEEN = GP.KEY + ':tier-seen', NOW_KEY = GG_NOW.v + '@' + GG_NOW.at;
+let seen = null;
+try { seen = localStorage.getItem(SEEN); } catch (e) {}
+function renderChanges() {
+  const all = Object.keys(GP.DB).map(id => ({ id, c: GP.tierChange(id) })).filter(x => x.c && (x.c.d || x.c.isNew));
+  const by = k => all.filter(k).sort((a, b) => (own[b.id] ? 1 : 0) - (own[a.id] ? 1 : 0) || Math.abs(b.c.d) - Math.abs(a.c.d) || GP.DB[a.id].name.localeCompare(GP.DB[b.id].name, 'ko'));
+  const up = by(x => x.c.d > 0), down = by(x => x.c.d < 0), nw = by(x => x.c.isNew);
+  const chip = x => `<button type="button" class="cchip${own[x.id] ? ' mine' : ''}" data-id="${x.id}">${GP.iconUrl(x.id) ? `<img src="${GP.iconUrl(x.id)}" alt="" loading="lazy">` : ''}<span>${GP.esc(GP.DB[x.id].name)}</span><b>${x.c.isNew ? x.c.now : `${x.c.prev}→${x.c.now}`}</b></button>`;
+  const fresh = seen !== NOW_KEY;
+  const mineCnt = all.filter(x => own[x.id]).length;
+  $('#changes').innerHTML = `<summary><b>티어 변동</b> ${GG_PREV.v}(${GG_PREV.at.slice(5).replace('-', '/')}) → ${GG_NOW.v}(${GG_NOW.at.slice(5).replace('-', '/')})
+      <span class="cnt ok">▲ ${up.length}</span><span class="cnt low">▼ ${down.length}</span><span class="cnt">신규 ${nw.length}</span>${mineCnt ? `<span class="cnt mine">내 캐릭터 ${mineCnt}명</span>` : ''}${fresh ? '<span class="fresh">새 표</span>' : ''}</summary>
+    ${up.length ? `<div class="cgroup"><h3 class="ok">올라감</h3><div class="clist">${up.map(chip).join('')}</div></div>` : ''}
+    ${down.length ? `<div class="cgroup"><h3 class="low">내려감</h3><div class="clist">${down.map(chip).join('')}</div></div>` : ''}
+    ${nw.length ? `<div class="cgroup"><h3>새로 들어옴</h3><div class="clist">${nw.map(chip).join('')}</div></div>` : ''}
+    <p class="muted" style="margin:8px 0 0;font-size:12.5px">가장 높은 칸 등급 기준이고, 같은 등급 안의 점수 변화는 빼고 셌습니다. 종합 기준 티어표 타일에도 ▲ ▼ N이 붙습니다.</p>`;
+  if (fresh) $('#changes').open = true;
+  try { localStorage.setItem(SEEN, NOW_KEY); } catch (e) {}
+}
+const NOTE = {
+  all: 'GamsGo 종합 표 기준입니다(파티 감정소의 기본 성능 점수).',
+  0: '명함(C0) 표 그대로입니다.', 6: '풀돌(C6) 표 그대로입니다.',
+  mine: '보유 캐릭터는 내 돌파 수, 없는 캐릭터는 명함(C0) 기준입니다. C1~C5는 추정입니다.',
+};
 function render() {
   try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {}
   for (const b of document.querySelectorAll('.elchip')) b.setAttribute('aria-pressed', b.dataset.el === st.el);
+  for (const b of document.querySelectorAll('#mode button')) b.setAttribute('aria-pressed', b.dataset.m === String(st.mode));
+  $('#mode-note').textContent = NOTE[st.mode] || `모두 C${st.mode}이라고 보고 명함·풀돌 표 사이를 채운 추정입니다.`;
   $('#mine').checked = st.mine;
-  const list = Object.values(GP.DB).filter(d => !st.el || d.el === st.el)
-    .sort((a, b) => b.perf - a.perf || b.r - a.r || a.name.localeCompare(b.name, 'ko'));
+  const list = Object.values(GP.DB).filter(d => !st.el || d.el === st.el);
   const cells = list.flatMap(d => slots(d).map(sl => ({ d, sl })));
   const multi = list.filter(d => slots(d).length > 1).length;
   $('#count').textContent = `${list.length}명 · 여러 자리 ${multi}명`;
@@ -152,16 +225,18 @@ function render() {
   for (const [t, c, , sub] of ROWS) {
     html += `<div class="tlabel" style="--tc:${c}"><span>${t}</span><small>${sub}</small></div>`;
     for (const [p, n] of POS) {
-      const ds = cells.filter(x => x.sl.pos === p && rowOf(x.sl.perf) === t).sort((a, b) => b.sl.perf - a.sl.perf || a.sl.alt - b.sl.alt);
+      const ds = cells.filter(x => x.sl.pos === p && rowOf(x.sl.perf) === t)
+        .sort((a, b) => b.sl.perf - a.sl.perf || a.sl.alt - b.sl.alt || b.d.r - a.d.r || a.d.name.localeCompare(b.d.name, 'ko'));
       html += `<div class="tcell${ds.length ? '' : ' none'}"><span class="cap">${n}</span>${ds.map(x => tile(x.d, x.sl)).join('') || '<span class="empty-cell">—</span>'}</div>`;
     }
   }
   $('#tiers').innerHTML = html;
 }
 $('#els').addEventListener('click', e => { const b = e.target.closest('.elchip'); if (b) { st.el = b.dataset.el; render(); } });
+$('#mode').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { st.mode = b.dataset.m; render(); } });
 $('#mine').addEventListener('change', e => { st.mine = e.target.checked; render(); });
 document.addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.remove(); }, true);
-render();
+renderChanges(); render();
 </script>
 <script>if ('serviceWorker' in navigator && /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>

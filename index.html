@@ -381,7 +381,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
-<script src="shell.js?v=20261112"></script>
+<script src="shell.js?v=20261112b"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -555,11 +555,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261112"></script>
-<script src="weapons.js?v=20261112"></script>
-<script src="rot.js?v=20261112"></script>
-<script src="names.js?v=20261112"></script>
-<script src="account.js?v=20261112"></script>
+<script src="builds.js?v=20261112b"></script>
+<script src="weapons.js?v=20261112b"></script>
+<script src="rot.js?v=20261112b"></script>
+<script src="names.js?v=20261112b"></script>
+<script src="account.js?v=20261112b"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -741,18 +741,76 @@ for (const id of new Set([...Object.keys(PERF_NAMU), ...Object.keys(GG)])) {
   PERF[id] = n != null && g != null ? Math.round(0.6 * g + 0.4 * n) : (g ?? n);
 }
 const PERF_DEFAULT = 60;
+// GamsGo 7.2 명함(C0) 티어표의 역할별 등급 '메인/서브/서포터'
+const GG_ROLE_C0 = {
+  sandrone:'SS/-/-', odette:'-/SS/SS', mitya:'SS/-/SS', columbina:'-/SS/SS', vesna:'SS/-/-', ineffa:'-/SS/SS', 'traveler-cryo':'SS/-/-',
+  lauma:'-/SS/SS', zibai:'SS/-/-', linnea:'-/SS/SS', nicole:'-/-/SS', mavuika:'SS/S/-', yae:'-/SS/-', nefer:'SS/-/-', bennett:'-/-/SS', flins:'SS/-/-',
+  iansan:'-/-/SS', citlali:'-/-/SS', wriothesley:'S/-/-', vodyanitsa:'-/-/S', cyno:'S/-/-', furina:'-/S/S', qiqi:'-/-/S', mizuki:'S/-/C',
+  escoffier:'-/S/S', skirk:'S/-/-', durin:'-/S/-', xilonen:'-/-/S', barca:'S/-/-', sucrose:'-/A/S', chevreuse:'-/-/S', mualani:'A+/-/-',
+  yelan:'-/A+/-', nahida:'-/A+/A+', varesa:'A+/-/-', fischl:'-/A+/-', mona:'-/A/A+', chasca:'A+/-/-', kazuha:'-/-/A+', roen:'A+/-/-', albedo:'-/A+/-',
+  xianyun:'-/-/A+', kinich:'A+/-/-', emilie:'-/A+/-', baizhu:'-/-/A+', xingqiu:'-/A+/-', zhongli:'-/-/A+', xiangling:'-/A+/-', shenhe:'-/-/A+',
+  venti:'A/A+/-', arlecchino:'A/-/-', raiden:'B/A/-', prune:'-/A/A', neuvillette:'A/-/-', nilou:'-/A/-', alyosha:'-/-/A', klee:'A/-/-',
+  shinobu:'-/A/A', valery:'-/-/A', ayaka:'A/-/-', ororon:'-/A/-', jean:'-/-/A', kokomi:'-/B/A', yaoyao:'-/-/A', lanyan:'-/-/A', aino:'-/A/-',
+  layla:'-/-/A', chiori:'-/A/-', illuga:'-/-/A', clorinde:'B/-/-', rosaria:'-/B/C', sigewinne:'-/-/B', gaming:'B/-/-', ganyu:'C/B/-', diona:'-/-/B',
+  navia:'B/-/-', faruzan:'-/-/B', alhaitham:'B/-/-', 'traveler-pyro':'-/B/-', yunjin:'-/-/B', lyney:'B/-/-', thoma:'-/B/C', gorou:'-/-/B',
+  hutao:'B/-/-', beidou:'-/B/-', charlotte:'-/-/B', xiao:'B/-/-', collei:'-/B/-', kirara:'-/-/B', razor:'B/-/-', jahoda:'-/B/C', dehya:'D/C/B',
+  lynette:'-/B/-', sara:'-/-/B', tartaglia:'B/-/-', 'traveler-dendro':'-/B/-', wanderer:'B/-/-', kaeya:'-/B/-', yoimiya:'C/-/-', kachina:'-/C/-',
+  diluc:'C/-/-', mika:'-/-/C', itto:'C/-/-', lisa:'-/C/D', ayato:'C/-/-', chongyun:'-/C/D', dahlia:'-/-/C', sayu:'-/C/C', barbara:'-/-/C',
+  tighnari:'C/-/-', sethos:'C/-/-', candace:'-/-/C', ifa:'C/-/-', keqing:'C/-/-', noelle:'C/-/D', eula:'C/-/-', yanfei:'D/-/-', xinyan:'D/D/D',
+  dori:'-/-/D', heizou:'D/-/-', amber:'-/D/-', kaveh:'D/-/-', 'traveler-geo':'-/D/-', freminet:'D/-/-', 'traveler-anemo':'-/D/-',
+  'traveler-electro':'-/-/D', ningguang:'D/-/-', 'traveler-hydro':'-/D/-', aloy:'D/-/-',
+};
+
+// GamsGo 7.2 풀돌(C6) 티어표의 역할별 등급 '메인/서브/서포터'
+const GG_ROLE_C6 = {
+  sandrone:'SS/-/-', odette:'-/SS/SS', nicole:'-/-/SS', mitya:'SS/-/SS', columbina:'-/SS/SS', vesna:'SS/-/-', furina:'A+/SS/SS', zibai:'SS/-/-',
+  durin:'-/SS/-', mavuika:'SS/SS/S', vodyanitsa:'-/-/SS', mualani:'SS/-/-', yae:'-/SS/-', chasca:'SS/-/-', citlali:'-/-/SS', skirk:'SS/-/-',
+  lauma:'-/S/SS', flins:'SS/-/-', linnea:'-/S/SS', nefer:'SS/-/-', ineffa:'-/S/SS', 'traveler-cryo':'SS/-/-', xilonen:'-/-/SS', wriothesley:'SS/-/-',
+  escoffier:'-/S/SS', cyno:'SS/-/-', barca:'S/-/-', nahida:'-/S/S', neuvillette:'S/-/-', bennett:'-/-/S', arlecchino:'S/-/-', iansan:'-/-/S',
+  mizuki:'S/-/B', prune:'-/A+/S', navia:'S/-/-', yelan:'A+/S/-', sucrose:'-/A/S', varesa:'S/-/-', qiqi:'-/-/S', roen:'S/-/-', fischl:'-/S/-',
+  chevreuse:'-/-/S', emilie:'-/S/-', kazuha:'-/-/S', albedo:'-/S/-', alyosha:'-/-/S', valery:'-/-/S', shenhe:'-/-/S', chiori:'A+/A/-', nilou:'-/A+/-',
+  xianyun:'A/-/A+', kinich:'A+/-/-', raiden:'A/A+/-', baizhu:'-/-/A+', mona:'-/A+/A+', clorinde:'A+/-/-', xiangling:'-/A+/-', faruzan:'-/-/A+',
+  lyney:'A+/-/-', xingqiu:'-/A+/-', illuga:'-/-/A+', venti:'A+/A+/-', zhongli:'-/-/A+', wanderer:'A+/-/-', jean:'-/-/A+', xiao:'A+/-/-',
+  shinobu:'-/A+/A', klee:'A+/-/-', ayaka:'A+/-/-', gaming:'A/-/-', ororon:'-/A/-', kokomi:'-/B/A', alhaitham:'A/-/-', aino:'-/A/-', lanyan:'-/-/A',
+  hutao:'A/-/-', gorou:'-/-/A', diona:'-/-/A', ayato:'A/-/-', rosaria:'-/A/C', yaoyao:'-/-/A', ganyu:'B/A/-', charlotte:'-/-/A', itto:'A/-/-',
+  razor:'A/-/-', layla:'-/-/A', tighnari:'A/-/-', kirara:'-/-/A', sigewinne:'-/-/B', eula:'B/-/-', thoma:'-/B/B', jahoda:'-/-/B', diluc:'B/-/-',
+  collei:'-/B/-', yunjin:'-/-/B', tartaglia:'B/-/-', 'traveler-pyro':'-/B/-', sara:'-/-/B', yoimiya:'B/-/-', beidou:'-/B/-', sethos:'B/-/-',
+  dehya:'C/B/B', ifa:'B/-/-', kaeya:'-/B/-', lynette:'-/B/-', 'traveler-dendro':'-/B/-', keqing:'C/-/-', kachina:'-/C/-', mika:'-/-/C', noelle:'C/-/D',
+  lisa:'-/C/D', sayu:'-/C/C', yanfei:'C/-/-', chongyun:'-/C/D', dahlia:'-/-/C', barbara:'-/-/C', heizou:'C/-/-', candace:'-/-/C', kaveh:'C/-/-',
+  'traveler-electro':'-/-/C', ningguang:'C/-/-', freminet:'C/-/-', dori:'-/-/C', xinyan:'D/D/D', 'traveler-geo':'-/D/-', amber:'-/D/-',
+  'traveler-anemo':'-/D/-', 'traveler-hydro':'-/D/-',
+};
+
+// 운명의 자리별 성능(티어표 페이지와 같은 계산): 칸마다 명함(C0)·풀돌(C6) 표 점수 사이를 돌파 가치 곡선으로 채우고 가장 높은 칸을 씀
+const CONS_W = { 5: [0, .35, .55, .65, .75, .85, 1], 4: [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1] };
+function consPerf(id, cons) {
+  const d = DB[id], arr = x => x ? x.split('/').map(t => t === '-' ? null : t) : null;
+  const a = arr(GG_ROLE_C0[id]), b = arr(GG_ROLE_C6[id]) || a;
+  if (!a) return d.perf;
+  const n = PERF_NAMU[id] ?? null, sc = t => n != null ? Math.round(0.6 * GG_SCORE[t] + 0.4 * n) : GG_SCORE[t];
+  const w = CONS_W[d.r === 5 ? 5 : 4][clamp(Math.round(cons || 0), 0, 6)];
+  let best = 0;
+  for (let i = 0; i < 3; i++) {
+    const ta = a[i], tb = b[i];
+    if (!(ta && w < 1) && !(tb && w >= 0.5)) continue;
+    const sa = ta ? sc(ta) : null, sb = tb ? sc(tb) : null;
+    best = Math.max(best, sa != null && sb != null ? Math.round(sa + (sb - sa) * w) : (sa ?? sb));
+  }
+  return best || d.perf;
+}
 const TIER = p => p >= 85 ? 'T0' : p >= 72 ? 'T1' : p >= 58 ? 'T2' : p >= 45 ? 'T3' : 'T4';
 const DB = {};
 for (const [id,name,el,wp,r,roles,scale,er,crit,tal,guess] of RAW)
   DB[id] = { id, name, el, wp, r, roles: roles.split('/'), scale, er, crit: !!crit, tal: tal.split('').map(k => 'NEQ'.indexOf(k)), guess: !!guess,
     perf: PERF[id] ?? PERF_DEFAULT, rated: PERF[id] != null };
 // 사용자가 편집 화면에서 바꾼 역할·스탯·성능 기준을 반영한 캐릭터 프로필
+// 성능은 직접 고친 값이 없으면 내 운명의 자리 수에 맞춘 값(consPerf)
 function prof(c) {
-  const d = DB[c.id], o = c.ov;
-  if (!o) return d;
+  const d = DB[c.id], o = c.ov, perf = consPerf(c.id, c.cons);
+  if (!o) return perf === d.perf ? d : { ...d, perf };
   const role = o.role || d.roles[0];
   return { ...d, roles: [role, ...d.roles.filter(r => r !== role)], scale: o.scale || d.scale, crit: o.crit ?? d.crit, er: o.er || d.er, guess: false,
-    perf: o.perf ?? d.perf, rated: d.rated || o.perf != null, perfEdited: o.perf != null };
+    perf: o.perf ?? perf, rated: d.rated || o.perf != null, perfEdited: o.perf != null };
 }
 
 const ICON = {
@@ -1625,7 +1683,8 @@ const FEATURES = [
   { tab: 'growth', n: '성장 우선순위', g: '성', c: 'var(--dendro)', d: '레진을 어디에 먼저 쓸지 효과 순으로' },
   { tab: 'meta', n: '메타 · 엔진', g: '메', c: 'var(--electro)', d: '실측 딜량 상위 파티와 코어 조합' },
   { tab: 'ai', n: 'AI 상담 · 픽업', g: 'AI', c: 'var(--anemo)', d: '픽업 일정과 뽑기·육성 질문' },
-  { href: 'tier.html', n: '티어표', g: '티', c: 'var(--geo)', d: '7.2 메인·서브·서포터별 등급' },
+  { href: 'tier.html', n: '티어표', g: '티', c: 'var(--geo)', d: '7.2 역할별 · 운명의 자리(C0~C6)별 등급과 순위 변동' },
+  { href: 'dex.html', n: '캐릭터 도감 · 비교', g: '도', c: 'var(--gold)', d: '특성·운명의 자리 설명, 돌파·레벨 바꿔 가며 선수 카드 비교' },
   { href: 'rate.html', n: '성유물 감정', g: '감', c: 'var(--gold)', d: '성유물 하나의 주옵·부옵 등급과 가방 정리' },
   { href: 'guide.html', n: '성유물 추천', g: '추', c: 'var(--cryo)', d: '캐릭터별 추천 세트·주옵·부옵' },
   { href: 'stats.html', n: '종결 스탯 도감', g: '종', c: 'var(--pyro)', d: '합격선·종결 스탯 목표치' },
@@ -1930,7 +1989,9 @@ function fillChar(c) {
   $('#f-role').value = d.roles[0]; $('#f-scale').value = d.scale; $('#f-ertgt').value = d.er; $('#f-crit').checked = d.crit; $('#f-perf').value = d.perf;
   const base = DB[c.id];
   const src = [GG[c.id] && `티어표 ${GG[c.id]}`, PERF_NAMU[c.id] != null && `나무위키 ${PERF_NAMU[c.id]}`].filter(Boolean).join(' · ');
-  $('#perf-name').textContent = base.rated ? `캐릭터 성능 (기본 ${base.perf} = ${src})` : '캐릭터 성능 (평가 없음 · 기본 60)';
+  const cp = consPerf(c.id, c.cons);
+  $('#perf-name').textContent = base.rated ? `캐릭터 성능 (C${c.cons} 기본 ${cp} · ${src})` : '캐릭터 성능 (평가 없음 · 기본 60)';
+  $('#f-perf').dataset.auto = String(cp);
   $('#guess-note').hidden = !d.guess;
   $('#f-lv').value = c.lv; $('#f-ap').checked = !!c.ap; $('#f-cons').value = c.cons;
   c.t.forEach((x, i) => $('#f-t' + i).value = x);
@@ -1957,7 +2018,7 @@ function readChar() {
   const ert = Math.round(n('#f-ertgt', 100, 350));
   if (ert !== d.er) ov.er = ert;
   const pf = Math.round(n('#f-perf', 0, 100));
-  if (pf !== d.perf) ov.perf = pf;
+  if (pf !== consPerf(id, Math.round(n('#f-cons', 0, 6)))) ov.perf = pf;
   // 특성은 현재 레벨의 돌파 단계가 허용하는 값까지만 인정
   const lvIn = n('#f-lv', 1, 90), ap = pendingAsc({ lv: lvIn, ap: $('#f-ap').checked });
   // 세트: 첫째만 고르면 4세트, 둘 다 고르면 2+2, 아무것도 안 고르면 '세트 효과 없음'
@@ -2009,6 +2070,13 @@ $('#f-id').addEventListener('change', () => fillChar(defaultsFor($('#f-id').valu
 $('#form-char').addEventListener('input', e => {
   if (e.target.id === 'f-id') return;
   if (e.target.id === 'f-sa' || e.target.id === 'f-sb') legacySet = null;   // 세트를 직접 고르면 예전 세트 상태는 버림
+  // 돌파 수를 바꾸면, 성능을 직접 고치지 않은 경우 그 돌파의 기본 성능으로 따라 바꿈
+  if (e.target.id === 'f-cons') {
+    const fp = $('#f-perf'), id = editId || $('#f-id').value, cp = consPerf(id, Number(e.target.value) || 0);
+    if (fp.value === fp.dataset.auto) fp.value = cp;
+    fp.dataset.auto = String(cp);
+    $('#perf-name').textContent = $('#perf-name').textContent.replace(/C\d 기본 \d+/, `C${clamp(Math.round(Number(e.target.value) || 0), 0, 6)} 기본 ${cp}`);
+  }
   previewChar();
 });
 $('#form-char').addEventListener('submit', e => {
