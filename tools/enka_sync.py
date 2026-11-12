@@ -22,12 +22,31 @@ SLOT = {'EQUIP_BRACER': 'flower', 'EQUIP_NECKLACE': 'plume', 'EQUIP_SHOES': 'san
 EL = {'Fire': 'pyro', 'Water': 'hydro', 'Wind': 'anemo', 'Electric': 'electro', 'Grass': 'dendro', 'Ice': 'cryo', 'Rock': 'geo'}
 
 
+def foreign_guard(out_path):
+    """Fork에서 원본 주인의 계정 파일이 그대로 남아 있으면(이 저장소가 받은 적 없는 파일) 빈 파일로 바꿔 주인 계정이 보이지 않게 함."""
+    repo = os.environ.get('GITHUB_REPOSITORY', '')
+    if not repo:
+        return
+    try:
+        with open(out_path, encoding='utf8') as fh:
+            old = json.load(fh)
+    except (OSError, ValueError):
+        return
+    if old.get('repo') == repo or (not old.get('repo') and repo == 'ts26072-ui/Genshin'):
+        return
+    with open(out_path, 'w', encoding='utf8') as fh:
+        json.dump({'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'), 'repo': repo, 'none': True, 'chars': []},
+                  fh, ensure_ascii=False, separators=(',', ':'))
+    print('원본 저장소의 계정 파일이 남아 있어 비웠습니다. 내 UID를 Secret(GENSHIN_UID)에 넣으면 내 계정으로 채워집니다.')
+
+
 def get(url):
     with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
         return json.loads(r.read())
 
 
 def main():
+    foreign_guard(OUT)
     uid = os.environ.get('GENSHIN_UID', '').strip()
     if not uid.isdigit():
         print('Secret GENSHIN_UID 가 비어 있어 건너뜀. 저장소 Settings → Secrets and variables → Actions 에 원신 UID를 넣어 주세요.')
@@ -79,7 +98,7 @@ def main():
                                     'main': [PROP.get(ms.get('mainPropId'), ms.get('mainPropId', '')), ms.get('statValue', 0)],
                                     'subs': [[PROP.get(s['appendPropId'], s['appendPropId']), s['statValue']] for s in f.get('reliquarySubstats') or []]})
         rows.append(row)
-    out = {'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'), 'source': 'enka',
+    out = {'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'), 'source': 'enka', 'repo': os.environ.get('GITHUB_REPOSITORY', ''),
            'nickname': pi.get('nickname', ''), 'ar': pi.get('level'), 'summary': {'achievement_number': pi.get('finishAchievementNum')},
            'chars': rows}
     if not rows:

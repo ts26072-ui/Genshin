@@ -56,15 +56,22 @@ const ACCT = (() => {
   }
   const loadBag = () => { try { return JSON.parse(localStorage.getItem(BAG_KEY) || 'null'); } catch (e) { return null; } };
   const saveBag = bag => { try { localStorage.setItem(BAG_KEY, JSON.stringify({ at: new Date().toISOString(), arts: bag })); return true; } catch (e) { return false; } };
+  // 이 사이트 주인(아이디.github.io의 아이디). github.io가 아니면(앱·미리보기) 원본 주인
+  const OWNER = ((location.hostname.match(/^([a-z0-9-]+)\.github\.io$/i) || [])[1] || 'ts26072-ui').toLowerCase();
+  // 파일을 만든 저장소가 이 사이트 주인 것이 아니면(Fork에 원본 주인의 파일이 남은 경우) 남의 계정이라 쓰지 않음
+  const foreign = h => { const owner = String(h.repo || 'ts26072-ui/Genshin').split('/')[0].toLowerCase(); return onSite && !/^(localhost|127\.)/.test(location.hostname) && owner !== OWNER; };
   async function fetchHoyo() {
     const r = await fetch(HOYO_URL + '?t=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) throw Object.assign(new Error('http ' + r.status), { status: r.status });
-    return r.json();
+    const h = await r.json();
+    if (h.none || !(h.chars || []).length && !h.nickname) throw Object.assign(new Error('empty'), { status: 404 });
+    if (foreign(h)) throw Object.assign(new Error('foreign'), { status: 404, foreign: true, data: h });
+    return h;
   }
   function readFile(file) {
     return new Promise((ok, bad) => { const fr = new FileReader(); fr.onload = () => { try { ok(JSON.parse(fr.result)); } catch (e) { bad(new Error('JSON 파일이 아닙니다')); } }; fr.onerror = () => bad(fr.error); fr.readAsText(file); });
   }
-  return { HOYO_URL, parseGood, goodArt, statsFromArts, loadBag, saveBag, fetchHoyo, readFile, EL_HOYO: { Fire: 'pyro', Water: 'hydro', Wind: 'anemo', Electric: 'electro', Grass: 'dendro', Ice: 'cryo', Rock: 'geo',
+  return { HOYO_URL, OWNER, parseGood, goodArt, statsFromArts, loadBag, saveBag, fetchHoyo, readFile, EL_HOYO: { Fire: 'pyro', Water: 'hydro', Wind: 'anemo', Electric: 'electro', Grass: 'dendro', Ice: 'cryo', Rock: 'geo',
     // HoYoLAB(genshin.py)은 Pyro·Cryo처럼 원소 이름으로 줌
     Pyro: 'pyro', Hydro: 'hydro', Anemo: 'anemo', Electro: 'electro', Dendro: 'dendro', Cryo: 'cryo', Geo: 'geo' } };
 })();

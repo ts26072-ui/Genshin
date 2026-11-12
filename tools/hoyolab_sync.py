@@ -15,6 +15,24 @@ PROP = {2: 'HP', 3: 'HP%', 5: '공격력', 6: '공격력%', 8: '방어력', 9: '
 SLOT = {1: 'flower', 2: 'plume', 3: 'sands', 4: 'goblet', 5: 'circlet'}
 
 
+def foreign_guard(out_path):
+    """Fork에서 원본 주인의 계정 파일이 그대로 남아 있으면(이 저장소가 받은 적 없는 파일) 빈 파일로 바꿔 주인 계정이 보이지 않게 함."""
+    repo = os.environ.get('GITHUB_REPOSITORY', '')
+    if not repo:
+        return
+    try:
+        with open(out_path, encoding='utf8') as fh:
+            old = json.load(fh)
+    except (OSError, ValueError):
+        return
+    if old.get('repo') == repo or (not old.get('repo') and repo == 'ts26072-ui/Genshin'):
+        return
+    with open(out_path, 'w', encoding='utf8') as fh:
+        json.dump({'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'), 'repo': repo, 'none': True, 'chars': []},
+                  fh, ensure_ascii=False, separators=(',', ':'))
+    print('원본 저장소의 계정 파일이 남아 있어 비웠습니다. 내 UID를 Secret(GENSHIN_UID)에 넣으면 내 계정으로 채워집니다.')
+
+
 def num(s):
     m = re.search(r'-?[\d.,]+', str(s or ''))
     return float(m.group().replace(',', '')) if m else 0.0
@@ -62,6 +80,7 @@ def char_row(c, pmap):
 
 
 async def main():
+    foreign_guard(OUT)
     cookie, uid = os.environ.get('HOYOLAB_COOKIE', '').strip(), os.environ.get('GENSHIN_UID', '').strip()
     if not cookie or not uid.isdigit():
         # 아직 설정 전이면 실패 알림이 쌓이지 않게 조용히 건너뜀
@@ -86,7 +105,7 @@ async def main():
     stats = idx.get('stats') or {}
     out = {
         'updated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
-        'nickname': role.get('nickname', ''), 'ar': role.get('level'),
+        'repo': os.environ.get('GITHUB_REPOSITORY', ''), 'nickname': role.get('nickname', ''), 'ar': role.get('level'),
         # 숫자 통계 전부(신의 눈동자 원소별 개수 *culus_number, 보물상자 종류별 개수 *_chest_number 등) + 나선 비경
         'summary': {k: v for k, v in stats.items() if isinstance(v, (int, float)) and not isinstance(v, bool) or k == 'spiral_abyss'},
         # 지역별 탐사도(%) — 지도에 보여 줌

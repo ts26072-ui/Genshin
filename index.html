@@ -400,7 +400,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
-<script src="shell.js?v=20261112i"></script>
+<script src="shell.js?v=20261112j"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -579,11 +579,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261112i"></script>
-<script src="weapons.js?v=20261112i"></script>
-<script src="rot.js?v=20261112i"></script>
-<script src="names.js?v=20261112i"></script>
-<script src="account.js?v=20261112i"></script>
+<script src="builds.js?v=20261112j"></script>
+<script src="weapons.js?v=20261112j"></script>
+<script src="rot.js?v=20261112j"></script>
+<script src="names.js?v=20261112j"></script>
+<script src="account.js?v=20261112j"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -2393,13 +2393,19 @@ async function syncHoyo(manual) {
   let h;
   try { h = await ACCT.fetchHoyo(); }
   catch (e) {
+    // 예전에 Fork에 남아 있던 원본 주인의 파일로 채워졌던 기록이면 지움(내 저장소가 만든 파일로 받은 적이 없을 때만)
+    if (S.hoyoAt && S.hoyoRepoOwner !== ACCT.OWNER && (e.foreign || ACCT.OWNER !== 'ts26072-ui')) {
+      S.roster = {}; S.parties = []; delete S.hoyoAt; delete S.hoyoVer; save(); render();
+      toast('원본 주인의 계정이 잘못 들어와 있어 지웠어요. 내 저장소 Secrets에 GENSHIN_UID를 넣고 hoyolab-sync를 실행해 주세요');
+      return;
+    }
     if (manual) toast(e.status === 404 ? '아직 동기화된 데이터가 없습니다. 연동 방법대로 GitHub Secret(GENSHIN_UID)을 넣고 hoyolab-sync를 한 번 실행해 주세요' : 'HoYoLAB 데이터를 불러오지 못했습니다');
     return;
   }
   if (!manual && (!S.hoyoAuto || (S.hoyoAt === h.updated && S.hoyoVer === IMPORT_VER))) return;
   const { n, miss } = applyRows(h.chars || [], 'hoyolab', true, h.source !== 'enka');
   if (h.ar) S.ar = h.ar;
-  S.hoyoAt = h.updated; S.hoyoVer = IMPORT_VER; S.hoyoAuto = true; save(); render();
+  S.hoyoAt = h.updated; S.hoyoVer = IMPORT_VER; S.hoyoAuto = true; S.hoyoRepoOwner = ACCT.OWNER; save(); render();
   toast(`${h.source === 'enka' ? 'UID 쇼케이스' : 'HoYoLAB'}에서 ${n}명 불러옴${h.ar ? ` · 모험 등급 ${h.ar}` : ''}${miss.length ? ` · 못 찾음: ${miss.join(', ')}` : ''}`);
 }
 const goodInput = document.createElement('input');
