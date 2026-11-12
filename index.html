@@ -2369,6 +2369,22 @@ function shareTraveler(fromId) {
 }
 function applyRows(rows, src, statsOk, boosted) {
   if (S.sample) { S.roster = {}; S.parties = []; S.sample = false; }
+  // 예시 캐릭터 지우기: 설정을 한 번이라도 저장하면 '예시' 표시가 풀려 예시 캐릭터가 남던 문제
+  // · HoYoLAB(쿠키)은 보유 캐릭터 전부를 주므로, 받아 온 목록에 없는 캐릭터는 모두 지움(기억해 둔 다른 원소 여행자는 유지)
+  // · UID 쇼케이스·GOOD 파일은 일부만 주므로, 예시 값 그대로인 캐릭터만 지움(직접 고친 캐릭터는 내 것으로 보고 둠)
+  const got = new Set(rows.map(idOfRow).filter(Boolean)), full = src === 'hoyolab' && boosted && got.size > 0;
+  const ex = sampleState().roster, same = (x, y) => ['lv', 'cons', 'wn', 'wl', 'wr', 'sa', 'cr', 'cd', 'key'].every(k => x[k] === y[k]) && String(x.t) === String(y.t);
+  const gone = Object.keys(S.roster).filter(id => !got.has(id) && (full
+    ? !(id.startsWith('traveler-') && (S.roster[id].seen || S.roster[id].edited))
+    : ex[id] && !S.roster[id].arts && same(S.roster[id], ex[id])));
+  if (gone.length && got.size) {
+    for (const id of gone) delete S.roster[id];
+    // 지운 캐릭터가 있던 파티: 남은 멤버가 없으면 파티째 지우고, 있으면 그 자리만 비움
+    // 예시 파티(이름·멤버가 예시 그대로)는 통째로 지움
+    const exP = sampleState().parties;
+    S.parties = (S.parties || []).filter(p => !exP.some(e => e.pid === p.pid && e.name === p.name && String(e.m) === String(p.m)))
+      .map(p => ({ ...p, m: p.m.map(x => x && S.roster[x] || got.has(x) ? x : null) })).filter(p => p.m.some(Boolean));
+  }
   let n = 0; const miss = [];
   for (const row of rows) {
     const id = idOfRow(row);
@@ -2390,7 +2406,7 @@ function applyRows(rows, src, statsOk, boosted) {
   return { n, miss };
 }
 // 불러오기 규칙이 바뀌면 올려서, 같은 동기화 파일이라도 열 때 한 번 다시 적용
-const IMPORT_VER = 6;
+const IMPORT_VER = 7;
 async function syncHoyo(manual) {
   let h;
   try { h = await ACCT.fetchHoyo(); }
