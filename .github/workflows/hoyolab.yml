@@ -1,6 +1,7 @@
 # 내 계정 → account/hoyolab.json (3시간마다 + 수동 실행)
 # Secrets: GENSHIN_UID만 있으면 Enka 쇼케이스(쿠키 없이, 최대 12명 — tools/enka_sync.py),
 #          HOYOLAB_COOKIE도 있으면 HoYoLAB 전적 기록(보유 캐릭터 전부 — tools/hoyolab_sync.py)
+# Fork한 저장소에서는 실행할 때마다 원본(ts26072-ui/Genshin)의 새 티어표·도감 자료를 먼저 합침. 계정 파일은 내 것을 유지(fork.html 안내)
 name: hoyolab-sync
 on:
   workflow_dispatch:
@@ -17,6 +18,20 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Merge updates from the original (forks only)
+        if: github.repository != 'ts26072-ui/Genshin'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --no-tags https://github.com/ts26072-ui/Genshin.git main
+          # 자동 실행 설정(.github)이 바뀐 업데이트는 Actions 권한으로 올릴 수 없어서 직접 Sync fork 해야 함
+          if git diff --name-only HEAD...FETCH_HEAD | grep -q '^\.github/'; then
+            echo "::warning::원본의 자동 실행 설정이 바뀌어 자동으로 합치지 못했습니다. 저장소 첫 화면의 Sync fork → Update branch를 눌러 주세요."
+          else
+            git merge --no-edit -X ours -m "원본 업데이트 합치기" FETCH_HEAD || { git merge --abort; echo "::warning::원본 업데이트를 합치지 못했습니다. Sync fork를 눌러 주세요."; }
+          fi
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -32,10 +47,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ ! -f account/hoyolab.json ]; then echo "no data yet"; exit 0; fi
-          git add account/hoyolab.json
-          # 내용이 같으면 스크립트가 파일을 건드리지 않으므로 커밋할 것이 없음
-          if git diff --cached --quiet -- account/hoyolab.json; then echo "no change"; exit 0; fi
-          git commit -m "HoYoLAB 계정 동기화"
-          git pull --rebase
-          git push
+          if [ -f account/hoyolab.json ]; then
+            git add account/hoyolab.json
+            # 내용이 같으면 스크립트가 파일을 건드리지 않으므로 커밋할 것이 없음
+            git diff --cached --quiet -- account/hoyolab.json || git commit -m "HoYoLAB 계정 동기화"
+          fi
+          # 계정 커밋이나 (Fork에서) 원본 합치기 커밋이 있을 때만 올림
+          if [ -z "$(git log --oneline origin/${GITHUB_REF_NAME}..HEAD)" ]; then echo "no change"; exit 0; fi
+          git push || { git pull --no-rebase --no-edit -X ours && git push; }

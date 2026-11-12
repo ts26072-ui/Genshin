@@ -8,6 +8,8 @@ permissions:
   contents: write
 jobs:
   map:
+    # Fork에서는 돌리지 않음(지도 자료는 hoyolab-sync가 원본에서 합쳐 옴)
+    if: github.repository == 'ts26072-ui/Genshin'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

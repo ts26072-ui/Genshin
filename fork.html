@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>내 계정으로 쓰기 · 원신 파티 감정소</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="common.css?v=20261112d">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0e1320">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="파티 감정소">
+<style>
+.lead { color: var(--muted); margin: 0 0 14px; line-height: 1.6; }
+.idbox { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
+.idbox label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+.idbox input { font: inherit; padding: 9px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); max-width: 320px; width: 100%; box-sizing: border-box; }
+.idbox .hint { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
+.idbox .bad { color: var(--warn); }
+.steps2 { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; counter-reset: s; }
+.steps2 > li { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px 14px 56px; position: relative; counter-increment: s; line-height: 1.6; }
+.steps2 > li::before { content: counter(s); position: absolute; left: 14px; top: 13px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  font-weight: 900; color: #1b1b1b; background: radial-gradient(circle at 35% 30%, #F4E8CC, #D3BC8E 60%, #9A7230); }
+.steps2 h3 { margin: 0 0 4px; font-size: 16px; }
+.steps2 p, .steps2 ul { margin: 4px 0; }
+.steps2 ul { padding-left: 18px; }
+.go { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.go a[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+.opt { font-size: 12px; color: var(--muted); font-weight: 500; }
+.box { border-radius: 14px; padding: 14px 16px; margin-top: 14px; line-height: 1.6; border: 1px solid var(--line); background: var(--surface); }
+.box.safe { border-color: color-mix(in srgb, var(--dendro) 55%, var(--line)); }
+.box h3 { margin: 0 0 6px; font-size: 15.5px; }
+.box ul { margin: 0; padding-left: 18px; }
+code { word-break: break-all; }
+</style>
+</head>
+<body>
+<script src="shell.js?v=20261112d"></script>
+<div class="wrap">
+  <header class="top">
+    <h1><span class="star">✦</span> 내 계정으로 쓰기</h1>
+  </header>
+
+  <p class="lead">이 사이트는 주인 한 명의 계정만 동기화돼요. 친구도 <b>자기 계정</b>으로 쓰려면 저장소를 <b>Fork</b>(복사)해서 <b>나만의 사이트</b>를 만들면 됩니다. 쿠키·UID는 <b>내 저장소의 Secrets</b>에만 들어가서 원래 주인도, 다른 누구도 볼 수 없어요. 휴대폰 브라우저로 10분쯤 걸립니다(GitHub 앱은 설정 메뉴가 없어서 안 돼요).</p>
+
+  <div class="idbox">
+    <label for="gh">내 GitHub 아이디 <span class="opt">넣으면 아래 버튼이 내 저장소 주소로 바뀌어요 (이 기기에만 저장)</span>
+      <input id="gh" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="예: my-genshin-id" maxlength="39"></label>
+    <p class="hint" id="gh-hint">아직 계정이 없으면 1단계부터 하세요.</p>
+  </div>
+
+  <ol class="steps2">
+    <li><h3>GitHub 가입·로그인</h3>
+      <p>브라우저로 github.com에 가입(무료)하고 로그인합니다. 가입은 만 13세 이상만 할 수 있어요. 화면이 좁아 메뉴가 안 보이면 브라우저 메뉴에서 <b>데스크톱 사이트</b>를 켜세요.</p>
+      <div class="go"><a class="btn sm" href="https://github.com/signup" target="_blank" rel="noopener">가입하기</a><a class="btn ghost sm" href="https://github.com/login" target="_blank" rel="noopener">로그인</a></div></li>
+
+    <li><h3>저장소 Fork 하기</h3>
+      <p>아래 버튼 → 이름은 <b>Genshin</b> 그대로 두고 초록 <b>Create fork</b>를 누릅니다. 내 계정에 똑같은 저장소가 생겨요.</p>
+      <div class="go"><a class="btn sm" href="https://github.com/ts26072-ui/Genshin/fork" target="_blank" rel="noopener">Fork 하러 가기</a></div></li>
+
+    <li><h3>내 사이트 켜기 (GitHub Pages)</h3>
+      <p>내 저장소 → <b>Settings</b> → 왼쪽 <b>Pages</b> → Source: <b>Deploy from a branch</b>, Branch: <b>main</b> / <b>(root)</b> → <b>Save</b>. 1~2분 뒤 내 사이트 주소가 열립니다.</p>
+      <div class="go"><a class="btn sm" data-u="settings/pages" href="#" target="_blank" rel="noopener">Pages 설정 열기</a></div></li>
+
+    <li><h3>자동 실행 켜기 (Actions)</h3>
+      <p>Fork한 저장소는 자동 실행이 꺼진 채로 시작해요. 내 저장소 → <b>Actions</b> 탭 → 초록 <b>I understand my workflows, go ahead and enable them</b>. 그다음 왼쪽 <b>hoyolab-sync</b>를 눌러 <b>Enable workflow</b> 버튼이 보이면 그것도 누르세요(3시간마다 자동 동기화).</p>
+      <div class="go"><a class="btn sm" data-u="actions" href="#" target="_blank" rel="noopener">Actions 열기</a></div></li>
+
+    <li><h3>내 UID (와 쿠키) 넣기</h3>
+      <p>내 저장소 → Settings → <b>Secrets and variables</b> → <b>Actions</b> → <b>New repository secret</b>.</p>
+      <ul>
+        <li>이름 <code>GENSHIN_UID</code>, 값: 원신 UID. 이것만 넣으면 게임 프로필의 <b>캐릭터 쇼케이스</b>(최대 12명, <b>캐릭터 상세 정보 표시</b> 켜기)를 받아요.</li>
+        <li><span class="opt">(선택)</span> 보유 캐릭터 전부를 받으려면 Secret을 하나 더: 이름 <code>HOYOLAB_COOKIE</code>, 값 <code>ltoken_v2=값; ltuid_v2=값; ltmid_v2=값</code>. 쿠키 복사 방법은 메인 화면의 <a href="index.html#home">연동 방법</a>에 있어요.</li>
+      </ul>
+      <div class="go"><a class="btn sm" data-u="settings/secrets/actions" href="#" target="_blank" rel="noopener">Secrets 열기</a></div></li>
+
+    <li><h3>처음 한 번 실행</h3>
+      <p><b>hoyolab-sync</b> → 오른쪽 <b>Run workflow</b> → 초록 <b>Run workflow</b>. 1~2분 뒤 새로고침해서 ✅면 성공이에요. ❌면 그 실행을 눌러 <b>Fetch account data</b>의 오류 문장을 확인하세요(쿠키 만료·형식 오류가 대부분).</p>
+      <div class="go"><a class="btn sm" data-u="actions/workflows/hoyolab.yml" href="#" target="_blank" rel="noopener">hoyolab-sync 열기</a></div></li>
+
+    <li><h3>내 사이트에서 동기화</h3>
+      <p>아래 내 사이트를 열고 <b>HoYoLAB 동기화</b>를 누르면 내 캐릭터가 채워집니다. 홈 화면에 추가해서 앱처럼 쓰세요. 이 사이트(원본)에 넣었던 기록은 내 사이트로 옮겨지지 않아요.</p>
+      <div class="go"><a class="btn sm" id="mysite" href="#" target="_blank" rel="noopener">내 사이트 열기</a></div></li>
+  </ol>
+
+  <div class="box">
+    <h3>티어표·도감 업데이트는?</h3>
+    <ul>
+      <li>내 저장소의 hoyolab-sync가 돌 때마다 원본의 새 티어표·도감·지도 자료를 <b>자동으로 합쳐</b> 와요. 내 계정 파일은 그대로 둡니다.</li>
+      <li>실행 결과에 "자동으로 합치지 못했습니다" 경고가 뜨면, 내 저장소 첫 화면의 <b>Sync fork</b> → <b>Update branch</b>를 한 번 눌러 주세요.</li>
+    </ul>
+  </div>
+
+  <div class="box safe">
+    <h3>안전하게 쓰기</h3>
+    <ul>
+      <li>쿠키는 <b>내 저장소의 Secrets에만</b> 넣으세요. 원본 주인을 포함해 누구에게도 보내지 말고, 채팅·메모 공유·다른 사이트에 붙여 넣지 마세요. 쿠키는 계정 열쇠예요.</li>
+      <li>Secrets 값은 넣은 뒤 아무도(나 자신도) 다시 볼 수 없고, 결과 파일에도 들어가지 않아요.</li>
+      <li>대신 받아 온 캐릭터 정보(<code>account/hoyolab.json</code> — 닉네임·모험 등급·캐릭터·성유물)는 공개 저장소라 누구나 볼 수 있어요. UID는 원래 공개 정보예요.</li>
+      <li>그만 쓰려면 Secrets에서 <code>HOYOLAB_COOKIE</code>를 지우거나 HoYoLAB에서 로그아웃하면 쿠키가 바로 쓸모없어져요. 저장소째 지우려면 Settings 맨 아래 <b>Delete this repository</b>.</li>
+    </ul>
+  </div>
+</div>
+<script>
+(() => {
+  const KEY = 'genshin-party-appraiser-v1:gh-id';
+  const inp = document.getElementById('gh'), hint = document.getElementById('gh-hint');
+  const ok = v => /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/.test(v);
+  // 이미 Fork한 사이트(아이디.github.io)에서 열면 그 아이디를 기본값으로
+  const host = location.hostname.match(/^([A-Za-z0-9-]+)\.github\.io$/);
+  let saved = '';
+  try { saved = localStorage.getItem(KEY) || ''; } catch (e) {}
+  inp.value = saved || (host && host[1].toLowerCase() !== 'ts26072-ui' ? host[1] : '');
+  const apply = () => {
+    const id = inp.value.trim().replace(/^@/, '');
+    const good = ok(id);
+    for (const a of document.querySelectorAll('a[data-u]')) {
+      a.href = good ? `https://github.com/${id}/Genshin/${a.dataset.u}` : '#';
+      a.setAttribute('aria-disabled', good ? 'false' : 'true');
+    }
+    const site = document.getElementById('mysite');
+    site.href = good ? `https://${id.toLowerCase()}.github.io/Genshin/` : '#';
+    site.setAttribute('aria-disabled', good ? 'false' : 'true');
+    hint.className = 'hint' + (id && !good ? ' bad' : '');
+    hint.textContent = !id ? '아직 계정이 없으면 1단계부터 하세요. 아이디를 넣어야 3~7단계 버튼이 켜져요.'
+      : !good ? 'GitHub 아이디는 영문·숫자·하이픈(-)만, 39자까지예요.'
+      : id.toLowerCase() === 'ts26072-ui' ? '원본 주인 아이디예요. 원본 주인은 Fork 없이 메인 화면의 연동 방법대로 하면 됩니다.'
+      : `내 사이트 주소: https://${id.toLowerCase()}.github.io/Genshin/`;
+    try { good ? localStorage.setItem(KEY, id) : (!id && localStorage.removeItem(KEY)); } catch (e) {}
+  };
+  inp.addEventListener('input', apply);
+  apply();
+})();
+</script>
+</body>
+</html>
