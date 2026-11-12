@@ -228,8 +228,11 @@ const GG_PREV = { v: '7.1', at: '2026-09-23', tier: {
   kaeya:'B', chongyun:'C', qiqi:'S', diona:'A', ganyu:'B', rosaria:'A', eula:'C', ayaka:'B', aloy:'D', shenhe:'A+', layla:'A', mika:'C', freminet:'D', wriothesley:'S', charlotte:'A', citlali:'SS', escoffier:'S', skirk:'S', roen:'A+', sandrone:'SS', odette:'SS',
   ningguang:'D', noelle:'C', zhongli:'A', albedo:'A+', gorou:'A', itto:'C', yunjin:'B', navia:'B', chiori:'A', kachina:'C', xilonen:'S', illuga:'A+', zibai:'SS', linnea:'SS',
 } };
-// 등급이 점수를 정하고 나무위키 평가는 같은 등급 안에서만 ±3점(60점 기준 10점마다 1점). 등급 사이 간격(8점 이상)보다 작아 아래 등급이 위 등급을 넘지 못함
-const blendScore = (g, n) => g == null ? n : n == null ? g : g + Math.max(-3, Math.min(3, Math.round((n - 60) / 10)));
+// 두 점수의 평균. 단 그 등급 칸(위·아래 등급 점수의 가운데까지)을 넘지 않게 묶어서 아래 등급이 위 등급을 넘지 못함
+// 칸: SS 88~100 · S 80~87 · A+ 72~79 · A 62~71 · B 50~61 · C 37~49 · D 0~36 (예: 92와 92 → 92, 92와 85 → 89)
+const GG_BAND = (() => { const v = Object.values(GG_SCORE).sort((a, b) => b - a), o = {};
+  v.forEach((s, i) => { o[s] = [i < v.length - 1 ? Math.ceil((s + v[i + 1]) / 2) : 0, i ? Math.ceil((s + v[i - 1]) / 2) - 1 : 100]; }); return o; })();
+const blendScore = (g, n) => { if (g == null) return n; if (n == null) return g; const b = GG_BAND[g] || [0, 100]; return Math.max(b[0], Math.min(b[1], Math.round((g + n) / 2))); };
 const PERF = {};
 for (const id of new Set([...Object.keys(PERF_NAMU), ...Object.keys(GG)])) {
   const n = PERF_NAMU[id], g = GG[id] ? GG_SCORE[GG[id]] : null;
@@ -267,7 +270,7 @@ const ICON = {
 GP.iconUrl = id => { const n = ICON[id] || (id.startsWith('traveler') ? 'PlayerGirl' : null); return n ? `https://enka.network/ui/UI_AvatarIcon_${n}.png` : null; };
 
 // ───────── 역할별 · 운명의 자리별 성능 ─────────
-// 칸 점수 = 그 칸 GamsGo 등급 점수 + 나무위키 평가 보정(±3)
+// 칸 점수 = 그 칸 GamsGo 등급 점수와 나무위키 평가 점수의 평균(등급 칸 안으로 묶음)
 GP.POS = [['main', '메인 딜러'], ['sub', '서브 딜러'], ['sup', '서포터 · 힐러 · 보호막']];
 GP.roleScore = (id, t) => blendScore(GG_SCORE[t], PERF_NAMU[id] ?? null);
 // 운명의 자리 가치 곡선(C0 → C6 사이를 채우는 비율): 5성은 1돌·2돌이 크고 뒤로 갈수록 작음, 4성은 고르게
@@ -302,7 +305,7 @@ function markAlt(sl) {
   return sl;
 }
 GP.perfAt = (id, cons = null) => Math.max(...GP.slotsAt(id, cons).map(x => x.perf));
-// 직전 티어표 대비 변동: 종합 점수(GamsGo 등급 점수 + 나무위키 ±3) 기준. 점수가 오르면 올라감, 떨어지면 내려감(등급이 같아도)
+// 직전 티어표 대비 변동: 종합 점수(GamsGo 등급 점수와 나무위키 평가의 평균, 등급 칸 안) 기준. 점수가 오르면 올라감, 떨어지면 내려감(등급이 같아도)
 // 직전 점수 = 직전 등급(GG_PREV.tier) + 직전 나무위키 점수(GG_PREV.namu, 없으면 지금 PERF_NAMU)
 const TIER_ORDER = ['D', 'C', 'B', 'A', 'A+', 'S', 'SS'];
 GP.prevScore = id => {
