@@ -80,6 +80,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .mem .nm { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
 .mem .meta { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 4px; }
 .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--c); }
+.trav { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; margin: 4px 0 8px; }
+.trav #trav-add { display: flex; flex-wrap: wrap; gap: 6px; }
 .av { --s: 24px; width: var(--s); height: var(--s); border-radius: 50%; flex: none; display: inline-block; vertical-align: middle; overflow: hidden;
   background: color-mix(in srgb, var(--c) 22%, var(--surface)); box-shadow: inset 0 0 0 1.5px var(--c); }
 .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -381,7 +383,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
-<script src="shell.js?v=20261112e"></script>
+<script src="shell.js?v=20261112f"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -478,6 +480,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
     <div class="dlg-head"><h2 id="char-title">캐릭터</h2>
       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><a class="btn ghost sm" id="char-guide" href="guide.html">추천 성유물</a><a class="btn ghost sm" id="char-stats" href="stats.html">종결 스탯</a><button class="btn ghost sm" type="button" data-close>닫기</button></div></div>
     <label id="pick-wrap">캐릭터 선택<select id="f-id"></select></label>
+    <div id="trav-wrap" class="trav" hidden><span class="muted">다른 원소 여행자도 추가 — 레벨·무기·성유물은 이 여행자와 같게, 운명의 자리·특성은 따로</span><div id="trav-add"></div></div>
     <div class="preview"><span class="score" id="pv-score">–</span><span class="muted" id="pv-note"></span></div>
     <fieldset><legend>역할 기준</legend>
       <p id="guess-note" class="muted" hidden style="margin:0 0 8px;font-size:13px">최신 캐릭터라 기본 역할이 추정값입니다. 실제로 쓰는 방식에 맞게 바꿔 주세요.</p>
@@ -559,11 +562,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261112e"></script>
-<script src="weapons.js?v=20261112e"></script>
-<script src="rot.js?v=20261112e"></script>
-<script src="names.js?v=20261112e"></script>
-<script src="account.js?v=20261112e"></script>
+<script src="builds.js?v=20261112f"></script>
+<script src="weapons.js?v=20261112f"></script>
+<script src="rot.js?v=20261112f"></script>
+<script src="names.js?v=20261112f"></script>
+<script src="account.js?v=20261112f"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -2069,6 +2072,7 @@ function openChar(id) {
     $('#char-title').textContent = '캐릭터 등록';
     fillChar(defaultsFor($('#f-id').value));
   }
+  renderTravAdd(id);
   dChar.showModal();
 }
 $('#f-id').addEventListener('change', () => fillChar(defaultsFor($('#f-id').value)));
@@ -2086,8 +2090,24 @@ $('#form-char').addEventListener('input', e => {
 });
 $('#form-char').addEventListener('submit', e => {
   e.preventDefault();
-  const c = readChar(); S.roster[c.id] = c; save(); dChar.close(); render();
-  toast(`${DB[c.id].name} 저장됨`);
+  const c = readChar(); S.roster[c.id] = c;
+  const shared = c.id.startsWith('traveler-') ? shareTraveler(c.id) : 0;
+  save(); dChar.close(); render();
+  toast(`${DB[c.id].name} 저장됨${shared ? ` · 다른 원소 여행자 ${shared}명도 레벨·무기·성유물 맞춤` : ''}`);
+});
+// 여행자 창: 아직 없는 원소 여행자를 버튼으로 추가(레벨·무기·성유물 공유)
+function renderTravAdd(id) {
+  const on = !!id && id.startsWith('traveler-') && !!S.roster[id];
+  const miss = on ? TRAV_IDS().filter(t => !S.roster[t]) : [];
+  $('#trav-wrap').hidden = !miss.length;
+  $('#trav-add').innerHTML = miss.map(t => `<button type="button" class="btn ghost sm" data-trav="${t}"><span class="dot" style="--c:var(--${DB[t].el})"></span>${EL[DB[t].el]}</button>`).join('');
+}
+$('#trav-add').addEventListener('click', e => {
+  const b = e.target.closest('[data-trav]'); if (!b || !editId) return;
+  const t = b.dataset.trav;
+  S.roster[t] = travelerFrom(S.roster[editId], t, null);
+  save(); render(); renderTravAdd(editId);
+  toast(`${DB[t].name} 추가됨 — 운명의 자리·특성은 그 캐릭터를 눌러 고쳐 주세요`);
 });
 $('#btn-del-char').addEventListener('click', () => {
   const b = $('#btn-del-char');
@@ -2148,7 +2168,7 @@ const NAME_ID = Object.fromEntries(Object.values(DB).map(d => [d.name, d.id]));
 const KEY_STAT = { atk: '공격력', hp: '최대 HP', def: '방어력', em: '원소 마스터리' };
 const TRAVELER_HID = [10000005, 10000007];
 function idOfRow(row) {
-  if (row.traveler || TRAVELER_HID.includes(row.hid)) { const el = row.traveler || ACCT.EL_HOYO[row.element]; return DB['traveler-' + el] ? 'traveler-' + el : null; }
+  if (row.traveler || TRAVELER_HID.includes(row.hid)) { const el = row.traveler || ACCT.EL_HOYO[row.element] || String(row.element || '').toLowerCase(); return DB['traveler-' + el] ? 'traveler-' + el : null; }
   return NAME_ID[row.name] || null;
 }
 // 장착 성유물 → 세트(4세트 / 2+2 / 효과 없음)
@@ -2188,6 +2208,22 @@ function charFromRow(id, row, prev, statsOk) {
   c.arts = arts.map(({ loc, lock, ...a }) => a);
   return c;
 }
+// 여행자는 원소마다 운명의 자리·특성이 따로지만 레벨·무기·성유물은 하나라서, 다른 원소 여행자에게 그대로 나눠 줌
+const TRAV_SHARED = ['lv', 'ap', 'wn', 'wt', 'wl', 'wr', 'arts', 'set', 'sa', 'sb', 'cr', 'cd', 'er'];
+const TRAV_IDS = () => Object.keys(DB).filter(id => id.startsWith('traveler-'));
+function travelerFrom(src, id, prev) {
+  const c = { ...(prev || defaultsFor(id)), id };
+  for (const k of TRAV_SHARED) if (src[k] !== undefined) c[k] = Array.isArray(src[k]) ? src[k].map(x => ({ ...x })) : src[k];
+  c.t = (c.t || [1, 1, 1]).map(x => Math.min(x, talCapOf(c)));
+  if ((c.arts || []).length) c.mainOk = mainOkOf(id, c.arts);
+  return c;
+}
+function shareTraveler(fromId) {
+  const src = S.roster[fromId]; if (!src) return 0;
+  let n = 0;
+  for (const id of TRAV_IDS()) if (id !== fromId && S.roster[id]) { S.roster[id] = travelerFrom(src, id, S.roster[id]); n++; }
+  return n;
+}
 function applyRows(rows, src, statsOk) {
   if (S.sample) { S.roster = {}; S.parties = []; S.sample = false; }
   let n = 0; const miss = [];
@@ -2195,6 +2231,7 @@ function applyRows(rows, src, statsOk) {
     const id = idOfRow(row);
     if (!id) { miss.push(row.name || row.key); continue; }
     S.roster[id] = charFromRow(id, row, S.roster[id], statsOk); n++;
+    if (id.startsWith('traveler-')) shareTraveler(id);
   }
   save(); render();
   return { n, miss };

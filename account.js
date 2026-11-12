@@ -64,5 +64,7 @@ const ACCT = (() => {
   function readFile(file) {
     return new Promise((ok, bad) => { const fr = new FileReader(); fr.onload = () => { try { ok(JSON.parse(fr.result)); } catch (e) { bad(new Error('JSON 파일이 아닙니다')); } }; fr.onerror = () => bad(fr.error); fr.readAsText(file); });
   }
-  return { HOYO_URL, parseGood, goodArt, statsFromArts, loadBag, saveBag, fetchHoyo, readFile, EL_HOYO: { Fire: 'pyro', Water: 'hydro', Wind: 'anemo', Electric: 'electro', Grass: 'dendro', Ice: 'cryo', Rock: 'geo' } };
+  return { HOYO_URL, parseGood, goodArt, statsFromArts, loadBag, saveBag, fetchHoyo, readFile, EL_HOYO: { Fire: 'pyro', Water: 'hydro', Wind: 'anemo', Electric: 'electro', Grass: 'dendro', Ice: 'cryo', Rock: 'geo',
+    // HoYoLAB(genshin.py)은 Pyro·Cryo처럼 원소 이름으로 줌
+    Pyro: 'pyro', Hydro: 'hydro', Anemo: 'anemo', Electro: 'electro', Dendro: 'dendro', Cryo: 'cryo', Geo: 'geo' } };
 })();
