@@ -82,6 +82,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--c); }
 .trav { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; margin: 4px 0 8px; }
 .trav #trav-add { display: flex; flex-wrap: wrap; gap: 6px; }
+.trav ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.trav li { display: flex; align-items: center; gap: 5px; }
+.trav li .src { color: var(--muted); }
+.trav li.cur { font-weight: 700; }
+.tboost { color: #5aa9ff; font-weight: 700; font-size: 12px; }
+.tb-note { font-size: 12px; margin: 8px 0 0; }
 .av { --s: 24px; width: var(--s); height: var(--s); border-radius: 50%; flex: none; display: inline-block; vertical-align: middle; overflow: hidden;
   background: color-mix(in srgb, var(--c) 22%, var(--surface)); box-shadow: inset 0 0 0 1.5px var(--c); }
 .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -480,7 +486,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
     <div class="dlg-head"><h2 id="char-title">캐릭터</h2>
       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><a class="btn ghost sm" id="char-guide" href="guide.html">추천 성유물</a><a class="btn ghost sm" id="char-stats" href="stats.html">종결 스탯</a><button class="btn ghost sm" type="button" data-close>닫기</button></div></div>
     <label id="pick-wrap">캐릭터 선택<select id="f-id"></select></label>
-    <div id="trav-wrap" class="trav" hidden><span class="muted"><span id="trav-note"></span>다른 원소 여행자도 추가 — 레벨·무기·성유물은 이 여행자와 같게, 운명의 자리 0 · 특성 1/1/1에서 시작(게임에서 보고 고쳐 주세요)</span><div id="trav-add"></div></div>
+    <div id="trav-wrap" class="trav" hidden><ul id="trav-list"></ul><span class="muted" id="trav-note"></span><div id="trav-add"></div></div>
     <div class="preview"><span class="score" id="pv-score">–</span><span class="muted" id="pv-note"></span></div>
     <fieldset><legend>역할 기준</legend>
       <p id="guess-note" class="muted" hidden style="margin:0 0 8px;font-size:13px">최신 캐릭터라 기본 역할이 추정값입니다. 실제로 쓰는 방식에 맞게 바꿔 주세요.</p>
@@ -496,10 +502,10 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
       <label>레벨<input id="f-lv" type="number" min="1" max="90"></label>
       <label class="check" id="ap-wrap"><input type="checkbox" id="f-ap"> 이 레벨에서 아직 돌파 전</label>
       <label>운명의 자리<input id="f-cons" type="number" min="0" max="6"></label>
-      <label>일반 공격<input id="f-t0" type="number" min="1" max="10"></label>
-      <label>원소전투 스킬<input id="f-t1" type="number" min="1" max="10"></label>
-      <label>원소폭발<input id="f-t2" type="number" min="1" max="10"></label>
-    </div></fieldset>
+      <label><span>일반 공격 <b class="tboost" id="f-b0"></b></span><input id="f-t0" type="number" min="1" max="10"></label>
+      <label><span>원소전투 스킬 <b class="tboost" id="f-b1"></b></span><input id="f-t1" type="number" min="1" max="10"></label>
+      <label><span>원소폭발 <b class="tboost" id="f-b2"></b></span><input id="f-t2" type="number" min="1" max="10"></label>
+    </div><p class="muted tb-note" id="f-bnote" hidden>특성 칸에는 <b>원래 레벨</b>을 넣어요. 운명의 자리 3·5번째가 올려 주는 <b class="tboost">+3</b>은 파란 글씨로 따로 보여 주고, 게임 화면의 파란 숫자가 그 합이에요.</p></fieldset>
     <fieldset><legend>무기</legend><div class="fgrid">
       <label class="wide2">무기<select id="f-wn"></select></label>
       <label id="wt-wrap">무기 등급 (목록에서 안 고를 때)<select id="f-wt"></select></label>
@@ -2055,6 +2061,9 @@ function previewChar() {
   $('#pv-score').style.color = scoreColor(a.score);
   const cap = talCapOf(c);
   for (const i of [0, 1, 2]) $('#f-t' + i).max = cap;
+  const bs = boostOf(c.id, c.cons);
+  for (const i of [0, 1, 2]) $('#f-b' + i).textContent = bs[i] ? `+${bs[i]} → ${Math.min(15, c.t[i] + bs[i])}` : '';
+  $('#f-bnote').hidden = !bs.some(Boolean);
   $('#ap-wrap').hidden = !ASC_EDGE.includes(c.lv);
   $('#pv-note').textContent = `${ROLE[d.roles[0]]} · 목표 Lv.${lvTarget()} · 핵심 특성 ${d.tal.map(i => TAL[i]).join(', ')} (목표 ${talTarget(d)}, Lv.${c.lv}${pendingAsc(c) ? ' 돌파 전' : ''} 상한 ${cap}) · 원충 목표 ${d.er}%` + (d.crit ? ` · 치명 수치 ${cvOf(c)}/${critTarget(d)}` : '');
 }
@@ -2095,7 +2104,7 @@ $('#form-char').addEventListener('submit', e => {
   e.preventDefault();
   const c = readChar(), old = S.roster[c.id];
   // 여행자: 동기화 표시는 유지하고, 동기화 안 된 원소를 직접 저장하면 '직접 고침'으로 표시(다음 동기화가 되돌리지 않게)
-  if (c.id.startsWith('traveler-')) { if (old && old.synced) c.synced = old.synced; else c.edited = true; }
+  if (c.id.startsWith('traveler-')) { if (old && old.synced) c.synced = old.synced; else c.edited = true; if (old && old.seen) c.seen = old.seen; }
   S.roster[c.id] = c;
   const shared = c.id.startsWith('traveler-') ? shareTraveler(c.id) : 0;
   save(); dChar.close(); render();
@@ -2104,11 +2113,23 @@ $('#form-char').addEventListener('submit', e => {
 // 여행자 창: 아직 없는 원소 여행자를 버튼으로 추가(레벨·무기·성유물 공유)
 function renderTravAdd(id) {
   const on = !!id && id.startsWith('traveler-') && !!S.roster[id];
+  const have = on ? TRAV_IDS().filter(t => S.roster[t]) : [];
   const miss = on ? TRAV_IDS().filter(t => !S.roster[t]) : [];
-  const syncedT = TRAV_IDS().find(t => S.roster[t] && S.roster[t].synced);
-  $('#trav-note').textContent = on && syncedT ? (syncedT === id ? `이 여행자가 ${S.roster[id].synced === 'hoyolab' ? 'HoYoLAB' : '동기화'}에서 받아 온 원소입니다(지금 게임에서 쓰는 원소). ` : `${DB[syncedT].name}이(가) 동기화된 원소입니다. 이 원소의 운명의 자리·특성은 게임에서 보고 직접 넣어 주세요(HoYoLAB은 지금 원소 하나만 알려 줌). `) : '';
+  const md = d => d ? d.slice(5).replace('-', '/') : '';
+  // 원소별로 운명의 자리·특성이 어디서 왔는지
+  $('#trav-list').innerHTML = have.map(t => {
+    const o = S.roster[t];
+    const src = o.synced ? `HoYoLAB · 지금 원소` : o.edited ? '직접 입력' : o.seen ? `HoYoLAB ${md(o.seen)}에 받음` : '정보 없음';
+    return `<li class="${t === id ? 'cur' : ''}"><span class="dot" style="--c:var(--${DB[t].el})"></span>${EL[DB[t].el]} ${o.cons}돌 ${o.t.join('/')} <span class="src">(${src})</span></li>`;
+  }).join('');
+  const o = on ? S.roster[id] : null;
+  $('#trav-note').textContent = !on ? '' : (o.synced ? '이 원소는 HoYoLAB에서 받아 온 값이에요. '
+    : o.edited ? '이 원소는 직접 넣은 값이에요(동기화가 덮어쓰지 않음). '
+    : o.seen ? '예전에 HoYoLAB에서 받아 둔 값이에요. '
+    : '이 원소는 아직 정보가 없어 0돌 · 특성 1/1/1이에요. ')
+    + 'HoYoLAB은 지금 게임에서 쓰는 원소 하나만 알려 줘요. 다른 원소도 자동으로 받으려면 게임에서 칠천신상으로 원소를 바꾼 뒤 hoyolab-sync를 실행(또는 3시간 기다림)하고 동기화하세요. 한 번 받은 원소는 앱이 기억해요. 바로 넣으려면 아래 칸에 직접 고쳐 저장해도 돼요. 레벨·무기·성유물은 모든 원소가 같아요.';
   $('#trav-wrap').hidden = !on;
-  $('#trav-add').innerHTML = miss.map(t => `<button type="button" class="btn ghost sm" data-trav="${t}"><span class="dot" style="--c:var(--${DB[t].el})"></span>${EL[DB[t].el]}</button>`).join('');
+  $('#trav-add').innerHTML = miss.map(t => `<button type="button" class="btn ghost sm" data-trav="${t}">+ <span class="dot" style="--c:var(--${DB[t].el})"></span>${EL[DB[t].el]}</button>`).join('');
 }
 $('#trav-add').addEventListener('click', e => {
   const b = e.target.closest('[data-trav]'); if (!b || !editId) return;
@@ -2178,6 +2199,14 @@ const TRAVELER_HID = [10000005, 10000007];
 // 운명의 자리 3·5번째가 올려 주는 특성(0 평타 · 1 E · 2 Q, -1 없음). HoYoLAB은 이 +3을 더한 레벨을 주므로 빼고 원래 레벨만 저장
 // (Enka 쇼케이스·GOOD 파일은 원래 레벨이라 그대로). dex/<캐릭터>.json의 운명의 자리 설명에서 뽑음
 const CONS_BOOST = {'aino':[2,1],'albedo':[1,2],'alhaitham':[1,2],'alyosha':[1,2],'amber':[2,1],'arlecchino':[0,2],'ayaka':[2,1],'ayato':[1,2],'baizhu':[2,1],'barbara':[2,1],'barca':[1,2],'beidou':[1,2],'bennett':[1,2],'candace':[2,1],'charlotte':[2,1],'chasca':[1,2],'chevreuse':[1,2],'chiori':[1,2],'chongyun':[2,1],'citlali':[1,2],'clorinde':[1,2],'collei':[1,2],'columbina':[1,2],'cyno':[2,1],'dahlia':[2,1],'dehya':[2,1],'diluc':[1,2],'diona':[2,1],'dori':[2,1],'durin':[2,1],'emilie':[1,2],'escoffier':[1,2],'eula':[2,1],'faruzan':[1,2],'fischl':[1,2],'flins':[2,1],'freminet':[0,1],'furina':[2,1],'gaming':[1,2],'ganyu':[2,1],'gorou':[1,2],'heizou':[1,2],'hutao':[1,2],'iansan':[1,2],'ifa':[1,2],'illuga':[2,1],'ineffa':[1,2],'itto':[1,2],'jahoda':[2,1],'jean':[2,1],'kachina':[1,2],'kaeya':[1,2],'kaveh':[2,1],'kazuha':[1,2],'keqing':[2,1],'kinich':[1,2],'kirara':[1,2],'klee':[1,2],'kokomi':[2,1],'lanyan':[1,2],'lauma':[2,1],'layla':[1,2],'linnea':[1,2],'lisa':[2,1],'lynette':[2,1],'lyney':[0,2],'mavuika':[2,1],'mika':[2,1],'mitya':[1,0],'mizuki':[1,2],'mona':[2,1],'mualani':[1,2],'nahida':[1,2],'navia':[1,2],'nefer':[1,2],'neuvillette':[0,2],'nicole':[1,2],'nilou':[2,1],'ningguang':[2,1],'noelle':[1,2],'odette':[1,2],'ororon':[2,1],'prune':[2,1],'qiqi':[2,1],'raiden':[2,1],'razor':[2,1],'roen':[1,2],'rosaria':[1,2],'sandrone':[0,2],'sara':[2,1],'sayu':[2,1],'sethos':[0,2],'shenhe':[1,2],'shinobu':[1,2],'sigewinne':[1,2],'skirk':[2,1],'sucrose':[1,2],'tartaglia':[1,2],'thoma':[1,2],'tighnari':[2,1],'traveler-anemo':[2,1],'traveler-cryo':[2,1],'traveler-dendro':[1,2],'traveler-electro':[2,1],'traveler-geo':[2,1],'traveler-hydro':[1,2],'traveler-pyro':[1,2],'valery':[0,1],'varesa':[2,0],'venti':[2,1],'vesna':[1,2],'vodyanitsa':[1,2],'wanderer':[2,1],'wriothesley':[0,2],'xiangling':[2,1],'xianyun':[2,1],'xiao':[1,2],'xilonen':[1,2],'xingqiu':[2,1],'xinyan':[1,2],'yae':[1,2],'yanfei':[1,2],'yaoyao':[1,2],'yelan':[2,1],'yoimiya':[1,2],'yunjin':[2,1],'zhongli':[1,2],'zibai':[1,2]};
+// 운명의 자리로 오르는 특성 레벨 [평타, E, Q] (예: 3돌이면 Q +3)
+function boostOf(id, cons) {
+  const b = CONS_BOOST[id], o = [0, 0, 0];
+  if (!b) return o;
+  if (cons >= 3 && b[0] >= 0) o[b[0]] += 3;
+  if (cons >= 5 && b[1] >= 0) o[b[1]] += 3;
+  return o;
+}
 function baseTalents(id, row) {
   const t = (row.talents || [1, 1, 1]).slice(0, 3), b = CONS_BOOST[id];
   if (!b) return t;
@@ -2253,13 +2282,14 @@ function applyRows(rows, src, statsOk, boosted) {
     if (!id) { miss.push(row.name || row.key); continue; }
     S.roster[id] = charFromRow(id, row, S.roster[id], statsOk, boosted); n++;
     if (id.startsWith('traveler-')) {
-      // 동기화된 원소 말고 다른 원소는 HoYoLAB이 모름. 직접 고친 적 없는 원소는 예전에 잘못 복사된 운명의 자리·특성을 0돌 · 1/1/1로 되돌림
+      // HoYoLAB은 지금 쓰는 원소 하나만 알려 줌. 한 번이라도 받아 온 원소(seen)와 직접 고친 원소(edited)는 그 값을 기억하고,
+      // 그 밖의 원소는 예전에 잘못 복사된 운명의 자리·특성을 0돌 · 1/1/1로 되돌림
       for (const t of TRAV_IDS()) {
         const o = S.roster[t]; if (!o) continue;
         delete o.synced;
-        if (t !== id && !o.edited) { o.cons = 0; o.t = [1, 1, 1]; if (o.ov) delete o.ov.perf; }
+        if (t !== id && !o.edited && !o.seen) { o.cons = 0; o.t = [1, 1, 1]; if (o.ov) delete o.ov.perf; }
       }
-      S.roster[id].synced = src; delete S.roster[id].edited;
+      S.roster[id].synced = src; S.roster[id].seen = new Date().toISOString().slice(0, 10); delete S.roster[id].edited;
       shareTraveler(id);
     }
   }
@@ -2267,7 +2297,7 @@ function applyRows(rows, src, statsOk, boosted) {
   return { n, miss };
 }
 // 불러오기 규칙이 바뀌면 올려서, 같은 동기화 파일이라도 열 때 한 번 다시 적용
-const IMPORT_VER = 4;
+const IMPORT_VER = 5;
 async function syncHoyo(manual) {
   let h;
   try { h = await ACCT.fetchHoyo(); }
