@@ -79,6 +79,26 @@ def char_row(c, pmap):
     }
 
 
+def fix_cookie(raw):
+    """손으로 옮겨 적다 생기는 흔한 실수를 고침: 이름 첫 글자를 소문자 l 대신 대문자 I·숫자 1로 적음(Itoken_v2), 대소문자, 따옴표·줄바꿈·'Cookie:' 머리말."""
+    raw = raw.strip().strip('"'').replace('
+', ';')
+    if raw.lower().startswith('cookie:'):
+        raw = raw[7:]
+    out = []
+    for part in raw.split(';'):
+        if '=' not in part:
+            continue
+        k, v = part.split('=', 1)
+        k, v = k.strip(), v.strip().strip('"'')
+        m = re.fullmatch(r'[lLI1|](token|tuid|tmid)(_v2)?', k, re.I)
+        if m:
+            k = 'l' + m.group(1).lower() + (m.group(2) or '').lower()
+        if k and v:
+            out.append(f'{k}={v}')
+    return '; '.join(out)
+
+
 def cookie_hint(cookie, uid):
     """쿠키가 거절된 이유 추정. 쿠키 값은 절대 출력하지 않고 항목 이름만 봄."""
     names = {p.split('=', 1)[0].strip() for p in cookie.replace('\n', ';').split(';') if '=' in p}
@@ -108,7 +128,7 @@ def fallback_enka():
 
 async def main():
     foreign_guard(OUT)
-    cookie, uid = os.environ.get('HOYOLAB_COOKIE', '').strip(), os.environ.get('GENSHIN_UID', '').strip()
+    cookie, uid = fix_cookie(os.environ.get('HOYOLAB_COOKIE', '')), os.environ.get('GENSHIN_UID', '').strip()
     if not cookie or not uid.isdigit():
         # 아직 설정 전이면 실패 알림이 쌓이지 않게 조용히 건너뜀
         print('Secrets HOYOLAB_COOKIE / GENSHIN_UID 가 비어 있어 건너뜀. 저장소 Settings → Secrets and variables → Actions 에 넣어 주세요.')
