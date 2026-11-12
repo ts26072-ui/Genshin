@@ -2404,6 +2404,14 @@ async function syncHoyo(manual) {
     if (manual) toast(e.status === 404 ? '아직 동기화된 데이터가 없습니다. 연동 방법대로 GitHub Secret(GENSHIN_UID)을 넣고 hoyolab-sync를 한 번 실행해 주세요' : 'HoYoLAB 데이터를 불러오지 못했습니다');
     return;
   }
+  // 동기화는 됐지만 캐릭터가 0명(UID만 넣었는데 게임 프로필 쇼케이스가 비었거나 상세 정보가 꺼짐) — 시간만 바뀌고 아무것도 안 들어오는 것처럼 보이지 않게 이유를 알려 줌
+  if (!(h.chars || []).length) {
+    if (manual || S.hoyoAt !== h.updated) toast(h.source === 'enka'
+      ? `${h.nickname ? h.nickname + ' 님 ' : ''}계정은 찾았지만 캐릭터가 0명이에요. 게임 → 프로필 → 캐릭터 쇼케이스에 캐릭터를 올리고 '캐릭터 상세 정보 표시'를 켠 뒤, 몇 분 뒤 hoyolab-sync를 다시 실행하세요(보유 캐릭터 전부를 받으려면 HOYOLAB_COOKIE도 필요)`
+      : '동기화 파일에 캐릭터가 없어요. hoyolab-sync 실행 기록의 오류를 확인해 주세요');
+    S.hoyoAt = h.updated; save();
+    return;
+  }
   if (!manual && (!S.hoyoAuto || (S.hoyoAt === h.updated && S.hoyoVer === IMPORT_VER))) return;
   const { n, miss } = applyRows(h.chars || [], 'hoyolab', true, h.source !== 'enka');
   if (h.ar) S.ar = h.ar;
