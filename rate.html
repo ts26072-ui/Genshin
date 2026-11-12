@@ -43,6 +43,8 @@
 #bag-tbl tbody tr { cursor: pointer; }
 #bag-tbl tbody tr:hover { background: rgb(127 127 127 / .08); }
 .gb { display: inline-grid; place-items: center; min-width: 30px; height: 22px; border-radius: 6px; font-weight: 700; font-size: 12.5px; color: #fff; background: var(--c); padding: 0 6px; }
+.tbl tr.win td { background: color-mix(in srgb, var(--gold) 10%, transparent); }
+.low { color: var(--bad); }
 </style>
 </head>
 <body>
@@ -50,7 +52,7 @@
 <div class="wrap">
   <header class="top">
     <h1><span class="star">✦</span> 성유물 감정</h1>
-    <p class="sub">성유물 한 개의 주옵과 부옵을 넣으면, 고른 캐릭터에게 쓸모 있는 부옵이 몇 번 붙었는지 세어 등급을 매깁니다.</p>
+    <p class="sub">성유물 한 개의 세트·주옵·부옵을 넣으면, 고른 캐릭터에게 맞는 세트인지와 쓸모 있는 부옵이 몇 번 붙었는지를 함께 보고 등급을 매깁니다. 여러 개를 담아 비교할 수도 있어요.</p>
   </header>
 
   <div class="layout">
@@ -60,12 +62,14 @@
         <label for="slot">부위<select id="slot"></select></label>
         <label for="lv">강화 레벨<input id="lv" type="number" min="0" max="20" step="1"></label>
       </div>
+      <label for="set">세트<select id="set"></select></label>
       <label for="main">주옵<select id="main"></select></label>
       <div>
         <h3>부옵 (게임 화면의 숫자 그대로, % 옵션은 % 숫자만)</h3>
         <div class="subs" id="subs"></div>
       </div>
       <p class="hint">기준: 5성 성유물. 4성 이하는 상승치가 작아 실제보다 낮게 나옵니다.</p>
+      <button class="btn sm" type="button" id="cmp-add">+ 비교에 담기</button>
     </form>
 
     <section class="result" aria-live="polite">
@@ -90,6 +94,13 @@
     </section>
   </div>
 
+  <section class="panel" id="cmp" style="margin-top:22px">
+    <div class="bar" style="margin:0 0 8px"><h2 style="margin:0">성유물 비교</h2>
+      <div class="actions"><button class="btn ghost sm" type="button" id="cmp-clear">비우기</button></div></div>
+    <p class="hint" id="cmp-hint"></p>
+    <div class="tblwrap"><table class="tbl" id="cmp-tbl"></table></div>
+  </section>
+
   <section class="panel bag" id="bag" style="margin-top:22px">
     <div class="bar" style="margin:0 0 8px"><h2 style="margin:0">가방 성유물</h2>
       <div class="actions"><button class="btn ghost sm" type="button" id="bag-good">GOOD 파일 불러오기</button></div></div>
@@ -103,7 +114,8 @@
     <button class="btn ghost sm" type="button" id="bag-more" hidden>더 보기</button>
   </section>
 
-  <p class="foot-note">가방 성유물: GOOD 파일의 성유물 전부(없으면 HoYoLAB로 불러온 내 캐릭터의 착용 성유물)를 내 캐릭터 각각의 추천 부옵 가중치로 감정해, 가장 잘 맞는 캐릭터와 그 등급을 보여 줍니다. 추천 세트가 아니면 기대값의 80%로, 추천 주옵이 아니면 제외하고 봅니다. 행을 누르면 위 감정기에 채워 자세히 볼 수 있습니다.</p>
+  <p class="foot-note">가방 성유물: GOOD 파일의 성유물 전부(없으면 HoYoLAB로 불러온 내 캐릭터의 착용 성유물)를 내 캐릭터 각각의 추천 부옵 가중치로 감정해, 가장 잘 맞는 캐릭터와 그 등급을 보여 줍니다. 세트는 그 캐릭터의 추천 4세트 1위 ×1.0(순위마다 −0.05), 2+2 조합용 ×0.9, 추천 밖 ×0.75로, 추천 주옵이 아니면 제외하고 봅니다. 행을 누르면 위 감정기에 채워 자세히 볼 수 있습니다.</p>
+  <p class="foot-note">종합 = 유효 옵션 × 세트 계수(추천 4세트 1위 1.0, 순위마다 −0.05, 2+2 조합용 0.9, 추천 밖 0.75, 모름 1) × 주옵 계수(추천 1순위 1, 대안 0.9, 추천 아님 0.5). 등급은 종합으로 매깁니다. 추천 세트·주옵은 genshin-builds.com v7.1 첫 빌드 기준입니다.</p>
   <p class="foot-note">유효 옵션 = 부옵 수치 ÷ 1회 최대 상승치 × 캐릭터 가중치의 합입니다. 가중치는 추천 부옵 우선순위(genshin-builds.com v7.1) 순서대로 1·1·0.8·0.6·0.45이며, 치명타 확률·피해는 같은 값, 깡옵은 % 옵션의 40%입니다. +20 성유물의 부옵 상승은 8~9회이고 1회 상승치는 최댓값의 70~100%라, 유효 옵션 6.5회 이상이면 종결급으로 봅니다. 강화 중인 성유물은 남은 강화가 지금 부옵들에 고르게 붙는다고 가정한 기대값으로 등급을 냅니다.</p>
 </div>
 
@@ -111,6 +123,7 @@
 <script src="builds.js?v=20261112h"></script>
 <script src="gear.js?v=20261112h"></script>
 <script src="names.js?v=20261112h"></script>
+<script src="weapons.js?v=20261112h"></script>
 <script src="account.js?v=20261112h"></script>
 <script>
 const $ = s => document.querySelector(s);
@@ -129,31 +142,59 @@ $('#subs').innerHTML = [0, 1, 2, 3].map(i => `<div class="subrow">
   <select id="s${i}" aria-label="부옵 ${i + 1} 종류"><option value="">— 없음 —</option>${SUB_STATS.map(s => `<option>${s}</option>`).join('')}</select>
   <input id="v${i}" type="number" min="0" step="0.1" aria-label="부옵 ${i + 1} 수치"></div>`).join('');
 
+// 세트 판정: 고른 캐릭터의 추천 4세트 1위 1.0(순위마다 −0.05, 최소 0.85), 2+2 후보 세트 0.9, 추천 밖 0.75, 모름 1(판정 안 함)
+function setInfo(id, set) {
+  const b = id && BUILDS[id];
+  if (!b || !set) return { f: 1, v: 'none', t: !set ? '세트를 고르면 추천 세트인지도 봐요' : '' };
+  const fours = b.sets.filter(x => x.set).map(x => x.set), i = fours.indexOf(set);
+  if (i >= 0) return { f: Math.max(0.85, 1 - 0.05 * i), v: i === 0 ? 'best' : 'ok', t: `추천 4세트 ${i + 1}위` };
+  if (b.sets.some(x => (x.pick || []).includes(set))) return { f: 0.9, v: 'ok', t: '2+2 조합용 세트' };
+  return { f: 0.75, v: 'bad', t: '추천 세트 아님' };
+}
+const MAIN_F = { best: 1, fixed: 1, ok: 0.9, bad: 0.5 };
+// 종합 = 유효 옵션(+20 미만은 기대값) × 세트 × 주옵
+function totalOf(st, id) {
+  const r = rateArtifact(st, id || null), si = setInfo(id, st.set), base = st.level >= 20 ? r.eff : r.projected;
+  const mf = MAIN_F[r.mainOk] ?? 1, v = base * si.f * mf;
+  return { r, si, base, mf, v, grade: gradeOf(v) };
+}
+function fillSets(keep) {
+  const id = $('#c').value, b = BUILDS[id], fours = b ? b.sets.filter(x => x.set).map(x => x.set) : [];
+  const picks = b ? [...new Set(b.sets.flatMap(x => x.pick || []))].filter(n => !fours.includes(n)) : [];
+  const rest = ART_SETS.filter(x => x.r >= 4 && !fours.includes(x.name) && !picks.includes(x.name)).map(x => x.name).sort((a, c) => a.localeCompare(c, 'ko'));
+  const o = (n, t) => `<option value="${GP.esc(n)}">${t ? t + ' · ' : ''}${GP.esc(n)}</option>`;
+  $('#set').innerHTML = `<option value="">— 모름 —</option>` + (fours.length ? `<optgroup label="${GP.esc(GP.DB[id].name)} 추천 4세트">${fours.map((n, i) => o(n, `${i + 1}위`)).join('')}</optgroup>` : '')
+    + (picks.length ? `<optgroup label="2+2 조합용">${picks.map(n => o(n)).join('')}</optgroup>` : '') + `<optgroup label="그 밖">${rest.map(n => o(n)).join('')}</optgroup>`;
+  if (keep != null) $('#set').value = keep;
+  if ($('#set').value !== (keep || '')) $('#set').value = '';
+}
 function fillMain(keep) {
   const list = SLOTS[$('#slot').value].main;
   $('#main').innerHTML = list.map(m => `<option>${m}</option>`).join('');
   if (keep && list.includes(keep)) $('#main').value = keep;
 }
 function read() {
-  return { c: $('#c').value, slot: $('#slot').value, main: $('#main').value, level: Math.round(Number($('#lv').value) || 0),
+  return { c: $('#c').value, slot: $('#slot').value, set: $('#set').value, main: $('#main').value, level: Math.round(Number($('#lv').value) || 0),
     subs: [0, 1, 2, 3].map(i => [$('#s' + i).value, Number($('#v' + i).value) || 0]) };
 }
 function write(st) {
   $('#c').value = GP.DB[st.c] && BUILDS[st.c] ? st.c : '';
+  fillSets(st.set || '');
   $('#slot').value = st.slot; fillMain(st.main);
   $('#lv').value = st.level;
   st.subs.forEach(([s, v], i) => { $('#s' + i).value = s; $('#v' + i).value = v || ''; });
 }
 // 처음 열면 보여 줄 예시: 호두용 +20 치명 왕관
-const SAMPLE = { c: 'hutao', slot: 'circlet', main: '치명타 피해', level: 20, subs: [['치명타 확률', 10.5], ['HP%', 9.9], ['원소 마스터리', 42], ['공격력', 18]] };
+const SAMPLE = { c: 'hutao', slot: 'circlet', set: '불타오르는 화염의 마녀', main: '치명타 피해', level: 20, subs: [['치명타 확률', 10.5], ['HP%', 9.9], ['원소 마스터리', 42], ['공격력', 18]] };
 
 function render() {
   const st = read();
+  if (typeof renderCmp === 'function') setTimeout(renderCmp);
   try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {}
-  const r = rateArtifact(st, st.c || null);
-  const g = r.grade;
+  const T = totalOf(st, st.c), r = T.r;
+  const g = T.grade;
   $('#badge').textContent = g.g; $('#badge').style.setProperty('--c', g.c);
-  $('#gname').textContent = `${g.n} · 유효 옵션 ${(st.level >= 20 ? r.eff : r.projected).toFixed(1)}회${st.level < 20 ? ' (강화 완료 기대값)' : ''}`;
+  $('#gname').textContent = `${g.n} · 종합 ${T.v.toFixed(1)} (유효 옵션 ${T.base.toFixed(1)}회${st.level < 20 ? ' 기대값' : ''}${T.si.f !== 1 ? ` × 세트 ${T.si.f.toFixed(2)}` : ''}${T.mf !== 1 ? ` × 주옵 ${T.mf}` : ''})`;
   $('#gsay').textContent = g.say;
   const who = st.c ? GP.DB[st.c].name : '치명 딜러';
   $('#nums').innerHTML = [
@@ -167,6 +208,12 @@ function render() {
       : `<tr><td colspan="5" class="muted">부옵을 입력하세요.</td></tr>`) + '</tbody>';
   const notes = [];
   const mv = r.mainOk, b = st.c && BUILDS[st.c];
+  if (b) {
+    const fours = b.sets.filter(x => x.set).map(x => x.set);
+    const cls = { best: 'ok', ok: 'mid', bad: 'low', none: '' }[T.si.v];
+    notes.push(st.set ? `<span class="${cls}">세트 ${GP.esc(st.set)}</span> — ${T.si.t}${T.si.v === 'bad' ? '. 부옵이 아주 좋지 않으면 추천 세트 성유물이 낫습니다' : ''}. ${who} 추천 4세트: ${fours.map((n, i) => `${i + 1}위 ${GP.esc(n)}`).join(', ')}`
+      : `세트를 고르면 ${who}에게 맞는 세트인지도 봅니다. 추천 4세트: ${fours.map((n, i) => `${i + 1}위 ${GP.esc(n)}`).join(', ')}`);
+  }
   if (mv === 'best') notes.push(`<span class="ok">주옵 ${st.main}</span> — ${who}에게 1순위 주옵입니다.`);
   else if (mv === 'ok') notes.push(`<span class="mid">주옵 ${st.main}</span> — 쓸 수는 있지만 1순위는 ${b ? b.main[st.slot][0] : '치명타 확률·피해'}입니다.`);
   else if (mv === 'bad') notes.push(`<span class="low">주옵 ${st.main}</span> — ${who}의 추천 주옵(${b.main[st.slot].join(', ')})이 아닙니다. 부옵이 좋아도 다른 캐릭터에게 주는 편이 낫습니다.`);
@@ -180,12 +227,38 @@ function render() {
   $('#notes').innerHTML = notes.map(n => `<li>${n}</li>`).join('');
 }
 
+// ───────── 성유물 비교: 담은 성유물들을 지금 고른 캐릭터 기준으로 나란히 ─────────
+let cmpList = [];
+try { cmpList = JSON.parse(localStorage.getItem(PREF + ':cmp')) || []; } catch (e) {}
+const saveCmp = () => { try { localStorage.setItem(PREF + ':cmp', JSON.stringify(cmpList)); } catch (e) {} };
+function renderCmp() {
+  const id = $('#c').value, who = id ? GP.DB[id].name : '치명 딜러';
+  $('#cmp-hint').textContent = cmpList.length ? `${who} 기준으로 비교해요(위에서 캐릭터를 바꾸면 기준도 바뀜). 행을 누르면 위 감정기에 채워요.` : '위에서 성유물을 넣고 + 비교에 담기를 누르면 여기에 쌓여요(최대 6개). 같은 부위끼리 비교하는 게 좋아요.';
+  if (!cmpList.length) { $('#cmp-tbl').innerHTML = ''; return; }
+  const xs = cmpList.map(a => ({ a, T: totalOf(a, id) })), best = Math.max(...xs.map(x => x.T.v));
+  $('#cmp-tbl').innerHTML = `<thead><tr><th>등급</th><th>부위 · 세트</th><th>주옵</th><th class="r">강화</th><th>부옵</th><th class="r">유효 옵션</th><th>세트 판정</th><th class="r">종합</th><th></th></tr></thead><tbody>`
+    + xs.map(({ a, T }, i) => `<tr data-ci="${i}"${T.v === best && xs.length > 1 ? ' class="win"' : ''}><td><span class="gb" style="--c:${T.grade.c}">${T.grade.g}</span></td>
+      <td>${SLOTS[a.slot].n}<br><span class="hint">${GP.esc(a.set || '세트 모름')}</span></td>
+      <td>${GP.esc(a.main)}${T.r.mainOk === 'bad' ? '<br><span class="hint low">추천 주옵 아님</span>' : ''}</td><td class="r mono">+${a.level}</td>
+      <td class="hint">${a.subs.filter(([k, v]) => k && v).map(([k, v]) => `${GP.esc(k)} ${v}`).join('<br>')}</td>
+      <td class="r mono">${T.base.toFixed(1)}</td><td>${GP.esc(T.si.t || '—')}</td><td class="r mono"><b>${T.v.toFixed(1)}</b>${T.v === best && xs.length > 1 ? ' 👑' : ''}</td>
+      <td><button type="button" class="btn ghost sm" data-crm="${i}">빼기</button></td></tr>`).join('') + '</tbody>';
+}
+$('#cmp-add').addEventListener('click', () => { const a = read(); delete a.c; cmpList.push(a); cmpList = cmpList.slice(-6); saveCmp(); renderCmp(); $('#cmp').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
+$('#cmp-clear').addEventListener('click', () => { cmpList = []; saveCmp(); renderCmp(); });
+$('#cmp-tbl').addEventListener('click', e => {
+  const rm = e.target.closest('[data-crm]'); if (rm) { cmpList.splice(+rm.dataset.crm, 1); saveCmp(); renderCmp(); return; }
+  const tr = e.target.closest('tr[data-ci]'); if (!tr) return;
+  write({ ...cmpList[+tr.dataset.ci], c: $('#c').value }); render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
 let start = SAMPLE;
 try { const saved = JSON.parse(localStorage.getItem(PREF)); if (saved && saved.subs) start = saved; } catch (e) {}
 const hashId = decodeURIComponent(location.hash.slice(1));
 write(start);
 if (GP.DB[hashId] && BUILDS[hashId]) $('#c').value = hashId;
 $('#slot').addEventListener('change', () => { fillMain(); render(); });
+$('#c').addEventListener('change', () => { fillSets($('#set').value); render(); });
 $('#f').addEventListener('input', render);
 $('#f').addEventListener('submit', e => e.preventDefault());
 render();
@@ -201,9 +274,9 @@ function bestFor(a) {
   for (const id of cands()) {
     const r = rateArtifact(art, id);
     if (r.mainOk === 'bad') continue;
-    const fit = setFit(id, a.set);
-    const v = (a.level >= 20 ? r.eff : r.projected) * (fit ? 1 : 0.8);
-    if (!best || v > best.v) best = { id, r, v, fit };
+    const si = setInfo(id, a.set), fit = si.v !== 'bad';
+    const v = (a.level >= 20 ? r.eff : r.projected) * si.f * (MAIN_F[r.mainOk] ?? 1);
+    if (!best || v > best.v) best = { id, r: { ...r, grade: gradeOf(v) }, v, fit, si };
   }
   return best;
 }
@@ -236,7 +309,7 @@ function renderBag() {
     + (list.length ? list.slice(0, bagShow).map(({ a, b }, i) => {
       const g = b ? b.r.grade : gradeOf(0);
       return `<tr data-i="${bagRows.indexOf(list[i])}"><td><span class="gb" style="--c:${g.c}">${g.g}</span></td>
-        <td>${SLOTS[a.slot].n}<br><span class="hint">${GP.esc(a.set)}${b && !b.fit ? ' · 추천 세트 아님' : ''}</span></td>
+        <td>${SLOTS[a.slot].n}<br><span class="hint">${GP.esc(a.set)}${b ? ' · ' + GP.esc(b.si.t) : ''}</span></td>
         <td>${GP.esc(a.main[0])}</td><td class="r mono">+${a.level}</td>
         <td>${b ? GP.esc(GP.DB[b.id].name) : '<span class="hint">맞는 캐릭터 없음</span>'}</td>
         <td class="r mono">${b ? b.v.toFixed(1) + (a.level < 20 ? '<span class="hint">*</span>' : '') : '–'}</td>
@@ -253,7 +326,7 @@ $('#bag-tbl').addEventListener('click', e => {
   const tr = e.target.closest('tr[data-i]'); if (!tr) return;
   const { a, b } = bagRows[+tr.dataset.i];
   const subs = a.subs.slice(0, 4).map(([s, v]) => [s, v]); while (subs.length < 4) subs.push(['', 0]);
-  write({ c: b ? b.id : '', slot: a.slot, main: a.main[0], level: a.level, subs });
+  write({ c: b ? b.id : '', slot: a.slot, set: a.set || '', main: a.main[0], level: a.level, subs });
   render(); window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 const goodPick = document.createElement('input');

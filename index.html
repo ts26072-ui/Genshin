@@ -1438,59 +1438,51 @@ function rotBlock(ids) {
     <p class="rtip">${r.exact ? '' : '보호막·장판 → 후방 딜 → 버프 → 필드 딜러 순입니다. '}한 바퀴가 끝나면, 깔아 둔 효과가 사라지기 전에 1번부터 다시 돌립니다. E = 원소전투 스킬, Q = 원소폭발.</p></div>`;
 }
 // ───────── 보스별 추천 파티 (보유 캐릭터로) ─────────
-// imm: 그 원소 피해가 안 들어감(면역) → 그 원소 딜러는 빼고 짬. good: 유리한 원소. 확실한 것만 적음(모르는 보스는 특이 사항 없음)
-const BOSSES = [
-  { n: '「시뇨라」', k: '주간', good: ['pyro', 'hydro', 'cryo'], tip: '1페이즈는 얼음 상태라 불이 잘 들고, 2페이즈는 불 상태라 물·얼음이 잘 들어요. 두 원소를 섞은 파티가 편해요.' },
-  { n: '북풍의 왕랑, 울프의 영주', k: '주간' },
-  { n: '타르탈리아', k: '주간' },
-  { n: '마가츠 미타케 나루카미노 미코토', k: '주간' },
-  { n: '「정기(正機)의 신」', k: '주간' },
-  { n: '아펩의 오아시스 파수꾼', k: '주간' },
-  { n: '「아를레키노」', k: '주간' },
-  { n: '무상의 바람', k: '필드', imm: ['anemo'], tip: '바람 원소 면역이라 바람 딜러는 빼요(바람 서포터의 버프는 그대로 들어감).' },
-  { n: '무상의 바위', k: '필드', imm: ['geo'], tip: '바위 원소 면역이라 바위 딜러는 빼요.' },
-  { n: '무상의 뇌전', k: '필드', imm: ['electro'], tip: '번개 원소 면역이라 번개 딜러는 빼요.' },
-  { n: '무상의 물', k: '필드', imm: ['hydro'], tip: '물 원소 면역이라 물 딜러는 빼요.' },
-  { n: '무상의 불', k: '필드', imm: ['pyro'], tip: '불 원소 면역이라 불 딜러는 빼요.' },
-  { n: '무상의 얼음', k: '필드', imm: ['cryo'], tip: '얼음 원소 면역이라 얼음 딜러는 빼요.' },
-  { n: '무상의 풀', k: '필드', imm: ['dendro'], tip: '풀 원소 면역이라 풀 딜러는 빼요.' },
-  { n: '얼음 나무', k: '필드', imm: ['cryo'], good: ['pyro'], tip: '얼음 원소 면역, 불 공격이 잘 들어요.' },
-  { n: '폭염 나무', k: '필드', imm: ['pyro'], good: ['hydro', 'cryo'], tip: '불 원소 면역, 물·얼음 공격이 잘 들어요.' },
-  { n: '번개 나무', k: '필드', imm: ['electro'], tip: '번개 원소 면역이라 번개 딜러는 빼요.' },
-  { n: '물의 정령', k: '필드', imm: ['hydro'], tip: '물 원소 면역. 작은 물 생물을 여럿 불러내서 광역 공격이 편해요.' },
-  { n: '뇌음의 권현', k: '필드', imm: ['electro'], tip: '번개 원소 면역이라 번개 딜러는 빼요.' },
-  { n: '천년 묵은 진주 기린', k: '필드', imm: ['electro'], tip: '번개 원소 면역이라 번개 딜러는 빼요.' },
-  { n: '황금 늑대왕', k: '필드', good: ['geo'], tip: '바위 보호막은 바위 공격으로 빨리 깨져요.' },
-  { n: '영겁의 드레이크', k: '필드', mix: true, tip: '맞은 원소(불·물·번개·얼음)에 저항이 크게 올라가요. 한 원소만 쓰지 말고 두 원소 이상 섞은 파티가 좋아요.' },
-  { n: '꼭두각시 검귀', k: '필드' },
-  { n: '영구 장치 진영', k: '필드' },
-  { n: '고대 바위 용 도마뱀', k: '필드' },
-  { n: '용암철갑 제왕', k: '필드' },
-  { n: '공포의 취령 버섯', k: '필드' },
-];
+// 보스 목록·기본 원소 저항(res, %)은 게임 자료(MonsterExcelConfigData, 2026년 11월)에서 뽑음. imm(원소 면역)은 게임 자료의
+// 기본 저항에 안 나오고 따로 처리되는 것이라 확실한 것만 손으로 적음. 저항 자료가 없는 보스는 res 없음
+const BOSSES = [{"n":"「도토레」","k":"주간·강적","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"「시뇨라」","k":"주간·강적","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":50,"geo":10,"phys":10},"tip":"1페이즈는 얼음 상태라 불이 잘 들고, 2페이즈는 불 상태라 물·얼음이 잘 들어요.","good":["pyro","hydro"]},{"n":"「아를레키노」","k":"주간·강적"},{"n":"「정기(正機)의 신」","k":"주간·강적","res":{"pyro":10,"hydro":10,"anemo":10,"electro":50,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"도토레","k":"주간·강적","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"마가츠 미타케 나루카미노 미코토","k":"주간·강적","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"문 앞의 체스 매치","k":"주간·강적","res":{"pyro":10,"hydro":70,"anemo":10,"electro":70,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"별을 삼킨 고래","k":"주간·강적","res":{"pyro":10,"hydro":70,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"북풍의 왕랑, 울프의 영주","k":"주간·강적","res":{"pyro":10,"hydro":10,"anemo":30,"electro":10,"dendro":10,"cryo":50,"geo":10,"phys":10}},{"n":"아펩의 오아시스 파수꾼","k":"주간·강적","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":70,"cryo":10,"geo":10,"phys":10}},{"n":"야타용왕","k":"주간·강적","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":70,"phys":40}},{"n":"열공의 마룡","k":"주간·강적","res":{"pyro":0,"hydro":0,"anemo":0,"electro":0,"dendro":0,"cryo":0,"geo":0,"phys":0}},{"n":"침식된 근원의 불꽃 주인","k":"주간·강적"},{"n":"타르탈리아","k":"주간·강적","res":{"pyro":0,"hydro":50,"anemo":0,"electro":0,"dendro":0,"cryo":0,"geo":0,"phys":0}},{"n":"강펀치 오리","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"고대 바위 용 도마뱀","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":50,"phys":30}},{"n":"골렘 군단장","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"공포의 취령 버섯","k":"필드","res":{"pyro":25,"hydro":25,"anemo":25,"electro":25,"dendro":80,"cryo":25,"geo":25,"phys":25}},{"n":"그윽한 의태 식물·I형","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"꼭두각시 검귀","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"날개 사자 키메라","k":"필드"},{"n":"뇌음의 권현","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10},"imm":["electro"]},{"n":"달빛 바위 도마뱀붙이","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":70,"phys":10}},{"n":"달빛 환영 나비","k":"필드","res":{"pyro":70,"hydro":10,"anemo":10,"electro":10,"dendro":70,"cryo":10,"geo":10,"phys":10}},{"n":"무상의 뇌전","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10},"imm":["electro"]},{"n":"무상의 물","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10},"imm":["hydro"]},{"n":"무상의 바람","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10},"imm":["anemo"]},{"n":"무상의 바위","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10},"imm":["geo"]},{"n":"무상의 불","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10},"imm":["pyro"]},{"n":"무상의 얼음","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10},"imm":["cryo"]},{"n":"무상의 풀","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10},"imm":["dendro"]},{"n":"물의 정령","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10},"imm":["hydro"],"tip":"본체 대신 불러낸 물 생물들을 잡는 싸움이라 광역 공격이 편해요."},{"n":"물의 환인간","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10},"imm":["hydro"],"good":["dendro","pyro","electro"],"poor":["cryo"],"tip":"몸 자체가 물이라 물 공격은 안 들고, 몸에 묻은 물과 반응하는 풀(개화)·불(증발)·번개 딜러가 좋아요. 얼음은 본체를 얼리지 못해요(분신·졸개 처리용)."},{"n":"바람 침식 모래 벌레","k":"필드","res":{"pyro":25,"hydro":25,"anemo":60,"electro":25,"dendro":25,"cryo":25,"geo":25,"phys":25}},{"n":"반영구 제어 매트릭스","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"방랑하는 눈의 수호자","k":"필드"},{"n":"번개 나무","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":70,"dendro":10,"cryo":10,"geo":10,"phys":30}},{"n":"번개를 삼키는 심해 용 도마뱀","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":30,"dendro":10,"cryo":10,"geo":10,"phys":30}},{"n":"불멸의 부산물","k":"필드"},{"n":"비밀근원 기계·구축기","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"비밀근원 기계·통솔기","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"서리밤 하늘 영주","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"식탐의 숲룡 산왕","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":70,"cryo":10,"geo":10,"phys":10}},{"n":"실험성 역장 발생 장치","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":70,"phys":10}},{"n":"어둠의 악몽 영주","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"얼음 나무","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":70,"geo":10,"phys":30}},{"n":"얼음 바람 모음곡","k":"필드","res":{"pyro":10,"hydro":10,"anemo":70,"electro":10,"dendro":10,"cryo":70,"geo":10,"phys":10}},{"n":"얼음을 짓씹는 심해 용 도마뱀","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":30,"geo":10,"phys":30}},{"n":"영겁의 드레이크","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":70},"tip":"맞은 원소(불·물·번개·얼음)에 저항이 크게 올라가요. 두 원소 이상 섞어 쓰는 게 좋아요.","mix":true},{"n":"영구 장치 진영","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":70}},{"n":"용암룡 형상","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"용암철갑 제왕","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"유적의 뱀","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":70}},{"n":"은둔 산예","k":"필드","res":{"pyro":10,"hydro":70,"anemo":70,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"죄 깊은 침례자","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"천년 묵은 진주 기린","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":60,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"초대형 기갑 전함·기동전투 요새","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"파수꾼·타락","k":"필드","res":{"pyro":10,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}},{"n":"폭염 나무","k":"필드","res":{"pyro":70,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":30}},{"n":"황금 늑대왕","k":"필드","res":{"pyro":25,"hydro":25,"anemo":25,"electro":25,"dendro":25,"cryo":25,"geo":25,"phys":25},"tip":"바위 보호막은 바위 공격으로 빨리 깨져요.","good":["geo"]},{"n":"황금불꽃의 깃룡 폭군","k":"필드","res":{"pyro":70,"hydro":10,"anemo":10,"electro":10,"dendro":10,"cryo":10,"geo":10,"phys":10}}];
 let bossCache = {};
 const isDealer = d => d.roles[0] === 'main' || d.roles[0] === 'sub';
+// 저항 r%일 때 받는 피해 배율(저항 10% 기준 1). 75% 이상은 사실상 안 들어감
+const resMul = r => r == null ? 1 : r >= 75 ? 0.15 : (1 - r / 100) / 0.9;
+// 보스 기준 파티 점수: 면역 원소 캐릭터는 아예 빼고(원소가 안 묻어 반응도 안 됨), 딜러 원소의 저항만큼 딜량을 깎고,
+// 보스는 얼지 않으므로 빙결 반응 점수를 빼고, 유리한 원소·섞기 보너스를 더함
+function bossEval(b, m) {
+  const e = evalParty({ pid: 'boss', name: '', m });
+  const dealers = e.mem.filter(x => isDealer(x.d));
+  const why = [];
+  let v = e.value;
+  if (b.res && dealers.length) {
+    const mul = dealers.reduce((s, x) => s + resMul(b.res[x.d.el]), 0) / dealers.length;
+    v -= 0.5 * e.dpsScore * (1 - mul);
+    const hi = [...new Set(dealers.filter(x => (b.res[x.d.el] || 0) >= 30).map(x => x.d.el))];
+    if (hi.length) why.push(`${hi.map(el => `${EL[el]} 저항 ${b.res[el]}%`).join(', ')} — 딜 감소`);
+  }
+  // 빙결 파티는 적을 얼려 묶는 게 핵심인데 보스는 얼지 않음 → 반응 점수·엔진 보너스를 빼고 추가로 깎음
+  const frozen = e.rx.includes('빙결') || e.arch.some(a => a.includes('빙결'));
+  if (frozen) { v -= 7; why.push('보스는 얼지 않아 빙결 효과 없음'); }
+  const good = new Set(b.good || []);
+  if (good.size && dealers.some(x => good.has(x.d.el))) { v += 4; why.push(`${[...good].map(g => EL[g]).join('·')} 딜러 포함(유리)`); }
+  const poor = dealers.filter(x => (b.poor || []).includes(x.d.el));
+  if (poor.length) { v -= 4 * poor.length; why.push(`${[...new Set(poor.map(x => EL[x.d.el]))].join('·')} 딜러는 이 보스에 불리`); }
+  if (b.mix && new Set(dealers.map(x => x.d.el)).size >= 2) { v += 3; why.push('딜 원소 2가지 이상'); }
+  return { m, e, v, why, rx: e.rx.filter(r => r !== '빙결'), arch: e.arch.filter(a => !a.includes('빙결')) };
+}
 function bossTeams(b) {
   const key = b.n + '|' + JSON.stringify(S.roster);
   if (bossCache[key]) return bossCache[key];
-  const imm = new Set(b.imm || []), good = new Set(b.good || []);
-  // 면역 원소 딜러는 빼고, 육성·성능으로 후보를 추림(조합 수를 줄이려고 14명 + 힐러·보호막 2명)
-  const pool = Object.keys(S.roster).filter(id => DB[id]).map(id => { const c = S.roster[id], d = prof(c); return { id, d, sc: charCalc(c).score * 0.5 + d.perf * 0.5 }; })
-    .filter(x => !(imm.has(x.d.el) && isDealer(x.d)));
+  const imm = new Set(b.imm || []);
+  // 후보: 면역 원소는 역할과 상관없이 제외. 저항이 높은 원소 딜러는 점수에서 깎이도록 그대로 둠
+  const pool = Object.keys(S.roster).filter(id => DB[id]).map(id => { const c = S.roster[id], d = prof(c); return { id, d, sc: (charCalc(c).score * 0.5 + d.perf * 0.5) * (isDealer(d) && b.res ? resMul(b.res[d.el]) : 1) }; })
+    .filter(x => !imm.has(x.d.el));
   pool.sort((a, b2) => b2.sc - a.sc);
   const pick = pool.slice(0, 14);
   for (const x of pool.filter(x => x.d.roles.some(r => r === 'heal' || r === 'shield')).slice(0, 2)) if (!pick.includes(x)) pick.push(x);
-  const ids = pick.map(x => x.id), out = [];
-  const n = ids.length;
+  const ids = pick.map(x => x.id), out = [], n = ids.length;
   for (let a = 0; a < n; a++) for (let b1 = a + 1; b1 < n; b1++) for (let c = b1 + 1; c < n; c++) for (let d = c + 1; d < n; d++) {
     const m = [ids[a], ids[b1], ids[c], ids[d]];
     if (m.filter(id => id.startsWith('traveler-')).length > 1) continue;   // 여행자는 한 명
-    const e = evalParty({ pid: 'boss', name: '', m });
-    const dealers = e.mem.filter(x => isDealer(x.d));
-    let bonus = 0; const why = [];
-    if (good.size && dealers.some(x => good.has(x.d.el))) { bonus += 4; why.push(`${[...good].map(g => EL[g]).join('·')} 딜러 포함`); }
-    if (b.mix && new Set(dealers.map(x => x.d.el)).size >= 2) { bonus += 3; why.push('딜 원소 2가지 이상'); }
-    out.push({ m, e, v: e.value + bonus, why });
+    out.push(bossEval(b, m));
   }
   out.sort((x, y) => y.v - x.v);
   // 한 명만 바꾼 비슷한 파티가 줄줄이 나오지 않게, 앞서 고른 파티와 2명 이상 다른 파티만
@@ -1504,19 +1496,23 @@ function bossTeams(b) {
 function bossBlock() {
   const ids = Object.keys(S.roster);
   const sel = BOSSES.find(b => b.n === S.boss);
-  const opt = k => `<optgroup label="${k} 보스">${BOSSES.filter(b => b.k === k).map(b => `<option${b.n === S.boss ? ' selected' : ''}>${esc(b.n)}</option>`).join('')}</optgroup>`;
+  const opt = k => `<optgroup label="${k}">${BOSSES.filter(b => b.k === k).map(b => `<option${b.n === S.boss ? ' selected' : ''}>${esc(b.n)}</option>`).join('')}</optgroup>`;
   let body = '';
   if (ids.length < 4) body = `<p class="muted">보유 캐릭터가 4명 이상이어야 추천할 수 있어요.</p>`;
   else if (sel) {
     const teams = bossTeams(sel);
-    body = (sel.tip ? `<p class="legend">${esc(sel.tip)}</p>` : `<p class="legend">알려진 원소 면역이 없는 보스라 전체적으로 가장 강한 조합을 골랐어요.</p>`)
-      + (teams.length ? `<div class="bteams">${teams.map((t, i) => `<div class="bteam"><div class="bt-head"><span class="rank">#${i + 1}</span><span class="grade sm g-${t.e.grade}">${t.e.grade}</span><span class="val">${t.e.value.toFixed(1)}</span>
+    const resTxt = sel.res ? Object.entries(sel.res).filter(([, r]) => r !== 10).map(([el, r]) => `${el === 'phys' ? '물리' : EL[el]} ${r}%`).join(' · ') : '';
+    const info = [sel.imm ? `<b>${sel.imm.map(el => EL[el]).join('·')} 원소 면역</b> — 그 원소 캐릭터는 빼고 짰어요(원소가 묻지 않아 반응도 안 됨)` : '',
+      sel.res ? (resTxt ? `기본 저항(나머지는 10%): ${resTxt}` : '모든 원소·물리 저항 10%') : '저항 자료 없음',
+      sel.tip || '', '보스는 얼지 않아 빙결 파티는 점수를 깎았어요'].filter(Boolean);
+    body = `<p class="legend">${info.join(' · ')}</p>`
+      + (teams.length ? `<div class="bteams">${teams.map((t, i) => `<div class="bteam"><div class="bt-head"><span class="rank">#${i + 1}</span><span class="grade sm g-${t.e.grade}">${t.e.grade}</span><span class="val" title="이 보스 기준 점수">${t.v.toFixed(1)}</span>
         <button class="btn sm" type="button" data-act="boss-save" data-i="${i}">파티로 저장</button></div>
         <div class="bt-mem">${t.m.map(id => `<span class="bt-m">${av(id)}<span>${esc(DB[id].name)}<small>${ROLE[prof(S.roster[id]).roles[0]]}</small></span></span>`).join('')}</div>
-        <p class="muted bt-why">${[...t.e.arch.map(a => '✦ ' + a), ...t.e.rx, ...t.why].map(esc).join(' · ') || '반응 없음'} · 딜 ${t.e.dpsScore.toFixed(0)} · 육성 ${t.e.build.toFixed(0)} · 시너지 ${t.e.syn.toFixed(0)}</p></div>`).join('')}</div>`
+        <p class="muted bt-why">${[...t.arch.map(a => '✦ ' + a), ...t.rx, ...t.why].map(esc).join(' · ') || '반응 없음'} · 딜 ${t.e.dpsScore.toFixed(0)} · 육성 ${t.e.build.toFixed(0)} · 시너지 ${t.e.syn.toFixed(0)}</p></div>`).join('')}</div>`
         : `<p class="muted">면역 원소를 빼고 나니 4명 파티를 만들 수 없어요.</p>`);
-  } else body = `<p class="muted">보스를 고르면 내 캐릭터로 만들 수 있는 파티 3개를 추천해요(파티 가치 = 딜량·육성·시너지, 면역 원소 딜러 제외).</p>`;
-  return `<section class="boss"><div class="bar"><h2>보스별 추천 파티</h2><div class="actions"><select id="boss-sel" aria-label="보스 고르기"><option value="">보스 고르기</option>${opt('주간')}${opt('필드')}</select></div></div>${body}</section>`;
+  } else body = `<p class="muted">보스를 고르면 내 캐릭터로 만들 수 있는 파티 3개를 추천해요. 보스의 원소 면역·저항(게임 자료)을 보고, 면역 원소 캐릭터는 빼고 저항이 높은 원소 딜러는 점수를 깎아요.</p>`;
+  return `<section class="boss"><div class="bar"><h2>보스별 추천 파티</h2><div class="actions"><select id="boss-sel" aria-label="보스 고르기"><option value="">보스 고르기</option>${opt('주간·강적')}${opt('필드')}</select></div></div>${body}</section>`;
 }
 function renderParties(ranked) {
   const v = $('#view-parties');
