@@ -90,24 +90,42 @@ function endgame(id) {
   const dealer = role === 'main', sub = role === 'sub';
   const t = {};
   if (crit) {
-    t.cr = dealer ? [60, 75] : [55, 70];
-    t.cd = dealer ? [150, 210] : sub ? [130, 180] : [100, 150];
+    // 2026-11: 예전 '종결'(치확 75 · 치피 210 등)을 합격선으로 내리고, 종결은 실제 상위권 수치로 올림
+    t.cr = dealer ? [75, 90] : [70, 85];
+    t.cd = dealer ? [210, 260] : sub ? [180, 230] : [150, 200];
   }
   const erFirst = b && b.subs[0] === '원소 충전 효율';
-  t.er = [Math.max(100, d.er - 10), d.er + (erFirst ? 15 : 0)];
+  t.er = [d.er + (erFirst ? 15 : 0), d.er + (erFirst ? 35 : 20)];
   const K = {
-    atk: dealer ? [2000, 2400] : sub ? [1800, 2200] : [1500, 1900],
-    hp: dealer ? [33000, 40000] : sub ? [30000, 38000] : [28000, 36000],
-    def: dealer ? [2200, 2800] : [2000, 2600],
-    em: crit ? [300, 500] : [700, 1000],
+    atk: dealer ? [2400, 2900] : sub ? [2200, 2700] : [1900, 2400],
+    hp: dealer ? [40000, 48000] : sub ? [38000, 45000] : [36000, 43000],
+    def: dealer ? [2800, 3400] : [2600, 3200],
+    em: crit ? [500, 700] : [1000, 1200],
   };
   t.key = K[scale];
   t.scale = scale;
   // 반응 딜러: 치명 + 부옵 상위 3개에 마스터리가 있으면 보조 마스터리 목표
-  if (crit && scale !== 'em' && b && b.subs.slice(0, 3).includes('원소 마스터리')) t.em2 = [100, 200];
+  if (crit && scale !== 'em' && b && b.subs.slice(0, 3).includes('원소 마스터리')) t.em2 = [200, 350];
   t.crit = crit;
   return t;
 }
 // 현재 값이 목표 대비 어디쯤인지: 'end'(종결) / 'pass'(합격) / 'short'(부족)
 const stage = (v, [pass, end]) => v >= end ? 'end' : v >= pass ? 'pass' : 'short';
+// 내 캐릭터가 '그 캐릭터를 키운 사람들 가운데 상위 몇 %쯤'인지 추정. 실제 순위 자료(akasha.cv 등)가 아니라
+// 합격선·종결 기준에 대한 위치로 어림한 값: 항목마다 합격선 = 0, 종결 = 1로 놓고 평균한 뒤
+// 합격선 ≈ 상위 35%, 종결 ≈ 상위 3%에 맞춘 곡선으로 바꿈. keyOk = 핵심 스탯 비교가 가능한지(도감 기준 스탯과 같을 때만)
+function topPercent(id, c, myKey) {
+  const t = endgame(id); if (!t || !c) return null;
+  const xs = [], pos = (v, [p, e]) => Math.max(-2, Math.min(1.6, (v - p) / (e - p)));
+  if (t.crit) { xs.push(pos(c.cr, t.cr)); xs.push(pos(c.cd, t.cd)); }
+  if (c.er != null) xs.push(Math.min(1, pos(c.er, t.er)));   // 원충은 넘쳐도 더 좋아지지 않음
+  if (myKey != null) xs.push(pos(myKey, t.key));
+  if (!xs.length) return null;
+  const x = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const A = [[-2, 97], [-1.5, 92], [-1, 82], [-0.5, 62], [0, 35], [0.5, 12], [1, 3], [1.3, 1], [1.6, 0.3]];
+  let i = A.findIndex(a => x <= a[0]); if (i <= 0) i = i === 0 ? 1 : A.length - 1;
+  const [x0, p0] = A[i - 1], [x1, p1] = A[i], k = Math.max(0, Math.min(1, (x - x0) / (x1 - x0)));
+  const pct = Math.exp(Math.log(p0) + (Math.log(p1) - Math.log(p0)) * k);
+  return { pct, x, txt: `상위 약 ${pct >= 10 ? Math.round(pct) : pct >= 1 ? pct.toFixed(1) : pct.toFixed(1)}%` };
+}
 const STAGE_TXT = { end: ['종결', 'ok'], pass: ['합격', 'mid'], short: ['부족', 'low'] };

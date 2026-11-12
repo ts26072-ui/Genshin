@@ -400,7 +400,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
-<script src="shell.js?v=20261112l"></script>
+<script src="shell.js?v=20261112m"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -579,11 +579,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261112l"></script>
-<script src="weapons.js?v=20261112l"></script>
-<script src="rot.js?v=20261112l"></script>
-<script src="names.js?v=20261112l"></script>
-<script src="account.js?v=20261112l"></script>
+<script src="builds.js?v=20261112m"></script>
+<script src="weapons.js?v=20261112m"></script>
+<script src="rot.js?v=20261112m"></script>
+<script src="names.js?v=20261112m"></script>
+<script src="account.js?v=20261112m"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -1569,8 +1569,9 @@ function renderRoster() {
     v.innerHTML = head + `<div class="empty-state"><p>등록된 캐릭터가 없습니다.</p><p>게임의 캐릭터 상세 화면을 보면서 레벨, 특성, 무기, 치명타·원충 수치를 입력하세요.</p></div>`;
     return;
   }
-  const rows = ids.map(id => ({ id, c: S.roster[id], d: prof(S.roster[id]), a: charCalc(S.roster[id]) })).sort((x, y) => y.a.score - x.a.score);
-  v.innerHTML = head + `<div class="grid">` + rows.map(({ id, c, d, a }) => {
+  // 오버롤(OVR) = 캐릭터 성능 점수 × 육성 점수 ÷ 100. 성능이 90인 캐릭터는 다 키워도 90이 최대이고, 덜 키운 만큼 비율로 줄어듦
+  const rows = ids.map(id => { const c = S.roster[id], d = prof(c), a = charCalc(c); return { id, c, d, a, ovr: Math.round(d.perf * a.score / 100) }; }).sort((x, y) => y.ovr - x.ovr || y.a.score - x.a.score);
+  v.innerHTML = head + `<p class="legend">큰 숫자는 <b>오버롤(OVR)</b> = 캐릭터 성능 × 육성 점수 ÷ 100이에요. 그 캐릭터의 성능 점수가 최대치(예: 성능 90이면 다 키워도 90)이고, 덜 키운 만큼 비율로 줄어요. 오버롤이 높은 순으로 정렬돼요.</p><div class="grid">` + rows.map(({ id, c, d, a, ovr }) => {
     const iss = charIssues(c).filter(i => i[0] !== 'lo');
     const pr = [['레벨', a.parts.lv], ['특성', a.parts.tal], ['무기', a.parts.wep], ['성유물', a.parts.art]];
     return `<button class="card" type="button" data-act="edit-char" data-id="${id}">
@@ -1578,7 +1579,7 @@ function renderRoster() {
         <div class="tags"><span class="r${d.r}">${'★'.repeat(d.r)}</span> · ${EL[d.el]} · ${ROLE[d.roles[0]]} · C${c.cons}${d.guess ? ' · <span style="color:var(--warn)">역할 추정</span>' : ''}</div>
         <div class="tags">캐릭터 성능 <b class="tier t-${TIER(d.perf)}">${TIER(d.perf)}</b> <span class="mono">${d.perf}</span>${!d.rated ? ' · 평가 없음' : d.perfEdited ? ' · 직접 수정' : ''}</div>
         <div class="tags">${esc(weaponValue(c).name)} · ${esc(setInfo(c).label)}</div></div>
-        <span class="score" style="color:${scoreColor(a.score)}" title="육성 점수">${Math.round(a.score)}<small class="cap">육성</small></span></div>
+        <span class="score" style="color:${scoreColor(a.score)}" title="오버롤 = 캐릭터 성능 ${d.perf} × 육성 점수 ${Math.round(a.score)} ÷ 100">${ovr}<small class="cap">OVR / ${d.perf}</small><small class="cap">육성 ${Math.round(a.score)}</small></span></div>
       <div class="parts">${pr.map(([n, x]) => `<span>${n}</span><div class="meter"><i style="width:${x * 100}%;--c:${scoreColor(x * 100)}"></i></div>`).join('')}</div>
       <ul class="issues">${iss.length ? iss.slice(0, 2).map(([s, t]) => `<li class="sev-${s}">${esc(t)}</li>`).join('') : '<li class="sev-ok">기준 육성 완료</li>'}</ul>
     </button>`;
@@ -2406,7 +2407,7 @@ function applyRows(rows, src, statsOk, boosted) {
   return { n, miss };
 }
 // 불러오기 규칙이 바뀌면 올려서, 같은 동기화 파일이라도 열 때 한 번 다시 적용
-const IMPORT_VER = 7;
+const IMPORT_VER = 8;
 async function syncHoyo(manual) {
   let h;
   try { h = await ACCT.fetchHoyo(); }
@@ -2429,6 +2430,9 @@ async function syncHoyo(manual) {
     return;
   }
   if (!manual && (!S.hoyoAuto || (S.hoyoAt === h.updated && S.hoyoVer === IMPORT_VER))) return;
+  // Fork 사이트에서 내 저장소 파일로 처음 받는 동기화면, 그 전에 들어 있던 것(원본 주인의 캐릭터가 섞였을 수 있음)을 모두 비우고 시작
+  // (forkClean: 이 정리가 생기기 전에 이미 섞여 버린 Fork 사이트도 한 번은 비우도록 하는 표시)
+  if (ACCT.OWNER !== 'ts26072-ui' && (S.hoyoRepoOwner !== ACCT.OWNER || !S.forkClean)) { S.roster = {}; S.parties = []; S.forkClean = true; }
   const { n, miss } = applyRows(h.chars || [], 'hoyolab', true, h.source !== 'enka');
   if (h.ar) S.ar = h.ar;
   S.hoyoAt = h.updated; S.hoyoVer = IMPORT_VER; S.hoyoAuto = true; S.hoyoRepoOwner = ACCT.OWNER; save(); render();

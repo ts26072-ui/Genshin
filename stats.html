@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>종결 스탯 도감 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261112l">
+<link rel="stylesheet" href="common.css?v=20261112m">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -62,7 +62,7 @@ dialog::backdrop { background: rgb(10 12 24 / .55); }
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261112l"></script>
+<script src="shell.js?v=20261112m"></script>
 <div class="wrap">
   <header class="top">
     <h1><span class="star">✦</span> 종결 스탯 도감</h1>
@@ -83,12 +83,12 @@ dialog::backdrop { background: rgb(10 12 24 / .55); }
   <div class="list" id="list"></div>
   <dialog id="dlg" aria-label="캐릭터 종결 스탯"></dialog>
 
-  <p class="foot-note">카드를 누르면 그 캐릭터의 종결 스탯이 열립니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러옵니다. 목표치는 추천 주옵·부옵(genshin-builds.com v7.1)과 캐릭터 역할로 계산한 근사값이며, 공식 수치가 아닙니다. 치명 딜러는 치확 60/75%, 치피 150/210%(합격/종결)를 기준으로 서브 딜러·서포터는 조금 낮게 잡았고, 원충은 캐릭터별 목표(파티 감정소와 같은 값)에서 −10%가 합격선입니다. 공격력·HP·방어력·마스터리는 캐릭터 상세 화면의 최종 수치 기준입니다. 무기·별자리·파티 버프에 따라 실제 필요한 값은 달라집니다.</p>
+  <p class="foot-note">카드를 누르면 그 캐릭터의 종결 스탯이 열립니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러옵니다. 목표치는 추천 주옵·부옵(genshin-builds.com v7.1)과 캐릭터 역할로 계산한 근사값이며, 공식 수치가 아닙니다. 치명 딜러는 치확 75/90%, 치피 210/260%(합격/종결)를 기준으로 서브 딜러·서포터는 조금 낮게 잡았고(2026년 11월에 예전 종결 기준을 합격선으로 내리고 종결을 올림), 원충은 캐릭터별 목표(파티 감정소와 같은 값)가 합격선, +20%가 종결입니다. 기준은 Lv.90 완성 캐릭터 기준이며 레벨에 따라 바뀌지 않습니다. '상위 약 N%'는 실제 순위 자료(akasha.cv 등)를 받을 수 없어, 항목마다 합격선을 0·종결을 1로 놓은 평균 위치를 합격선 ≈ 상위 35% · 종결 ≈ 상위 3%에 맞춘 곡선으로 바꾼 <b>추정치</b>입니다. 공격력·HP·방어력·마스터리는 캐릭터 상세 화면의 최종 수치 기준입니다. 무기·별자리·파티 버프에 따라 실제 필요한 값은 달라집니다.</p>
 </div>
 
-<script src="chars.js?v=20261112l"></script>
-<script src="builds.js?v=20261112l"></script>
-<script src="gear.js?v=20261112l"></script>
+<script src="chars.js?v=20261112m"></script>
+<script src="builds.js?v=20261112m"></script>
+<script src="gear.js?v=20261112m"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster();
@@ -127,13 +127,19 @@ function verdict(id) {
   const short = checks.filter(x => x === 'short').length, end = checks.filter(x => x === 'end').length;
   return short ? `<span class="chip low">부족 ${short}개</span>` : end === checks.length ? '<span class="chip ok">전 항목 종결</span>' : '<span class="chip mid">실전 합격</span>';
 }
+// 상위 % 추정 칩(보유 캐릭터만)
+function rankChip(id) {
+  const c = own[id]; if (!c) return '';
+  const r = topPercent(id, c, myKeyOf(id, endgame(id)));
+  return r ? `<span class="chip ${r.pct <= 10 ? 'ok' : r.pct <= 40 ? 'mid' : 'low'}" title="실제 순위 자료가 아니라 합격선·종결 기준 대비 위치로 어림한 추정치">${r.txt} <small>추정</small></span>` : '';
+}
 const pic = id => { const u = GP.iconUrl ? GP.iconUrl(id) : null; return u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : ''; };
 // 갤러리 카드
 function tile(id) {
   const d = GP.DB[id], t = endgame(id), v = verdict(id);
   return `<button type="button" class="ccard r${d.r}" data-id="${id}" style="--c:var(--${d.el})" aria-label="${GP.esc(d.name)} 종결 스탯 보기">
     <div class="art">${pic(id) || `<span class="ph">${GP.esc(d.name[0])}</span>`}<span class="elb" title="${GP.EL[d.el]}"></span>${own[id] ? '<span class="own">보유</span>' : ''}<span class="stars">${'★'.repeat(d.r)}</span></div>
-    <div class="info"><span class="nm">${GP.esc(d.name)}</span><span class="rl">${GP.ROLE[d.roles[0]]} · ${KEY_NAME[t.scale]}${t.crit ? ' · 치명' : ''}</span>${v ? `<span class="st">${v}</span>` : ''}</div>
+    <div class="info"><span class="nm">${GP.esc(d.name)}</span><span class="rl">${GP.ROLE[d.roles[0]]} · ${KEY_NAME[t.scale]}${t.crit ? ' · 치명' : ''}</span>${v ? `<span class="st">${v}${rankChip(id)}</span>` : ''}</div>
   </button>`;
 }
 // 상세 창 내용
@@ -149,7 +155,7 @@ function card(id) {
     <div class="dhead"><div class="pic r${d.r}">${pic(id)}</div>
       <div><div class="cname">${GP.esc(d.name)}</div>
       <div class="cmeta">${'★'.repeat(d.r)} · ${GP.EL[d.el]} · ${GP.ROLE[d.roles[0]]} · ${KEY_NAME[t.scale]} 계수${t.crit ? ' · 치명 딜' : ''}</div>
-      <div class="sum" style="margin-top:6px">${c ? '<span class="chip own">내 캐릭터</span>' : ''}${v || ''}</div></div>
+      <div class="sum" style="margin-top:6px">${c ? '<span class="chip own">내 캐릭터</span>' : ''}${v || ''}${rankChip(id)}</div>${c && c.lv < 90 ? `<div class="cmeta" style="margin-top:4px">기준은 Lv.90 완성 캐릭터 기준이에요(레벨마다 달라지지 않음). 지금 Lv.${c.lv}라 공격력·HP 같은 핵심 스탯은 레벨을 올리면 따라 올라요.</div>` : ''}</div>
       <button type="button" class="btn sm dclose" data-close>닫기</button></div>
     <div class="stats">${rows.join('')}</div>
     <div class="links"><a class="btn sm" href="guide.html#${id}">추천 성유물</a><a class="btn sm" href="rate.html#${id}">성유물 감정</a></div>
