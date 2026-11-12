@@ -109,3 +109,21 @@ if os.path.isdir(wdir):
         f.write('const DEX_WCURVE = ' + json.dumps(WC, separators=(',', ':')) + ';\n')
         f.write('const DEX_WEAPONS = ' + json.dumps(W, ensure_ascii=False, separators=(',', ':')) + ';\n')
     print('weapons', len(W))
+
+# ───────── 성유물 세트: dex/artifacts.js (도감 비교·성유물 추천 사진용) ─────────
+# 세트 이름(한국어) → [2세트 효과, 4세트 효과, 꽃 아이콘 이름(enka.network/ui/<이름>.png), 세트 번호(Enka setId — tools/enka_sync.py가 이름 찾을 때 씀)]
+# 받을 때 sparse-checkout에 src/data/Korean/artifacts 와 src/data/image 도 넣어야 함
+adir = os.path.join(D, 'Korean', 'artifacts')
+if os.path.isdir(adir):
+    imgs = load('image', 'artifacts.json') if os.path.exists(os.path.join(D, 'image', 'artifacts.json')) else {}
+    A = {}
+    for fn in sorted(os.listdir(adir)):
+        a = load('Korean', 'artifacts', fn)
+        icon = ((imgs.get(fn[:-5]) or {}).get('flower') or '').rsplit('/', 1)[-1].replace('.png', '')
+        if not icon and a.get('id'):  # 이미지 표에 없으면 세트 번호로(꽃이 없는 기도 세트는 왕관 _3)
+            icon = f"UI_RelicIcon_{a['id']}_{4 if a.get('flower') else 3}"
+        A[a['name']] = [a.get('effect2Pc', ''), a.get('effect4Pc', ''), icon, a.get('id')]
+    with open(os.path.join(OUT, 'artifacts.js'), 'w', encoding='utf8') as f:
+        f.write('// 성유물 세트 효과·아이콘(genshin-db, tools/build_dex.py가 만듦): 세트 이름 → [2세트 효과, 4세트 효과, 꽃 아이콘 이름]\n')
+        f.write('const DEX_SETS = ' + json.dumps(A, ensure_ascii=False, separators=(',', ':')) + ';\n')
+    print('artifact sets', len(A))

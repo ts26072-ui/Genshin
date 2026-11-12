@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>캐릭터 도감 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261112b">
+<link rel="stylesheet" href="common.css?v=20261112c">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -59,6 +59,22 @@
 .cmp-cards .seg { flex-wrap: wrap; }
 .weff { font-size: 13.5px; line-height: 1.65; }
 .weff mark { background: none; color: var(--gold); font-weight: 700; }
+.fc .art { margin-top: 4px; font-size: 12.5px; display: flex; gap: 6px; align-items: center; min-width: 0; }
+.fc .art img { width: 22px; height: 22px; flex: none; }
+.fc .art b { font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.fc .art span { margin-left: auto; white-space: nowrap; }
+.aset { border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; }
+.aset > summary { cursor: pointer; font-size: 12.5px; padding: 7px 0; color: var(--muted); }
+.aset > summary b { color: var(--ink); }
+.aset .ag { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-bottom: 10px; }
+.aset .ag label { font-size: 11.5px; }
+.aset .ag select { font-size: 12.5px; padding: 4px 6px; }
+.aset .ag .full { grid-column: 1 / -1; }
+.seteff { display: flex; gap: 10px; align-items: flex-start; }
+.seteff img { width: 44px; height: 44px; flex: none; }
+.fstat { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 16px; font-size: 13.5px; }
+.fstat div { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--line); padding: 3px 0; }
+.fstat b { font-variant-numeric: tabular-nums; }
 
 /* 특성 · 운명의 자리 */
 .info .tabs2 { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 12px; overflow-x: auto; }
@@ -92,7 +108,7 @@
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261112b"></script>
+<script src="shell.js?v=20261112c"></script>
 <div class="wrap">
   <header class="top">
     <h1><span class="star">✦</span> 캐릭터 도감</h1>
@@ -110,13 +126,16 @@
 
   <section class="cmp" id="cmp"></section>
 
-  <p class="foot-note">종합(OVR) = 그 운명의 자리에서의 성능 점수(티어표와 같은 값: GamsGo 등급 60% + 나무위키 평가 40%, C1~C5는 명함·풀돌 표 사이 추정) × 레벨 계수(핵심 스탯 기초값이 Lv.90의 몇 %인지의 제곱근 — 파티 감정소의 레벨 감점과 같은 방식) × 무기 계수(0.75 + 0.25 × 무기 가치. 무기 가치는 파티 감정소와 같이 추천 1위 1.0에서 순위가 내려갈수록 줄고, 추천 밖은 성급별 값, 재련마다 조금 오르며, 무기 레벨이 낮으면 공격력 비율만큼 깎임). 카드의 공격력은 캐릭터 + 무기 기초 공격력입니다. HP·공격력·방어력·돌파 스탯은 무기·성유물을 뺀 캐릭터 기초값이며, 경계 레벨(20·40·50·60·70·80)은 돌파한 뒤 값입니다. 특성·운명의 자리 설명, 기초 스탯, 무기 스탯·재련 효과는 <a href="https://github.com/theBowja/genshin-db" target="_blank" rel="noopener">genshin-db</a>(게임 데이터, 2026년 11월)에서 가져왔습니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
+  <p class="foot-note">종합(OVR) = 그 운명의 자리에서의 성능 점수(티어표와 같은 값: GamsGo 등급 60% + 나무위키 평가 40%, C1~C5는 명함·풀돌 표 사이 추정) × 레벨 계수(핵심 스탯 기초값이 Lv.90의 몇 %인지의 제곱근 — 파티 감정소의 레벨 감점과 같은 방식) × 성유물 계수(0.75 + 0.25 × 성유물 가치: 세트 50% — 추천 4세트 1위 1.0, 순위마다 −0.06, 추천 밖 0.6, 2+2 0.75, 없음 0.35 — + 주옵 25% + 부옵 수준 25%) × 무기 계수(0.75 + 0.25 × 무기 가치. 무기 가치는 파티 감정소와 같이 추천 1위 1.0에서 순위가 내려갈수록 줄고, 추천 밖은 성급별 값, 재련마다 조금 오르며, 무기 레벨이 낮으면 공격력 비율만큼 깎임). 카드의 공격력은 캐릭터 + 무기 기초 공격력이고, 최종 스탯은 여기에 5성 +20 성유물 주옵(꽃 HP 4780 · 깃털 공격력 311 · 시계·성배·왕관), 부옵 수준(다섯 부위 유효 옵션 합 보통 20 · 좋음 28 · 종결 36회를 추천 부옵 상위 4개에 1 · 1 · 0.8 · 0.6 비율로 나눈 가정치), 2세트 스탯 효과를 더한 값입니다(4세트·무기 효과처럼 조건이 붙는 것은 뺌). HP·공격력·방어력·돌파 스탯은 무기·성유물을 뺀 캐릭터 기초값이며, 경계 레벨(20·40·50·60·70·80)은 돌파한 뒤 값입니다. 특성·운명의 자리 설명, 기초 스탯, 무기 스탯·재련 효과는 <a href="https://github.com/theBowja/genshin-db" target="_blank" rel="noopener">genshin-db</a>(게임 데이터, 2026년 11월)에서 가져왔습니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
 </div>
 
-<script src="chars.js?v=20261112b"></script>
-<script src="dex/stats.js?v=20261112b"></script>
-<script src="weapons.js?v=20261112b"></script>
-<script src="dex/weapons.js?v=20261112b"></script>
+<script src="chars.js?v=20261112c"></script>
+<script src="dex/stats.js?v=20261112c"></script>
+<script src="builds.js?v=20261112c"></script>
+<script src="weapons.js?v=20261112c"></script>
+<script src="gear.js?v=20261112c"></script>
+<script src="dex/artifacts.js?v=20261112c"></script>
+<script src="dex/weapons.js?v=20261112c"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster();
@@ -131,9 +150,72 @@ const weaponsFor = id => (WEAPONS_BY_TYPE[GP.DB[id].wp] || []).filter(n => DEX_W
 function confOf(id) {
   if (conf[id]) return conf[id];
   const o = own[id], def = recList(id)[0] || weaponsFor(id)[0] || '';
+  const b = BUILDS[id], topSet = b ? (b.sets.find(x => x.set) || {}).set || '' : '';
+  const ownMain = slot => { const a = o && (o.arts || []).find(x => x.slot === slot); return a && a.main ? a.main[0] : null; };
+  const mains = {};
+  for (const slot of ['sands', 'goblet', 'circlet']) mains[slot] = ownMain(slot) || (b && b.main[slot][0]) || SLOTS[slot].main[0];
   return conf[id] = { cons: o ? o.cons || 0 : 0, lv: o ? o.lv || 90 : 90,
-    wn: o && o.wn && DEX_WEAPONS[o.wn] ? o.wn : def, wr: o && o.wn && DEX_WEAPONS[o.wn] ? o.wr || 1 : 1, wlv: o && o.wl ? o.wl : 90 };
+    wn: o && o.wn && DEX_WEAPONS[o.wn] ? o.wn : def, wr: o && o.wn && DEX_WEAPONS[o.wn] ? o.wr || 1 : 1, wlv: o && o.wl ? o.wl : 90,
+    sa: o && o.sa ? o.sa : topSet, sb: o && o.sa ? o.sb || '' : '', mains, subq: 1 };
 }
+// ───────── 성유물 ─────────
+// 5성 +20 주옵 수치(%는 퍼센트 포인트)
+const MAIN_VAL = { 'HP': 4780, '공격력': 311, 'HP%': 46.6, '공격력%': 46.6, '방어력%': 58.3, '원소 마스터리': 186.5, '원소 충전 효율': 51.8,
+  '치명타 확률': 31.1, '치명타 피해': 62.2, '치유 보너스': 35.9, '물리 피해%': 58.3 };
+for (const e of ELEM_DMG) if (!MAIN_VAL[e]) MAIN_VAL[e] = 46.6;
+// 부옵 수준: 다섯 부위 유효 옵션 합(최대 상승치의 85%로 계산)을 추천 부옵 상위 4개에 1 · 1 · 0.8 · 0.6 비율로 나눔
+const SUBQ = [[0, '없음'], [20, '보통'], [28, '좋음'], [36, '종결']];
+function subAlloc(id, q) {
+  const R = SUBQ[q][0], out = {};
+  if (!R) return out;
+  const b = BUILDS[id];
+  const list = [...new Set((b ? b.subs : ['치명타', '공격력%', '원소 충전 효율']).flatMap(x => x === '치명타' ? ['치명타 확률', '치명타 피해'] : [x]))].filter(x => ROLL_MAX[x]).slice(0, 4);
+  const W = [1, 1, 0.8, 0.6].slice(0, list.length), sum = W.reduce((a, x) => a + x, 0);
+  list.forEach((x, i) => out[x] = R * W[i] / sum * ROLL_MAX[x] * AVG_ROLL);
+  return out;
+}
+// 2세트 효과 가운데 스탯으로 바로 더할 수 있는 것('공격력+18%', '마스터리+80', '불 피해+15%' 등)
+function setStat(name, el) {
+  const t = (ART_SET_BY_NAME[name] || {}).two || '', m = /^(.+?)\+(\d+(?:\.\d+)?)(%?)$/.exec(t);
+  if (!m) return null;
+  const [, k, v, pct] = m, EL_KO = { pyro: '불', hydro: '물', anemo: '바람', electro: '번개', dendro: '풀', cryo: '얼음', geo: '바위' };
+  const MAP = { '공격력': pct ? '공격력%' : '공격력', 'HP': pct ? 'HP%' : 'HP', '방어력': pct ? '방어력%' : '방어력', '마스터리': '원소 마스터리', '원충': '원소 충전 효율',
+    '치명타 확률': '치명타 확률', '치유 보너스': '치유 보너스', '물리 피해': '물리 피해%' };
+  if (MAP[k]) return [MAP[k], Number(v)];
+  if (k === EL_KO[el] + ' 피해') return [EL_KO[el] + ' 피해%', Number(v)];
+  return null;
+}
+const setsOn = c => c.sa ? (c.sb && c.sb !== c.sa ? [c.sa, c.sb] : [c.sa, c.sa]) : [];
+// 최종 스탯(캐릭터 + 무기 + 성유물 주옵·부옵 + 2세트 스탯). 4세트·무기 효과처럼 조건이 붙는 것은 빼고 계산
+function finalStats(id, c, b, w) {
+  if (!b) return null;
+  const d = GP.DB[id], add = {}, put = (k, v) => add[k] = (add[k] || 0) + v;
+  const pp = (sp, v) => PCT(sp) ? v * 100 : v;
+  put(b.sp, pp(b.sp, b.spv));
+  if (w) put(w.sp, pp(w.sp, w.spv));
+  put('HP', MAIN_VAL.HP); put('공격력', MAIN_VAL['공격력']);
+  for (const slot of ['sands', 'goblet', 'circlet']) put(c.mains[slot], MAIN_VAL[c.mains[slot]] || 0);
+  for (const [k, v] of Object.entries(subAlloc(id, c.subq))) put(k, v);
+  const on = setsOn(c);
+  for (const nm of c.sb && c.sb !== c.sa ? on : on.slice(0, 1)) { const x = setStat(nm, d.el); if (x) put(x[0], x[1]); }
+  const dmgKey = d.crit && d.scale !== 'em' ? `${GP.EL[d.el]} 피해%` : null;
+  const g = k => add[k] || 0, batk = b.atk + (w ? w.atk : 0);
+  return { hp: b.hp * (1 + g('HP%') / 100) + g('HP'), atk: batk * (1 + g('공격력%') / 100) + g('공격력'), def: b.def * (1 + g('방어력%') / 100) + g('방어력'),
+    cr: 5 + g('치명타 확률'), cd: 50 + g('치명타 피해'), er: 100 + g('원소 충전 효율'), em: g('원소 마스터리'),
+    dmg: g(`${GP.EL[d.el]} 피해%`), heal: g('치유 보너스') };
+}
+// 성유물 가치(파티 감정소와 비슷한 방식): 세트 50%(추천 4세트 1위 1.0, 순위마다 −0.06, 추천 밖 0.6, 2+2 0.75, 없음 0.35) + 주옵 25% + 부옵 수준 25%
+function artQ(id, c) {
+  const b = BUILDS[id], fours = b ? b.sets.filter(x => x.set).map(x => x.set) : [];
+  const i = fours.indexOf(c.sa);
+  const setV = !c.sa ? 0.35 : c.sb && c.sb !== c.sa ? 0.75 : i >= 0 ? Math.max(0.6, 1 - 0.06 * i) : 0.6;
+  const MV = { best: 1, fixed: 1, ok: 0.75, bad: 0.2 };
+  const mainV = ['sands', 'goblet', 'circlet'].reduce((a, slot) => a + MV[mainVerdict(slot, c.mains[slot], id)], 0) / 3;
+  return { v: 0.5 * setV + 0.25 * mainV + 0.25 * c.subq / 3, setRank: c.sb && c.sb !== c.sa ? null : i, mainV };
+}
+const setIcon = n => DEX_SETS[n] && DEX_SETS[n][2] ? `https://enka.network/ui/${DEX_SETS[n][2]}.png` : '';
+const setLabel = c => !c.sa ? '세트 없음' : c.sb && c.sb !== c.sa ? `${c.sa} 2 + ${c.sb} 2` : `${c.sa} 4세트`;
+const mainShort = m => m.replace('치명타 ', '치').replace('원소 충전 효율', '원충').replace('원소 마스터리', '마스터리').replace(' 피해%', '').replace('치유 보너스', '치유');
 const ascAt = lv => lv >= 80 ? 6 : lv >= 70 ? 5 : lv >= 60 ? 4 : lv >= 50 ? 3 : lv >= 40 ? 2 : lv >= 20 ? 1 : 0;
 const PCT = s => s !== '원소 마스터리';
 // 레벨·돌파 단계의 기초 스탯
@@ -169,7 +251,8 @@ function card(id) {
   const k = KEY[d.scale] || 'atk';
   const lvf = b && b90 ? Math.sqrt(b[k] / b90[k]) : 1;
   const w = weaponAt(c.wn, c.wlv), wq = weaponQ(id, c), wf = 0.75 + 0.25 * wq.v;
-  return { d, c, b, w, wq, wf, sls, best, lvf, ovr: Math.round(best.perf * lvf * wf), est: sls.some(x => x.est) };
+  const aq = artQ(id, c), af = 0.75 + 0.25 * aq.v, fs = finalStats(id, c, b, w);
+  return { d, c, b, w, wq, wf, aq, af, fs, sls, best, lvf, ovr: Math.round(best.perf * lvf * wf * af), est: sls.some(x => x.est) };
 }
 const fmtSp = (sp, v) => PCT(sp) ? `${(v * 100).toFixed(1)}%` : Math.round(v).toString();
 const spShort = sp => sp.replace('치명타 ', '치').replace('원소 충전 효율', '원충').replace('원소 마스터리', '마스터리').replace(' 피해%', '피해').replace('치유 보너스', '치유');
@@ -191,7 +274,8 @@ function fcard(id) {
       <div><span>${b ? spShort(b.sp) : '돌파'}</span><b>${b ? fmtSp(b.sp, b.spv) : '–'}</b></div>
       <div><span>원충</span><b>${d.er}%</b></div>
     </div>
-    ${x.w ? `<div class="wpn"><b>${'★'.repeat(x.w.r)} ${GP.esc(x.c.wn)} R${x.c.wr}</b><span>Lv.${x.c.wlv} · 공 ${Math.round(x.w.atk)} · ${spShort(x.w.sp)} ${fmtSp(x.w.sp, x.w.spv)}${x.wq.rank >= 0 ? ` · 추천 ${x.wq.rank + 1}위` : ''}</span></div>` : ''}</div>`;
+    ${x.w ? `<div class="wpn"><b>${'★'.repeat(x.w.r)} ${GP.esc(x.c.wn)} R${x.c.wr}</b><span>Lv.${x.c.wlv} · 공 ${Math.round(x.w.atk)} · ${spShort(x.w.sp)} ${fmtSp(x.w.sp, x.w.spv)}${x.wq.rank >= 0 ? ` · 추천 ${x.wq.rank + 1}위` : ''}</span></div>` : ''}
+    <div class="art">${x.c.sa && setIcon(x.c.sa) ? `<img src="${setIcon(x.c.sa)}" alt="">` : ''}<b>${GP.esc(setLabel(x.c))}</b><span>${['sands', 'goblet', 'circlet'].map(k => mainShort(x.c.mains[k])).join('/')} · 부옵 ${SUBQ[x.c.subq][1]}</span></div></div>`;
 }
 function controls(id, where) {
   const c = confOf(id);
@@ -201,7 +285,23 @@ function controls(id, where) {
     <div class="wrow"><select data-wn aria-label="무기">${weaponOpts(id, c.wn)}</select>
       <div class="seg r" role="group" aria-label="재련">${[1, 2, 3, 4, 5].map(k => `<button type="button" data-wr="${k}" aria-pressed="${c.wr === k}">R${k}</button>`).join('')}</div></div>
     <div class="lvrow"><span>무기</span><input type="range" min="1" max="90" value="${c.wlv}" data-wlv aria-label="무기 레벨"><b data-wlvt>Lv.${c.wlv}</b></div>
+    <details class="aset"${where === 'detail' ? ' open' : ''}><summary>성유물 · <b data-aset>${GP.esc(setLabel(c))}</b></summary><div class="ag">
+      <label class="full">세트 (4세트, 또는 2+2의 첫째)<select data-sa>${setOpts(id, c.sa, true)}</select></label>
+      <label class="full">2+2의 둘째 (비우면 4세트)<select data-sb>${setOpts(id, c.sb, false)}</select></label>
+      ${['sands', 'goblet', 'circlet'].map(slot => `<label>${SLOTS[slot].n}<select data-main="${slot}">${mainOpts(id, slot, c.mains[slot])}</select></label>`).join('')}
+      <label>부옵 수준<select data-subq>${SUBQ.map(([n, t], i) => `<option value="${i}"${c.subq === i ? ' selected' : ''}>${t}${n ? ` (유효 ${n}회)` : ''}</option>`).join('')}</select></label>
+    </div></details>
   </div>`;
+}
+function setOpts(id, cur, first) {
+  const b = BUILDS[id], rec = b ? b.sets.filter(x => x.set).map(x => x.set) : [];
+  const rest = ART_SETS.filter(x => x.r >= 4 && !rec.includes(x.name)).map(x => x.name);
+  const opt = (n, i) => `<option value="${GP.esc(n)}"${n === cur ? ' selected' : ''}>${i != null ? `${i + 1}위 · ` : ''}${GP.esc(n)}</option>`;
+  return `<option value=""${!cur ? ' selected' : ''}>${first ? '세트 없음' : '— (4세트)'}</option>` + (rec.length ? `<optgroup label="추천 4세트">${rec.map(opt).join('')}</optgroup>` : '') + `<optgroup label="그 밖">${rest.map(n => opt(n)).join('')}</optgroup>`;
+}
+function mainOpts(id, slot, cur) {
+  const rec = BUILDS[id] ? BUILDS[id].main[slot] : [];
+  return SLOTS[slot].main.map(m => `<option value="${GP.esc(m)}"${m === cur ? ' selected' : ''}>${GP.esc(m)}${rec[0] === m || (slot === 'circlet' && /치명타/.test(m) && rec.some(r => /치명타/.test(r))) ? ' ★' : rec.includes(m) ? ' ☆' : ''}</option>`).join('');
 }
 function weaponOpts(id, cur) {
   const rec = recList(id), rest = weaponsFor(id).filter(n => !rec.includes(n));
@@ -214,7 +314,7 @@ const dexCache = {};
 let infoTab = 'skills';
 const fmt = s => GP.esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
 async function loadDex(id) {
-  if (!dexCache[id]) dexCache[id] = fetch(`dex/${id}.json?v=20261112b`).then(r => r.ok ? r.json() : null).catch(() => null);
+  if (!dexCache[id]) dexCache[id] = fetch(`dex/${id}.json?v=20261112c`).then(r => r.ok ? r.json() : null).catch(() => null);
   return dexCache[id];
 }
 async function renderInfo(id) {
@@ -223,7 +323,7 @@ async function renderInfo(id) {
   if (st.cur !== id) return;
   const c = confOf(id);
   if (!j) { box.innerHTML = '<p class="muted">이 캐릭터의 특성 자료를 불러오지 못했습니다.</p>'; return; }
-  const TABS = [['skills', '특성'], ['passives', '고유 특성'], ['cons', `운명의 자리 · ${GP.esc(j.cons_name)}`], ['weapon', '무기'], ['about', '소개']];
+  const TABS = [['skills', '특성'], ['passives', '고유 특성'], ['cons', `운명의 자리 · ${GP.esc(j.cons_name)}`], ['weapon', '무기'], ['art', '성유물'], ['about', '소개']];
   let body;
   if (infoTab === 'skills') body = j.skills.map(s => `<div class="sk"><div class="h"><b>${GP.esc(s.n)}</b><span>${s.k}</span></div><div class="d">${fmt(s.d)}</div></div>`).join('');
   else if (infoTab === 'passives') body = j.passives.map((s, i) => `<div class="sk"><div class="h"><b>${GP.esc(s.n)}</b><span>${i < 2 ? `${i === 0 ? '1' : '4'}단계 돌파에서 해금` : '기타'}</span></div><div class="d">${fmt(s.d)}</div></div>`).join('');
@@ -236,6 +336,20 @@ async function renderInfo(id) {
       ${si ? `<p class="intro" style="margin:8px 0 0">얻는 곳: ${GP.esc(si[0])} — ${GP.esc(si[1])}</p>` : ''}</div>
       <p class="intro">카드 아래 목록에서 무기를, R1~R5로 재련을 바꾸면 효과 수치가 바뀝니다. 추천 순위는 genshin-builds.com 첫 빌드 기준입니다.</p>`
       : '<p class="muted">이 무기의 자료가 없습니다.</p>';
+  }
+  else if (infoTab === 'art') {
+    const x = card(id), on = c.sa ? (c.sb && c.sb !== c.sa ? [[c.sa, 2], [c.sb, 2]] : [[c.sa, 4]]) : [];
+    const al = subAlloc(id, c.subq), f = x.fs;
+    body = (on.length ? on.map(([n, k]) => `<div class="sk"><div class="seteff">${setIcon(n) ? `<img src="${setIcon(n)}" alt="">` : ''}<div><div class="h"><b>${GP.esc(n)}</b><span>${k}세트</span></div>
+        <div class="d"><b>2세트</b> ${GP.esc((DEX_SETS[n] || [''])[0])}${k === 4 ? `<br><b>4세트</b> ${GP.esc((DEX_SETS[n] || ['', ''])[1])}` : ''}</div></div></div></div>`).join('') : '<p class="muted">세트를 고르지 않았습니다.</p>')
+      + `<div class="sk"><div class="h"><b>주옵 · 부옵</b><span>성유물 가치 ×${x.af.toFixed(2)}</span></div>
+        <div class="d">${['sands', 'goblet', 'circlet'].map(k => `${SLOTS[k].n} <b>${GP.esc(c.mains[k])}</b> ${({ best: '추천 1순위', ok: '추천 대안', bad: '추천 아님' })[mainVerdict(k, c.mains[k], id)]}`).join('<br>')}
+        <br>부옵 ${SUBQ[c.subq][1]}${Object.keys(al).length ? ': ' + Object.entries(al).map(([k, v]) => `${GP.esc(k)} +${k === '원소 마스터리' || k === 'HP' || k === '공격력' || k === '방어력' ? Math.round(v) : v.toFixed(1) + '%'}`).join(' · ') : ''}</div></div>
+      ${f ? `<div class="sk"><div class="h"><b>최종 스탯</b><span>캐릭터 + 무기 + 성유물 · 4세트·무기 효과처럼 조건이 붙는 것은 뺌</span></div><div class="fstat">
+        <div><span>HP</span><b>${Math.round(f.hp).toLocaleString()}</b></div><div><span>공격력</span><b>${Math.round(f.atk).toLocaleString()}</b></div><div><span>방어력</span><b>${Math.round(f.def).toLocaleString()}</b></div>
+        <div><span>치명타 확률</span><b>${f.cr.toFixed(1)}%</b></div><div><span>치명타 피해</span><b>${f.cd.toFixed(1)}%</b></div><div><span>원소 충전 효율</span><b>${f.er.toFixed(1)}%</b></div>
+        <div><span>원소 마스터리</span><b>${Math.round(f.em)}</b></div><div><span>${GP.EL[GP.DB[id].el]} 피해</span><b>${f.dmg.toFixed(1)}%</b></div>${f.heal ? `<div><span>치유 보너스</span><b>${f.heal.toFixed(1)}%</b></div>` : ''}</div></div>` : ''}
+      <p class="intro">카드 아래 '성유물'에서 세트·주옵(★ 추천 1순위, ☆ 대안)·부옵 수준을 바꿀 수 있습니다. 부옵 수준은 다섯 부위 유효 옵션 합을 추천 부옵 상위 4개에 나눈 가정치입니다.</p>`;
   }
   else body = `<div class="sk"><div class="h"><b>${GP.esc(GP.DB[id].name)}</b><span>${GP.esc(j.title)}</span></div><div class="d">${fmt(j.desc)}<br><br>소속: ${GP.esc([j.region, j.aff].filter(Boolean).join(' · ') || '—')}${j.birthday ? ` · 생일 ${GP.esc(j.birthday)}` : ''}</div></div>`;
   box.innerHTML = `<div class="tabs2" role="tablist">${TABS.map(([k, n]) => `<button type="button" role="tab" data-t="${k}" aria-selected="${infoTab === k}">${n}</button>`).join('')}</div>
@@ -289,11 +403,21 @@ function cmpTable(ids) {
       ['무기 공격력', x => x.w?.atk ?? null, v => v == null ? '–' : Math.round(v)],
       ['총 기초 공격력', x => x.b && x.w ? x.b.atk + x.w.atk : null, v => v == null ? '–' : Math.round(v)],
       ['무기 계수', x => x.wf, v => '×' + v.toFixed(2)],
+      ['성유물 계수', x => x.af, v => '×' + v.toFixed(2)],
+      ['최종 HP', x => x.fs?.hp ?? null, v => v == null ? '–' : Math.round(v).toLocaleString()],
+      ['최종 공격력', x => x.fs?.atk ?? null, v => v == null ? '–' : Math.round(v).toLocaleString()],
+      ['최종 방어력', x => x.fs?.def ?? null, v => v == null ? '–' : Math.round(v).toLocaleString()],
+      ['치명타 확률', x => x.fs?.cr ?? null, v => v == null ? '–' : v.toFixed(1) + '%'],
+      ['치명타 피해', x => x.fs?.cd ?? null, v => v == null ? '–' : v.toFixed(1) + '%'],
+      ['원소 충전 효율', x => x.fs?.er ?? null, v => v == null ? '–' : v.toFixed(1) + '%'],
+      ['원소 마스터리', x => x.fs?.em ?? null, v => v == null ? '–' : Math.round(v)],
+      ['원소 피해 보너스', x => x.fs?.dmg ?? null, v => v == null ? '–' : v.toFixed(1) + '%'],
     ];
     table = `<table class="ctab"><thead><tr><th></th>${xs.map(x => `<th>${GP.esc(x.d.name)} <span class="muted">C${x.c.cons} · Lv.${x.c.lv}</span></th>`).join('')}</tr></thead><tbody>
       ${rows.map(([n, f, show]) => { const vs = xs.map(f), mx = Math.max(...vs.filter(v => v != null));
         return `<tr><th>${n}</th>${vs.map(v => `<td><div class="cell${v != null && v === mx && vs.filter(y => y === mx).length < vs.length ? ' win' : ''}"><span>${show(v)}</span><span class="bar"><i style="width:${v == null || !mx ? 0 : v / mx * 100}%"></i></span></div></td>`).join('')}</tr>`; }).join('')}
       <tr><th>무기</th>${xs.map(x => `<td>${x.w ? `${'★'.repeat(x.w.r)} ${GP.esc(x.c.wn)} R${x.c.wr} · Lv.${x.c.wlv}<br><span class="muted">${GP.esc(x.w.sp)} ${fmtSp(x.w.sp, x.w.spv)} · ${x.wq.rank >= 0 ? `추천 ${x.wq.rank + 1}위` : '추천 밖'}</span>` : '–'}</td>`).join('')}</tr>
+      <tr><th>성유물</th>${xs.map(x => `<td>${GP.esc(setLabel(x.c))}<br><span class="muted">${['sands', 'goblet', 'circlet'].map(k => GP.esc(x.c.mains[k])).join(' / ')} · 부옵 ${SUBQ[x.c.subq][1]}</span></td>`).join('')}</tr>
       <tr><th>무기 효과</th>${xs.map(x => `<td class="weff" style="font-size:12.5px">${DEX_WEAPONS[x.c.wn] ? `<b>${GP.esc(DEX_WEAPONS[x.c.wn][7])}</b><br>${weaponEffect(x.c.wn, x.c.wr)}` : '–'}</td>`).join('')}</tr>
       <tr><th>돌파 스탯</th>${xs.map(x => `<td>${x.b ? `${GP.esc(x.b.sp)} ${fmtSp(x.b.sp, x.b.spv)}` : '–'}</td>`).join('')}</tr>
       <tr><th>핵심 스탯</th>${xs.map(x => `<td>${({ atk: '공격력', hp: '최대 HP', def: '방어력', em: '원소 마스터리' })[x.d.scale]} · 원충 ${x.d.er}%</td>`).join('')}</tr>
@@ -311,6 +435,9 @@ function refresh(id) {
     for (const b of el.querySelectorAll('[data-wr]')) b.setAttribute('aria-pressed', Number(b.dataset.wr) === c.wr);
     el.querySelector('[data-wlvt]').textContent = `Lv.${c.wlv}`;
     if (el.querySelector('[data-wn]').value !== c.wn) el.querySelector('[data-wn]').value = c.wn;
+    el.querySelector('[data-aset]').textContent = setLabel(c);
+    for (const [sel, v] of [['[data-sa]', c.sa], ['[data-sb]', c.sb], ['[data-subq]', String(c.subq)], ...['sands', 'goblet', 'circlet'].map(k => [`[data-main="${k}"]`, c.mains[k]])])
+      if (el.querySelector(sel).value !== v) el.querySelector(sel).value = v;
     el.querySelector('.lvrow b').textContent = `Lv.${c.lv}`;   // 첫 줄이 캐릭터 레벨
   }
   if (st.cmp.includes(id) && $('#cmp-table')) $('#cmp-table').innerHTML = cmpTable(st.cmp.filter(x => GP.DB[x]).slice(0, 3));
@@ -336,6 +463,10 @@ document.addEventListener('input', e => {
   if (e.target.matches('[data-lv]')) c.lv = Number(e.target.value);
   else if (e.target.matches('[data-wlv]')) c.wlv = Number(e.target.value);
   else if (e.target.matches('[data-wn]')) c.wn = e.target.value;
+  else if (e.target.matches('[data-sa]')) { c.sa = e.target.value; if (!c.sa) c.sb = ''; }
+  else if (e.target.matches('[data-sb]')) c.sb = e.target.value;
+  else if (e.target.matches('[data-main]')) c.mains[e.target.dataset.main] = e.target.value;
+  else if (e.target.matches('[data-subq]')) c.subq = Number(e.target.value);
   else return;
   refresh(id);
 });
