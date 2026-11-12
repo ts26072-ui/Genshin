@@ -2093,7 +2093,10 @@ $('#form-char').addEventListener('input', e => {
 });
 $('#form-char').addEventListener('submit', e => {
   e.preventDefault();
-  const c = readChar(); S.roster[c.id] = c;
+  const c = readChar(), old = S.roster[c.id];
+  // 여행자: 동기화 표시는 유지하고, 동기화 안 된 원소를 직접 저장하면 '직접 고침'으로 표시(다음 동기화가 되돌리지 않게)
+  if (c.id.startsWith('traveler-')) { if (old && old.synced) c.synced = old.synced; else c.edited = true; }
+  S.roster[c.id] = c;
   const shared = c.id.startsWith('traveler-') ? shareTraveler(c.id) : 0;
   save(); dChar.close(); render();
   toast(`${DB[c.id].name} 저장됨${shared ? ` · 다른 원소 여행자 ${shared}명도 레벨·무기·성유물 맞춤` : ''}`);
@@ -2249,14 +2252,22 @@ function applyRows(rows, src, statsOk, boosted) {
     const id = idOfRow(row);
     if (!id) { miss.push(row.name || row.key); continue; }
     S.roster[id] = charFromRow(id, row, S.roster[id], statsOk, boosted); n++;
-    if (id.startsWith('traveler-')) { for (const t of TRAV_IDS()) if (S.roster[t]) delete S.roster[t].synced; S.roster[id].synced = src; }
-    if (id.startsWith('traveler-')) shareTraveler(id);
+    if (id.startsWith('traveler-')) {
+      // 동기화된 원소 말고 다른 원소는 HoYoLAB이 모름. 직접 고친 적 없는 원소는 예전에 잘못 복사된 운명의 자리·특성을 0돌 · 1/1/1로 되돌림
+      for (const t of TRAV_IDS()) {
+        const o = S.roster[t]; if (!o) continue;
+        delete o.synced;
+        if (t !== id && !o.edited) { o.cons = 0; o.t = [1, 1, 1]; if (o.ov) delete o.ov.perf; }
+      }
+      S.roster[id].synced = src; delete S.roster[id].edited;
+      shareTraveler(id);
+    }
   }
   save(); render();
   return { n, miss };
 }
 // 불러오기 규칙이 바뀌면 올려서, 같은 동기화 파일이라도 열 때 한 번 다시 적용
-const IMPORT_VER = 3;
+const IMPORT_VER = 4;
 async function syncHoyo(manual) {
   let h;
   try { h = await ACCT.fetchHoyo(); }
