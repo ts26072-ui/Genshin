@@ -6,6 +6,7 @@
     { k: 'party', href: 'index.html#parties', n: '파티 감정' },
     { k: 'tier', href: 'tier.html', n: '티어표' },
     { k: 'dex', href: 'dex.html', n: '도감 · 비교' },
+    { k: 'wcmp', href: 'dex.html#wcmp', n: '무기 비교' },
     { k: 'rate', href: 'rate.html', n: '성유물 감정' },
     { k: 'guide', href: 'guide.html', n: '성유물 추천' },
     { k: 'stats', href: 'stats.html', n: '종결 스탯' },

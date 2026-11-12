@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>캐릭터 도감 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261112j">
+<link rel="stylesheet" href="common.css?v=20261112k">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -113,10 +113,14 @@
 .tblx { overflow-x: auto; }
 .ctab.wc { min-width: 560px; }
 .ctab.wc th { vertical-align: top; }
+.wadd { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 8px; }
+.wadd select { font: inherit; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-width: 100%; }
+.wrm { font: inherit; font-size: 11.5px; padding: 2px 6px; margin-top: 4px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.wrm:hover { color: var(--ink); }
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261112j"></script>
+<script src="shell.js?v=20261112k"></script>
 <div class="wrap">
   <header class="top">
     <h1><span class="star">✦</span> 캐릭터 도감</h1>
@@ -137,18 +141,18 @@
   <p class="foot-note">종합(OVR) = 그 운명의 자리에서의 성능 점수(티어표와 같은 값: GamsGo 등급 점수와 나무위키 평가의 평균(등급 칸 안), C1~C5는 명함·풀돌 표 사이 추정) × 레벨 계수(핵심 스탯 기초값이 Lv.90의 몇 %인지의 제곱근 — 파티 감정소의 레벨 감점과 같은 방식) × 성유물 계수(0.75 + 0.25 × 성유물 가치: 세트 50% — 추천 4세트 1위 1.0, 순위마다 −0.06, 추천 밖 0.6, 2+2 0.75, 없음 0.35 — + 주옵 25% + 부옵 수준 25%) × 무기 계수(0.75 + 0.25 × 무기 가치. 무기 가치는 파티 감정소와 같이 추천 1위 1.0에서 순위가 내려갈수록 줄고, 추천 밖은 성급별 값, 재련마다 조금 오르며, 무기 레벨이 낮으면 공격력 비율만큼 깎임). 카드의 공격력은 캐릭터 + 무기 기초 공격력이고, 최종 스탯은 여기에 5성 +20 성유물 주옵(꽃 HP 4780 · 깃털 공격력 311 · 시계·성배·왕관), 부옵 수준(다섯 부위 유효 옵션 합 보통 20 · 좋음 28 · 종결 36회를 추천 부옵 상위 4개에 1 · 1 · 0.8 · 0.6 비율로 나눈 가정치), 2세트 스탯 효과를 더한 값입니다(4세트·무기 효과처럼 조건이 붙는 것은 뺌). HP·공격력·방어력·돌파 스탯은 무기·성유물을 뺀 캐릭터 기초값이며, 경계 레벨(20·40·50·60·70·80)은 돌파한 뒤 값입니다. 특성·운명의 자리 설명, 기초 스탯, 무기 스탯·재련 효과는 <a href="https://github.com/theBowja/genshin-db" target="_blank" rel="noopener">genshin-db</a>(게임 데이터, 2026년 11월)에서 가져왔습니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
 </div>
 
-<script src="chars.js?v=20261112j"></script>
-<script src="dex/stats.js?v=20261112j"></script>
-<script src="builds.js?v=20261112j"></script>
-<script src="weapons.js?v=20261112j"></script>
-<script src="gear.js?v=20261112j"></script>
-<script src="dex/artifacts.js?v=20261112j"></script>
-<script src="dex/weapons.js?v=20261112j"></script>
+<script src="chars.js?v=20261112k"></script>
+<script src="dex/stats.js?v=20261112k"></script>
+<script src="builds.js?v=20261112k"></script>
+<script src="weapons.js?v=20261112k"></script>
+<script src="gear.js?v=20261112k"></script>
+<script src="dex/artifacts.js?v=20261112k"></script>
+<script src="dex/weapons.js?v=20261112k"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster();
 const PREF = GP.KEY + ':dex';
-let st = { q: '', el: '', mine: false, cur: '', cmp: [], view: 'me' };
+let st = { q: '', el: '', mine: false, cur: '', cmp: [], view: 'me', wl: {} };
 // 카드 열쇠: 'hutao' = 기본(C0 · Lv.90 · 추천 무기·성유물), 'me:hutao' = 내 캐릭터(보유 목록의 돌파·레벨·무기·실제 성유물)
 const idOf = k => k.replace(/^me:/, ''), isMe = k => k.startsWith('me:');
 const okKey = k => typeof k === 'string' && !!GP.DB[idOf(k)] && (!isMe(k) || !!own[idOf(k)]);
@@ -349,7 +353,7 @@ const dexCache = {};
 let infoTab = 'skills';
 const fmt = s => GP.esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
 async function loadDex(id) {
-  if (!dexCache[id]) dexCache[id] = fetch(`dex/${id}.json?v=20261112j`).then(r => r.ok ? r.json() : null).catch(() => null);
+  if (!dexCache[id]) dexCache[id] = fetch(`dex/${id}.json?v=20261112k`).then(r => r.ok ? r.json() : null).catch(() => null);
   return dexCache[id];
 }
 async function renderInfo(id) {
@@ -407,14 +411,27 @@ function cmpRows(cols, rows) {
     return `<tr><th>${n}</th>${vs.map(v => `<td><div class="cell${hi !== false && typeof v === 'number' && v === mx && nums.filter(y => y === mx).length < nums.length ? ' win' : ''}"><span>${show(v)}</span>${typeof v === 'number' && hi !== false ? `<span class="bar"><i style="width:${mx ? v / mx * 100 : 0}%"></i></span>` : ''}</div></td>`).join('')}</tr>`;
   }).join('')}</tbody></table></div>`;
 }
+const mineW = id => own[id] && own[id].wn && DEX_WEAPONS[own[id].wn] ? own[id].wn : null;
+// 비교할 무기 목록(캐릭터마다 저장). 처음엔 지금 카드 무기 + 내 무기 + 추천 상위 5개
+function wlistOf(id, key) {
+  if (!st.wl || typeof st.wl !== 'object') st.wl = {};
+  const c = confOf(key), mine = mineW(id);
+  const l = (st.wl[id] || [...new Set([c.wn, ...(mine ? [mine] : []), ...recList(id).slice(0, 5)])]).filter(n => DEX_WEAPONS[n]);
+  return l.includes(c.wn) ? l : [c.wn, ...l];
+}
 function weaponCmp(id, key) {
-  const c = confOf(key), b = baseAt(id, c.lv), mine = own[id] && own[id].wn && DEX_WEAPONS[own[id].wn] ? own[id].wn : null;
-  const names = [...new Set([c.wn, ...(mine ? [mine] : []), ...recList(id).slice(0, 6)])].filter(n => DEX_WEAPONS[n]);
+  const c = confOf(key), b = baseAt(id, c.lv), mine = mineW(id);
+  const names = wlistOf(id, key);
   if (!names.length) return '<p class="muted">비교할 무기 자료가 없습니다.</p>';
+  const rec = recList(id), rest = weaponsFor(id).filter(n => !rec.includes(n) && !names.includes(n));
+  const addSel = `<div class="wadd"><select id="w-add" aria-label="비교할 무기 추가"><option value="">+ 무기 추가 (${GP.WPN[GP.DB[id].wp] || '무기'} ${weaponsFor(id).length}종)</option>
+    ${rec.filter(n => !names.includes(n)).length ? `<optgroup label="추천 순">${rec.map((n, i) => names.includes(n) ? '' : `<option value="${GP.esc(n)}">${i + 1}위 · ${'★'.repeat(DEX_WEAPONS[n][0])} ${GP.esc(n)}</option>`).join('')}</optgroup>` : ''}
+    <optgroup label="그 밖 (성급 순)">${rest.map(n => `<option value="${GP.esc(n)}">${'★'.repeat(DEX_WEAPONS[n][0])} ${GP.esc(n)}</option>`).join('')}</optgroup></select>
+    <button type="button" class="btn ghost sm" data-act="w-reset">처음 목록으로</button></div>`;
   const cols = names.map(n => {
     const cc = { ...c, wn: n, wlv: n === c.wn ? c.wlv : 90 }, w = weaponAt(n, cc.wlv), fs = finalStats(id, cc, b, w), q = weaponQ(id, cc);
     const tag = [n === c.wn ? '지금 카드' : '', n === mine ? '내 무기' : '', q.rank >= 0 ? `추천 ${q.rank + 1}위` : '추천 밖'].filter(Boolean).join(' · ');
-    return { n, w, fs, q, idx: dmgIdx(id, fs), head: `${'★'.repeat(w.r)} ${GP.esc(n)}<br><span class="muted">${tag}</span>` };
+    return { n, w, fs, q, idx: dmgIdx(id, fs), head: `${'★'.repeat(w.r)} ${GP.esc(n)}<br><span class="muted">${tag}</span>${n !== c.wn ? `<br><button type="button" class="wrm" data-wrm="${GP.esc(n)}" aria-label="${GP.esc(n)} 빼기">빼기 ✕</button> <button type="button" class="wrm" data-wuse="${GP.esc(n)}">카드에 끼우기</button>` : ''}` };
   });
   const top = Math.max(...cols.map(x => x.idx)) || 1;
   const rows = [
@@ -431,7 +448,8 @@ function weaponCmp(id, key) {
     ['원소 마스터리', x => x.fs ? x.fs.em : null, v => v == null ? '–' : Math.round(v)],
     ['무기 효과', x => `<b>${GP.esc(DEX_WEAPONS[x.n][7])}</b><br>${weaponEffect(x.n, c.wr)}`, v => `<span class="weff" style="font-size:12px">${v}</span>`, false],
   ];
-  return `<p class="intro">지금 카드(C${c.cons} · Lv.${c.lv} · ${GP.esc(setLabel(c))})에 무기만 바꿔 끼운 비교예요. 재련은 R${c.wr}(카드에서 바꿈), 지금 무기 말고는 Lv.90 기준.
+  return addSel + `<p class="intro">지금 카드(C${c.cons} · Lv.${c.lv} · ${GP.esc(setLabel(c))})에 무기만 바꿔 끼운 비교예요. 위 목록에서 아무 무기나 더 넣을 수 있어요.`
+    + ` <b>추천 가치·스탯 딜 지표</b>가 가장 높은 칸이 강조돼요.</p><p class="intro"> 재련은 R${c.wr}(카드에서 바꿈), 지금 무기 말고는 Lv.90 기준.
     <b>추천 가치</b>는 genshin-builds 추천 순위(무기 효과까지 고려된 순위)·재련으로, <b>스탯 딜 지표</b>는 무기 효과를 뺀 순수 스탯(핵심 스탯 × 치명 기대 × 원소 피해)으로 1위를 100으로 놓은 값이에요. 둘이 다르면 무기 효과가 큰 무기예요.</p>`
     + cmpRows(cols, rows);
 }
@@ -458,7 +476,7 @@ function setCmp(id, key) {
 // ───────── 그리기 ─────────
 $('#els').innerHTML = `<button type="button" class="elchip" data-el="">전체</button>` + GP.ORDER.map(el => `<button type="button" class="elchip" data-el="${el}"><span class="dot" style="--c:var(--${el})"></span>${GP.EL[el]}</button>`).join('');
 $('#mine').disabled = !Object.keys(own).length;
-const save = () => { try { localStorage.setItem(PREF, JSON.stringify({ q: st.q, el: st.el, mine: st.mine, cur: st.cur, cmp: st.cmp, view: st.view })); } catch (e) {} };
+const save = () => { try { localStorage.setItem(PREF, JSON.stringify({ q: st.q, el: st.el, mine: st.mine, cur: st.cur, cmp: st.cmp, view: st.view, wl: st.wl })); } catch (e) {} };
 // 위쪽 상세 카드: 보유 캐릭터면 '내 캐릭터'/'기본' 중 고른 쪽
 const detailKey = () => own[st.cur] && st.view !== 'base' ? 'me:' + st.cur : st.cur;
 const cmpKeys = () => st.cmp.filter(okKey).slice(0, 3);
@@ -477,7 +495,7 @@ function renderDetail() {
   const key = detailKey(), inCmp = st.cmp.includes(key);
   const view = own[id] ? `<div class="seg viewseg" role="group" aria-label="카드 종류"><button type="button" data-view="me" aria-pressed="${isMe(key)}">내 캐릭터</button><button type="button" data-view="base" aria-pressed="${!isMe(key)}">기본 (C0 · 추천)</button></div>` : '';
   $('#detail').innerHTML = `<div class="fcw">${view}${fcard(key)}${controls(key, 'detail')}
-      <div class="acts" style="margin-top:10px"><button type="button" class="btn sm" data-act="cmp-toggle">${inCmp ? '비교에서 빼기' : `+ ${isMe(key) ? '내 캐릭터로 ' : ''}비교에 추가`}</button><a class="btn sm" href="tier.html">티어표</a><a class="btn sm" href="guide.html#${id}">추천 성유물</a><a class="btn sm" href="stats.html#${id}">종결 스탯</a></div></div>
+      <div class="acts" style="margin-top:10px"><button type="button" class="btn sm" data-act="cmp-toggle">${inCmp ? '비교에서 빼기' : `+ ${isMe(key) ? '내 캐릭터로 ' : ''}비교에 추가`}</button><button type="button" class="btn sm" data-act="w-open">무기 비교</button><a class="btn sm" href="tier.html">티어표</a><a class="btn sm" href="guide.html#${id}">추천 성유물</a><a class="btn sm" href="stats.html#${id}">종결 스탯</a></div></div>
     <div class="info" id="info"><p class="muted">불러오는 중…</p></div>`;
   renderInfo(id);
 }
@@ -559,13 +577,18 @@ document.addEventListener('click', e => {
   const vb = e.target.closest('[data-view]'); if (vb) { st.view = vb.dataset.view; save(); renderDetail(); return; }
   const rb = e.target.closest('[data-wr]'); if (rb) { const id = rb.closest('.ctrl').dataset.id; confOf(id).wr = Number(rb.dataset.wr); refresh(id); return; }
   const cb = e.target.closest('[data-cons]'); if (cb) { const id = cb.closest('.ctrl').dataset.id; confOf(id).cons = Number(cb.dataset.cons); refresh(id); return; }
+  const wr = e.target.closest('[data-wrm]'); if (wr) { const id = st.cur; st.wl[id] = wlistOf(id, detailKey()).filter(n => n !== wr.dataset.wrm); save(); renderInfo(id); return; }
+  const wu = e.target.closest('[data-wuse]'); if (wu) { const k = detailKey(); confOf(k).wn = wu.dataset.wuse; confOf(k).wlv = 90; refresh(k); return; }
   const a = e.target.closest('[data-act]'); if (!a) return;
+  if (a.dataset.act === 'w-reset') { delete st.wl[st.cur]; save(); renderInfo(st.cur); return; }
+  if (a.dataset.act === 'w-open') { infoTab = 'wcmp'; renderInfo(st.cur); $('#info').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   if (a.dataset.act === 'cmp-toggle') { const k = detailKey(); st.cmp = st.cmp.includes(k) ? st.cmp.filter(x => x !== k) : [...cmpKeys(), k].slice(-3); renderAll(); }
   if (a.dataset.act === 'me-reset') { delete conf[a.dataset.id]; renderAll(); }
   if (a.dataset.act === 'cmp-remove') { st.cmp = st.cmp.filter(x => x !== a.dataset.id); renderAll(); }
   if (a.dataset.act === 'cmp-clear') { st.cmp = []; renderAll(); }
 });
 document.addEventListener('change', e => {
+  if (e.target.id === 'w-add' && e.target.value) { const id = st.cur; st.wl[id] = [...wlistOf(id, detailKey()), e.target.value]; save(); renderInfo(id); return; }
   if (e.target.id !== 'add-mine' || !e.target.value) return;
   st.cmp = [...cmpKeys(), 'me:' + e.target.value].slice(-3); renderAll();
 });
@@ -585,10 +608,18 @@ document.addEventListener('input', e => {
 document.addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.remove(); }, true);
 // 주소: #캐릭터 또는 #cmp=a,b,c (내 캐릭터는 me:hutao)
 const h = decodeURIComponent(location.hash.slice(1));
-if (h.startsWith('cmp=')) { st.cmp = h.slice(4).split(',').filter(okKey).slice(0, 3); st.cur = st.cmp[0] ? idOf(st.cmp[0]) : st.cur; }
+if (h === 'wcmp' || h.startsWith('wcmp=')) { infoTab = 'wcmp'; const w = h.slice(5); if (GP.DB[w]) st.cur = w; }
+else if (h.startsWith('cmp=')) { st.cmp = h.slice(4).split(',').filter(okKey).slice(0, 3); st.cur = st.cmp[0] ? idOf(st.cmp[0]) : st.cur; }
 else if (GP.DB[h]) st.cur = h;
 if (!GP.DB[st.cur]) st.cur = Object.keys(own).find(id => GP.DB[id]) || 'mitya';
 renderAll();
+// 메뉴의 '무기 비교'(#wcmp)로 오면 무기 비교 탭으로 바로 내려감(같은 페이지에서 눌러도)
+const goWcmp = () => setTimeout(() => $('#info') && $('#info').scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+if (infoTab === 'wcmp') goWcmp();
+addEventListener('hashchange', () => {
+  const x = decodeURIComponent(location.hash.slice(1));
+  if (x === 'wcmp' || x.startsWith('wcmp=')) { infoTab = 'wcmp'; if (GP.DB[x.slice(5)]) st.cur = x.slice(5); renderAll(); goWcmp(); }
+});
 </script>
 <script>if ('serviceWorker' in navigator && /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>
