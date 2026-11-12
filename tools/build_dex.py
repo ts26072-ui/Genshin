@@ -83,3 +83,29 @@ for id_, fn in files.items():
         json.dump(out, f, ensure_ascii=False, separators=(',', ':'))
     n += 1
 print('wrote', n, 'characters')
+
+# ───────── 무기: dex/weapons.js (도감 비교용) ─────────
+# 무기 이름(한국어) → [성급, 기초 공격력(Lv.1), 공격력 곡선, 부옵, 부옵 Lv.1 값, 부옵 곡선, 돌파 0~6단계 공격력 가산, 효과 이름, 효과 틀({0}·{1}… 자리), 재련 1~5 값]
+# 받을 때 sparse-checkout에 src/data/Korean/weapons 도 넣어야 함
+wdir = os.path.join(D, 'Korean', 'weapons')
+if os.path.isdir(wdir):
+    wstats = load('stats', 'weapons.json')
+    wcurve = load('curve', 'weapons.json')
+    W, used = {}, set()
+    for fn in sorted(os.listdir(wdir)):
+        w = load('Korean', 'weapons', fn)
+        s = wstats.get(fn[:-5])
+        if not s or w.get('rarity', 0) < 3:
+            continue
+        cv = s['curve']
+        used.update(v for v in cv.values() if v)
+        tpl = re.sub(r'</?color[^>]*>', '', w.get('effectTemplateRaw') or '')
+        W[w['name']] = [w['rarity'], r4(s['base']['attack']), cv['attack'], PROP.get(s.get('specialized'), s.get('specialized') or ''),
+                        r4(s['base'].get('specialized') or 0), cv.get('specialized') or '', [r4(p.get('attack', 0)) for p in s['promotion']],
+                        w.get('effectName', ''), tpl, [(w.get(f'r{i}') or {}).get('values', []) for i in range(1, 6)]]
+    WC = {name: [r4(wcurve[str(lv)][name]) for lv in range(1, 91)] for name in sorted(used)}
+    with open(os.path.join(OUT, 'weapons.js'), 'w', encoding='utf8') as f:
+        f.write('// 무기 기초 스탯·효과(genshin-db, tools/build_dex.py가 만듦): 이름 → [성급, 기초 공격력, 공격력 곡선, 부옵, 부옵 Lv.1 값, 부옵 곡선, 돌파 0~6단계 공격력 가산, 효과 이름, 효과 틀, 재련 1~5 값]\n')
+        f.write('const DEX_WCURVE = ' + json.dumps(WC, separators=(',', ':')) + ';\n')
+        f.write('const DEX_WEAPONS = ' + json.dumps(W, ensure_ascii=False, separators=(',', ':')) + ';\n')
+    print('weapons', len(W))

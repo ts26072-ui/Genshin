@@ -2,7 +2,7 @@
 // 페이지·스크립트는 네트워크 먼저(항상 최신), 안 되면 저장본. 지도 타일·아이콘·글꼴·캐릭터 이미지는 저장본 먼저(데이터 절약)
 const CACHE = 'gp-20261112b';
 const CORE = ['./', 'index.html', 'tier.html', 'combo.html', 'farm.html', 'map.html', 'rate.html', 'guide.html', 'stats.html',
-  'common.css', 'chars.js', 'builds.js', 'weapons.js', 'gear.js', 'farm.js', 'rot.js', 'names.js', 'account.js', 'shell.js', 'dex.html', 'dex/stats.js', 'manifest.webmanifest', 'icon-192.png'];
+  'common.css', 'chars.js', 'builds.js', 'weapons.js', 'gear.js', 'farm.js', 'rot.js', 'names.js', 'account.js', 'shell.js', 'dex.html', 'dex/stats.js', 'dex/weapons.js', 'manifest.webmanifest', 'icon-192.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => Promise.all(CORE.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting()));
