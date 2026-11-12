@@ -43,6 +43,17 @@
 .warp img { width: 18px; height: 18px; opacity: .9; }
 .hint { font-size: 12.5px; color: var(--muted); margin: 0; }
 .notice { padding: 10px 12px; border-radius: 10px; font-size: 13px; background: var(--surface); border: 1px solid var(--line); margin: 6px 0; line-height: 1.55; }
+.explore { margin-bottom: 14px; }
+.exrows { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
+.exrow { display: grid; grid-template-columns: 6.5em minmax(0, 1fr) 3.4em auto; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.exrow[aria-pressed="true"] { border-color: var(--gold); }
+.exn { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exbar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.exbar i { display: block; height: 100%; background: var(--dendro); }
+.exp { text-align: right; font-variant-numeric: tabular-nums; }
+.exl { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.extips summary { cursor: pointer; font-size: 13px; font-weight: 600; margin: 6px 0; }
+.extips ol { margin: 0; padding-left: 18px; font-size: 12.5px; line-height: 1.6; color: var(--muted); }
 .notice.warnbox { border-color: color-mix(in srgb, var(--warn) 55%, var(--line)); }
 @media (max-width: 860px) {
   .mapwrap { grid-template-columns: 1fr; }
@@ -84,7 +95,7 @@ const $ = s => document.querySelector(s);
 const BASE = /github\.io$/.test(location.hostname) || /^(localhost|127\.)/.test(location.hostname) ? 'map' : 'https://ts26072-ui.github.io/Genshin/map';
 const D = window.MAPDATA || (typeof MAPDATA !== 'undefined' ? MAPDATA : null);
 const PREF = GP.KEY + ':map';
-let st = { q: '', need: false, warps: true, label: null };
+let st = { q: '', need: false, warps: true, label: null, area: '' };
 try { st = { ...st, ...JSON.parse(localStorage.getItem(PREF)) }; } catch (e) {}
 const save = () => { try { localStorage.setItem(PREF, JSON.stringify(st)); } catch (e) {} };
 
@@ -142,6 +153,18 @@ let got = new Set();
 try { got = new Set(JSON.parse(localStorage.getItem(PREF + ':got')) || []); } catch (e) {}
 const gotKey = (id, p) => `${id}:${p[0]},${p[1]}`;
 const isOculus = id => D.labels[id] && D.labels[id][1] === 'oculus';
+// 주운·연 표시를 하는 종류: 신의 눈동자, 보물상자, 상자 주는 퍼즐. 'chests'는 보물상자 5종을 한꺼번에 보는 가상 항목
+const CHEST_IDS = D ? Object.keys(D.labels).filter(id => D.labels[id][1] === 'chest') : [];
+const isTrack = id => id === 'chests' || (D.labels[id] && ['oculus', 'chest', 'puzzle'].includes(D.labels[id][1]));
+const hasArea = id => id === 'chests' || (D.labels[id] && ['chest', 'puzzle'].includes(D.labels[id][1]));
+const nameOf = id => id === 'chests' ? '모든 보물상자' : D.labels[id][0];
+const AREAS = (D && D.areas) || {};
+// [라벨, 위치] 목록. 상자·퍼즐은 지역(st.area)으로 거름
+function ptsOf(id, all) {
+  const ids = id === 'chests' ? CHEST_IDS : [id];
+  const out = ids.flatMap(l => (D.points[l] || []).map(p => [l, p]));
+  return !all && hasArea(id) && st.area ? out.filter(([, p]) => String(p[2]) === String(st.area)) : out;
+}
 // HoYoLAB 전적에서 받은 개수(신의 눈동자 원소별·보물상자 종류별). 어느 것을 주웠는지는 HoYoLAB도 모르고 개수만 알려 줌
 let HOYO = null;
 const OC_KEY = { anemo: '바람', geo: '바위', electro: '번개', dendro: '풀', hydro: '물', pyro: '불', cryo: '얼음', ice: '얼음', luno: '달', lunar: '달', moon: '달' };
@@ -155,19 +178,29 @@ function hoyoOculus(id) {
   }
   return null;
 }
-const CHEST = [['common_chest_number', '평범한'], ['exquisite_chest_number', '정교한'], ['precious_chest_number', '진귀한'], ['luxurious_chest_number', '화려한'], ['magic_chest_number', '기묘한']];
+const CHEST = [['common_chest_number', '평범한'], ['exquisite_chest_number', '정교한'], ['precious_chest_number', '진귀한'], ['luxurious_chest_number', '화려한'], ['magic_chest_number', '신묘한']];
+// HoYoLAB이 알려 주는 '게임에서 주운·연 개수'(전체 지역 합계). 모르면 null
+function hoyoCount(id) {
+  if (!HOYO || !HOYO.summary) return null;
+  if (id === 'chests') { const v = CHEST.map(([k]) => HOYO.summary[k]); return v.some(x => x == null) ? null : v.reduce((a, b) => a + b, 0); }
+  if (isOculus(id)) return hoyoOculus(id);
+  const c = D.labels[id] && D.labels[id][1] === 'chest' ? CHEST.find(([, nm]) => D.labels[id][0].startsWith(nm)) : null;
+  return c && HOYO.summary[c[0]] != null ? HOYO.summary[c[0]] : null;
+}
 function toggleGot(id, p) {
   const k = gotKey(id, p); got.has(k) ? got.delete(k) : got.add(k);
   try { localStorage.setItem(PREF + ':got', JSON.stringify([...got])); } catch (e) {}
-  showLabel(id, true);
+  showLabel(st.label, true);
 }
 function showLabel(id, keepView) {
   matLayer.clearLayers(); routeLayer.clearLayers(); routes = [];
-  const all = (D.points[id] || []);
-  const ps = isOculus(id) ? all.filter(p => !got.has(gotKey(id, p))) : all;
-  if (isOculus(id)) for (const p of all.filter(p => got.has(gotKey(id, p))))
-    L.marker(ll(p), { icon: L.divIcon({ className: '', html: `<div class="pin done"><img src="${icon(id)}" alt=""><b>✓</b></div>`, iconSize: [26, 26] }) })
-      .bindTooltip('주운 것 · 누르면 취소').on('click', () => toggleGot(id, p)).addTo(matLayer);
+  const tr = isTrack(id), allLp = ptsOf(id), all = allLp.map(x => x[1]);
+  const lpOf = new Map(allLp.map(x => [x[1], x[0]]));
+  const ps = tr ? all.filter(p => !got.has(gotKey(lpOf.get(p), p))) : all;
+  const doneTip = D.labels[id] && D.labels[id][1] === 'oculus' ? '주운 것' : '연 것';
+  if (tr) for (const p of all.filter(p => got.has(gotKey(lpOf.get(p), p))))
+    L.marker(ll(p), { icon: L.divIcon({ className: '', html: `<div class="pin done"><img src="${icon(lpOf.get(p))}" alt=""><b>✓</b></div>`, iconSize: [26, 26] }) })
+      .bindTooltip(`${doneTip} · 누르면 취소`).on('click', () => toggleGot(lpOf.get(p), p)).addTo(matLayer);
   if (!ps.length) { if (all.length && !keepView) map.fitBounds(L.latLngBounds(all.map(ll)).pad(0.15)); renderSide(); return; }
   // 한 루트가 너무 길면 15개씩 끊고, 끊은 조각마다 가장 가까운 워프에서 다시 출발
   const CAP = 15;
@@ -179,9 +212,9 @@ function showLabel(id, keepView) {
     const line = (w.w && w.d < LINK * 4 ? [w.w.p, ...r] : r).map(ll);
     if (r.length > 1 || w.w) L.polyline(line, { color: c, weight: 4, opacity: .95, dashArray: ri < 8 ? null : '4 6' }).addTo(routeLayer);
     if (w.w && w.d < LINK * 4) L.circleMarker(ll(w.w.p), { radius: 9, color: c, weight: 3, fillOpacity: 0 }).bindTooltip(`루트 ${ri + 1} 출발 워프`).addTo(routeLayer);
-    r.forEach((p, i) => L.marker(ll(p), { icon: L.divIcon({ className: '', html: `<div class="pin" style="--rc:${c}"><img src="${icon(id)}" alt="">${ri < 8 ? `<b>${i + 1}</b>` : ''}</div>`, iconSize: [26, 26] }) })
-      .bindTooltip(`${GP.esc(D.labels[id][0])} · 루트 ${ri + 1}의 ${i + 1}번째${isOculus(id) ? ' · 누르면 주움 표시' : ''}`)
-      .on('click', () => { if (isOculus(id)) toggleGot(id, p); }).addTo(matLayer));
+    r.forEach((p, i) => L.marker(ll(p), { icon: L.divIcon({ className: '', html: `<div class="pin" style="--rc:${c}"><img src="${icon(lpOf.get(p))}" alt="">${ri < 8 ? `<b>${i + 1}</b>` : ''}</div>`, iconSize: [26, 26] }) })
+      .bindTooltip(`${GP.esc(D.labels[lpOf.get(p)][0])} · 루트 ${ri + 1}의 ${i + 1}번째${tr ? ` · 누르면 ${doneTip.replace(' 것', '')} 표시` : ''}`)
+      .on('click', () => { if (tr) toggleGot(lpOf.get(p), p); }).addTo(matLayer));
   });
   if (!keepView) map.fitBounds(L.latLngBounds(ps.map(ll)).pad(0.15));
   renderSide();
@@ -199,36 +232,75 @@ for (const [id, c] of Object.entries(own)) {
   for (let p = ascOfC(c); p < 6; p++) for (const [mid] of f.a[p] || []) { const m = FARM_MAT[mid]; if (m && m[1].endsWith('지역 특산물')) (needName[m[0]] ||= new Set()).add(GP.DB[id] ? GP.DB[id].name : id); }
 }
 const REGIONS = ['몬드', '리월', '이나즈마', '수메르', '폰타인', '나타', '노드크라이', '스네즈나야'];
+// ───────── 탐사도 올리기 ─────────
+// 지역마다: HoYoLAB 탐사도(%) + 지도에 남은 상자 수(연 표시 뺌) → 탐사도가 낮고 상자가 많이 남은 곳부터
+function exploreRows() {
+  const pct = {};
+  for (const e of (HOYO && HOYO.explore) || []) pct[e.name] = e.pct;
+  return Object.entries(AREAS).map(([aid, name]) => {
+    const lp = CHEST_IDS.flatMap(l => (D.points[l] || []).filter(p => String(p[2]) === aid).map(p => [l, p]));
+    const left = lp.filter(([l, p]) => !got.has(gotKey(l, p))).length;
+    return { aid, name, total: lp.length, left, pct: pct[name] };
+  }).filter(r => r.total).sort((a, b) => (a.pct ?? 101) - (b.pct ?? 101) || b.left - a.left);
+}
+function exploreBlock() {
+  const rows = exploreRows();
+  if (!rows.length) return '';
+  const top = rows[0];
+  return `<div class="explore"><h3>탐사도 올리기</h3>
+    ${HOYO && HOYO.explore ? `<p class="hint">탐사도가 낮은 지역부터 보여 줘요. <b>${GP.esc(top.name)}</b>${top.pct != null ? `(${top.pct}%)` : ''}부터 하는 게 효율이 좋아요.</p>` : '<p class="hint">HoYoLAB 동기화가 있으면 지역별 탐사도도 보여 줘요.</p>'}
+    <div class="exrows">${rows.map(r => `<button type="button" class="exrow" data-area="${r.aid}" aria-pressed="${st.label === 'chests' && String(st.area) === r.aid}">
+      <span class="exn">${GP.esc(r.name)}</span>${r.pct != null ? `<span class="exbar"><i style="width:${Math.min(100, r.pct)}%"></i></span><span class="exp">${r.pct}%</span>` : '<span class="exbar"></span><span class="exp">–</span>'}
+      <span class="exl">상자 ${r.left}${r.left < r.total ? `/${r.total}` : ''}</span></button>`).join('')}</div>
+    <details class="extips"><summary>탐사도 올리는 순서</summary><ol>
+      <li><b>워프 포인트·일곱신상부터</b> 다 열어요. 열 때마다 탐사도가 오르고, 다음 이동이 빨라져요(위 '워프 포인트·신상 표시'를 켜면 보여요).</li>
+      <li><b>지역 버튼을 눌러 상자 루트</b>를 따라가요. 가까운 상자끼리 묶어 워프에서 출발하는 순서로 그려 줘요. 연 상자는 눌러서 표시하면 남은 것만으로 루트를 다시 그려요.</li>
+      <li>'상자 주는 퍼즐·장소'(<b>인도의 선령·원소 비석·타임어택·사소한 수수께끼·최초 처치 적</b>, 지령 감실)도 같이 돌아요. 끝내면 상자가 나와요.</li>
+      <li>지하·섬처럼 <b>세계 임무를 해야 열리는 곳</b>은 지도에 위치가 있어도 못 갈 수 있어요. 그 지역 임무를 먼저 하세요.</li>
+      <li>남은 몇 %가 안 채워지면 HoYoLAB 공식 지도에서 그 지역을 확대해 빠진 상자를 찾아보세요.</li>
+    </ol></details>
+    ${HOYO && HOYO.summary && CHEST.some(([k]) => HOYO.summary[k] != null) ? `<p class="hint">HoYoLAB 기록(연 상자): ${CHEST.filter(([k]) => HOYO.summary[k] != null).map(([k, nm]) => `${nm} ${HOYO.summary[k]}`).join(' · ')}. 어느 상자를 열었는지는 HoYoLAB이 알려 주지 않아서 지도에서 직접 눌러 표시해야 해요.</p>` : ''}
+  </div>`;
+}
 function renderSide() {
   if (!D) return;
   const q = st.q.trim();
-  const items = Object.entries(D.labels).filter(([id, [n, g]]) => g !== 'warp' && (D.points[id] || []).length && (!q || n.includes(q)) && (!st.need || needName[n]));
-  const cnt = id => { const hc = isOculus(id) ? hoyoOculus(id) : null; return hc == null ? D.points[id].length : `남은 ${Math.max(0, D.points[id].length - hc)}`; };
+  const items = Object.entries(D.labels).filter(([id, [n, g]]) => g !== 'warp' && (D.points[id] || []).length && (!q || n.includes(q)) && (!st.need || needName[n] || g === 'chest' || g === 'puzzle'));
+  const cnt = id => { const tot = ptsOf(id, true).length, hc = hoyoCount(id); return hc == null ? tot : `남은 ${Math.max(0, tot - hc)}`; };
   const btn = ([id, [n]]) => `<button type="button" class="mbtn${needName[n] ? ' need' : ''}" data-id="${id}" aria-pressed="${st.label === id}" title="${needName[n] ? GP.esc('필요: ' + [...needName[n]].join(', ')) : ''}"><img src="${icon(id)}" alt="" loading="lazy">${GP.esc(n)}<span class="n">${cnt(id)}</span></button>`;
   const groups = [...REGIONS.map(r => [r + ' 특산물', items.filter(([, [n, g]]) => g === 'spec' && regionOf[n] === r)]),
     ['그 밖의 특산물', items.filter(([, [n, g]]) => g === 'spec' && !regionOf[n])], ['광물', items.filter(([, [, g]]) => g === 'ore')]];
-  groups.unshift(['신의 눈동자', items.filter(([, [, g]]) => g === 'oculus')]);
-  const chest = HOYO && HOYO.summary && CHEST.some(([k]) => HOYO.summary[k] != null)
-    ? `<div><h3>보물상자 (HoYoLAB · 연 개수)</h3><p class="hint">${CHEST.filter(([k]) => HOYO.summary[k] != null).map(([k, nm]) => `${nm} ${HOYO.summary[k]}`).join(' · ')}</p>${(HOYO.explore || []).some(e => e.pct > 0) ? `<p class="hint">탐사도: ${HOYO.explore.filter(e => e.pct > 0).sort((x, y) => y.pct - x.pct).map(e => `${GP.esc(e.name)} ${e.pct}%`).join(' · ')}</p>` : ''}<p class="hint">HoYoLAB은 상자를 <b>몇 개</b> 열었는지만 알려 주고 어느 상자인지는 알려 주지 않아서, 상자 위치를 지도에서 빼 줄 수는 없어요.</p></div>` : '';
-  $('#mats').innerHTML = (chest + groups.filter(([, l]) => l.length).map(([t, l]) => `<div><h3>${t}</h3><div class="mlist">${l.map(btn).join('')}</div></div>`).join('')
+  groups.unshift(['신의 눈동자', items.filter(([, [, g]]) => g === 'oculus')],
+    ['보물상자', (!q || '모든 보물상자'.includes(q) ? [['chests', ['모든 보물상자', 'chest']]] : []).concat(items.filter(([, [, g]]) => g === 'chest'))],
+    ['상자 주는 퍼즐·장소', items.filter(([, [, g]]) => g === 'puzzle')]);
+  $('#mats').innerHTML = (exploreBlock() + groups.filter(([, l]) => l.length).map(([t, l]) => `<div><h3>${t}</h3><div class="mlist">${l.map(btn).join('')}</div></div>`).join('')
     || `<p class="hint">${st.need ? '돌파가 남은 내 캐릭터에게 필요한 특산물이 없습니다.' : '검색 결과가 없습니다.'}</p>`);
   const id = st.label;
-  if (!id || !D.labels[id]) { $('#sel').innerHTML = '<p class="hint">아래에서 재료를 고르세요. 숫자는 지도에 있는 개수입니다.</p>'; return; }
-  const n = D.labels[id][0], total = routes.reduce((s, r) => s + r.length, 0);
-  const gotN = isOculus(id) ? D.points[id].filter(p => got.has(gotKey(id, p))).length : 0;
-  const hc = isOculus(id) ? hoyoOculus(id) : null, all = (D.points[id] || []).length;
+  if (!id || (id !== 'chests' && !D.labels[id])) { $('#sel').innerHTML = '<p class="hint">아래에서 재료를 고르세요. 숫자는 지도에 있는 개수입니다.</p>'; return; }
+  const n = nameOf(id), total = routes.reduce((s, r) => s + r.length, 0), tr = isTrack(id);
+  const shown = ptsOf(id), gotN = tr ? shown.filter(([l, p]) => got.has(gotKey(l, p))).length : 0;
+  const hc = isOculus(id) ? hoyoOculus(id) : null, all = shown.length;
+  const areaSel = hasArea(id) ? `<label class="hint">지역 <select id="area-sel"><option value="">전체 (${ptsOf(id, true).length}개 — 많으면 느릴 수 있어요)</option>${Object.entries(AREAS).map(([aid, nm]) => { const k = ptsOf(id, true).filter(([, p]) => String(p[2]) === aid).length; return k ? `<option value="${aid}"${String(st.area) === aid ? ' selected' : ''}>${GP.esc(nm)} (${k})</option>` : ''; }).join('')}</select></label>` : '';
   const hoyoLine = hc == null ? '' : `<p class="notice ${hc - gotN > 0 ? 'warnbox' : ''}">HoYoLAB 기록: 게임에서 <b>${hc}개</b> 주움 → 남은 <b>${Math.max(0, all - hc)}개</b> (지도 전체 ${all}개).`
     + (hc > gotN ? ` 지도에는 ${gotN}개만 표시돼 있어요 — HoYoLAB은 <b>어느 것</b>을 주웠는지는 안 알려 줘서, 이미 주운 ${hc - gotN}개는 지도에서 눌러 표시해 주세요.` : hc < gotN ? ' 지도에 표시한 게 더 많아요(동기화가 3시간마다라 늦을 수 있음).' : ' 지도 표시와 개수가 맞아요.') + '</p>';
-  $('#sel').innerHTML = `<h3>${GP.esc(n)} · ${isOculus(id) ? `남은 ${total} / 전체 ${D.points[id].length}개` : `${total}개`} · 루트 ${routes.length}개</h3>
+  $('#sel').innerHTML = `<h3>${GP.esc(n)}${hasArea(id) && st.area && AREAS[st.area] ? ` · ${GP.esc(AREAS[st.area])}` : ''} · ${tr ? `남은 ${total} / 전체 ${all}개` : `${total}개`} · 루트 ${routes.length}개</h3>
+    ${areaSel}
     ${hoyoLine}
-    ${isOculus(id) ? `<p class="hint">지도에서 눈동자를 누르면 주운 것으로 표시되고, 남은 것만으로 루트를 다시 그립니다.${gotN ? ` <button type="button" class="btn sm" id="got-reset">주운 표시 지우기 (${gotN})</button>` : ''}</p>` : ''}
+    ${tr ? `<p class="hint">지도에서 ${isOculus(id) ? '눈동자를 누르면 주운' : '누르면 연'} 것으로 표시되고, 남은 것만으로 루트를 다시 그립니다.${gotN ? ` <button type="button" class="btn sm" id="got-reset">표시 지우기 (${gotN})</button>` : ''}</p>` : ''}
     ${needName[n] ? `<p class="hint">돌파에 필요: ${[...needName[n]].map(GP.esc).join(', ')} (재료 파밍에서 남은 수량 확인)</p>` : ''}
     <div class="routes">${routes.slice(0, 12).map((r, i) => { const w = nearestWarp(r[0]); return `<button type="button" class="rt" data-r="${i}" style="--rc:${RC[i % RC.length]}"><span class="no">${i + 1}</span><span class="t">${r.length}개 모으기</span><span class="s">${w.w && w.d < LINK * 4 ? (w.w.id === '2' ? '일곱신상' : '워프 포인트') + '에서 출발' : '근처 워프에서 걸어서'}</span></button>`; }).join('')}</div>
     ${routes.length > 12 ? `<p class="hint">그 밖에 ${routes.length - 12}곳에 ${routes.slice(12).reduce((s, r) => s + r.length, 0)}개가 흩어져 있습니다.</p>` : ''}
     ${D.routes[id] ? `<a class="btn sm" href="${GP.esc(D.routes[id])}" target="_blank" rel="noopener">HoYoLAB 공식 추천 경로(새 창)</a>` : ''}`;
 }
-$('#mats').addEventListener('click', e => { const b = e.target.closest('.mbtn'); if (!b) return; st.label = b.dataset.id; save(); showLabel(st.label); history.replaceState(null, '', '#' + encodeURIComponent(D.labels[st.label][0])); });
-$('#sel').addEventListener('click', e => { if (e.target.id === 'got-reset' && confirm('이 눈동자의 주운 표시를 모두 지울까요?')) { for (const p of D.points[st.label]) got.delete(gotKey(st.label, p)); try { localStorage.setItem(PREF + ':got', JSON.stringify([...got])); } catch (er) {} showLabel(st.label, true); } });
+$('#mats').addEventListener('click', e => {
+  const ex = e.target.closest('.exrow');
+  if (ex) { st.label = 'chests'; st.area = ex.dataset.area; save(); showLabel(st.label); history.replaceState(null, '', location.pathname); if (innerWidth < 860) $('#map').scrollIntoView({ behavior: 'smooth' }); return; }
+  const b = e.target.closest('.mbtn'); if (!b) return; st.label = b.dataset.id;
+  if (hasArea(st.label) && !st.area) { const r = exploreRows()[0]; if (r) st.area = r.aid; }
+  save(); showLabel(st.label); history.replaceState(null, '', st.label === 'chests' ? location.pathname : '#' + encodeURIComponent(D.labels[st.label][0]));
+});
+$('#sel').addEventListener('click', e => { if (e.target.id === 'got-reset' && confirm('지금 보이는 것의 표시를 모두 지울까요?')) { for (const [l, p] of ptsOf(st.label)) got.delete(gotKey(l, p)); try { localStorage.setItem(PREF + ':got', JSON.stringify([...got])); } catch (er) {} showLabel(st.label, true); } });
+$('#sel').addEventListener('change', e => { if (e.target.id === 'area-sel') { st.area = e.target.value; save(); showLabel(st.label); } });
 $('#sel').addEventListener('click', e => { const b = e.target.closest('.rt'); if (!b) return; const r = routes[+b.dataset.r]; for (const x of document.querySelectorAll('.rt')) x.classList.toggle('on', x === b); map.fitBounds(L.latLngBounds(r.map(ll)).pad(0.4), { maxZoom: D.zmax + 1 }); if (innerWidth < 860) $('#map').scrollIntoView({ behavior: 'smooth' }); });
 $('#q').addEventListener('input', e => { st.q = e.target.value; save(); renderSide(); });
 $('#need').addEventListener('change', e => { st.need = e.target.checked; save(); renderSide(); });
@@ -243,7 +315,7 @@ else {
   const fromHash = h && Object.keys(D.labels).find(id => D.labels[id][0] === h);
   if (fromHash) { st.label = fromHash; st.q = ''; $('#q').value = ''; }
   setWarps(); if (map.getZoom() < WARP_ZOOM) warpLayer.remove();
-  if (st.label && D.labels[st.label]) showLabel(st.label); else renderSide();
+  if (st.label && (st.label === 'chests' || D.labels[st.label])) showLabel(st.label); else renderSide();
   // 동기화 자료(있으면)를 받아 개수 표시
   ACCT.fetchHoyo().then(h => { HOYO = h; renderSide(); }).catch(() => {});
 }

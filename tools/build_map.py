@@ -9,11 +9,15 @@ from PIL import Image
 API = 'https://sg-public-api-static.hoyolab.com/common/map_user/ys_obc/v1/map/'
 TILE_BASE = 'https://act-webstatic.hoyoverse.com/map_manage/map/'
 Q = 'map_id=2&app_sn=ys_obc&lang=ko-kr'
-OUT = sys.argv[1] if len(sys.argv) > 1 else 'map'
+OUT = next((a for a in sys.argv[1:] if not a.startswith('--')), 'map')
 LEVELS = [-3, -2, -1]        # 공식 줌 단계 중 받을 것. 이 사이트의 줌 0,1,2가 됨(줌 2 = 원본의 1/2 크기)
-GROUPS = {1: 'warp', 4: 'oculus', 10: 'spec', 11: 'ore'}
+GROUPS = {1: 'warp', 4: 'oculus', 10: 'spec', 11: 'ore', 13: 'chest', 186: 'puzzle'}
 WARP = {2, 3, 154}           # 일곱신상, 워프 포인트, 비경
 OCULI = {5, 6, 194, 403, 508, 626, 694, 833, 141}  # 원소별 신의 눈동자 + 진홍의 옥수
+# 상자를 주는 퍼즐·장소: 지역별 지령 감실, 인도의 선령, 원소 비석, 타임어택, 사소한 수수께끼, 최초 처치 적, 보물상자 발굴, 속박되어 있는 보물상자
+PUZZLE = {8, 9, 212, 411, 509, 577, 703, 835, 18, 70, 64, 77, 79, 69, 75}
+TRACK = ('chest', 'puzzle')   # 이 종류는 위치에 지역 번호를 붙여 지역별로 볼 수 있게 함
+NO_TILES = '--no-tiles' in sys.argv   # 지도 그림은 그대로 두고 위치 자료만 다시 만들 때
 
 def get(url, tries=4):
     for i in range(tries):
@@ -32,7 +36,7 @@ info = api('info')['info']; v2 = info['detail_v2']
 tree = api('label/tree')['tree']; points = api('point/list')['point_list']
 
 # 1) 지도 타일
-shutil.rmtree(f'{OUT}/tiles', ignore_errors=True)
+if not NO_TILES: shutil.rmtree(f'{OUT}/tiles', ignore_errors=True)
 W, H = v2['total_size']
 jobs = []
 for z in LEVELS:
@@ -51,8 +55,9 @@ def do_tile(job):
     if im.getextrema()[3][1] == 0: return 0
     im.save(f'{OUT}/tiles/{zz}/{x}_{y}.webp', 'WEBP', quality=75, method=6)
     return 1
-with ThreadPoolExecutor(16) as ex: saved = sum(ex.map(do_tile, jobs))
-print('tiles', saved, '/', len(jobs))
+if not NO_TILES:
+    with ThreadPoolExecutor(16) as ex: saved = sum(ex.map(do_tile, jobs))
+    print('tiles', saved, '/', len(jobs))
 
 # 2) 표시할 라벨(워프·특산물·광물)과 아이콘
 labels, routes = {}, {}
@@ -62,6 +67,7 @@ for top in tree:
     for ch in top['children']:
         if g == 'warp' and ch['id'] not in WARP: continue
         if g == 'oculus' and ch['id'] not in OCULI: continue
+        if g == 'puzzle' and ch['id'] not in PUZZLE: continue
         labels[ch['id']] = [ch['name'], g]
         rl = ch.get('recommend_route_list') or []
         if rl: routes[ch['id']] = rl[0]['url'].replace('lang=zh-cn', 'lang=ko-kr')
@@ -78,8 +84,16 @@ ox, oy = v2['origin']
 pts = {}
 for p in points:
     if p['label_id'] in labels and not p.get('z_level'):
-        pts.setdefault(p['label_id'], []).append([round(p['x_pos'] + ox), round(p['y_pos'] + oy)])
-data = {'size': v2['total_size'], 'zmax': len(LEVELS) - 1, 'labels': labels, 'points': pts, 'routes': routes, 'version': v2['map_version']}
+        xy = [round(p['x_pos'] + ox), round(p['y_pos'] + oy)]
+        if labels[p['label_id']][1] in TRACK: xy.append(p.get('area_id') or 0)
+        pts.setdefault(p['label_id'], []).append(xy)
+# 지역 번호 → 이름(HoYoLAB 탐사도 이름에 맞춰 '몬드성' → '몬드' 등)
+areas = {}
+try:
+    for a in api('get_area_pageLabel')['list']:
+        areas[a['id']] = {'몬드성': '몬드', '리월항': '리월', '이나즈마성': '이나즈마'}.get(a['name'], a['name'])
+except Exception as e: print('area fail', e)
+data = {'size': v2['total_size'], 'zmax': len(LEVELS) - 1, 'labels': labels, 'points': pts, 'routes': routes, 'areas': areas, 'version': v2['map_version']}
 with open(f'{OUT}/mapdata.js', 'w', encoding='utf8') as f:
     f.write('// HoYoLAB 공식 지도(테이와트) 위치 자료 — tools/build_map.py가 만듦. 좌표는 지도 픽셀(원본 크기)\n')
     f.write('const MAPDATA = ' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';\n')
