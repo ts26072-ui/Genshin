@@ -81,8 +81,8 @@ def char_row(c, pmap):
 
 def fix_cookie(raw):
     """손으로 옮겨 적다 생기는 흔한 실수를 고침: 이름 첫 글자를 소문자 l 대신 대문자 I·숫자 1로 적음(Itoken_v2), 대소문자, 따옴표·줄바꿈·'Cookie:' 머리말."""
-    raw = raw.strip().strip('"'').replace('
-', ';')
+    QUOTES = chr(34) + chr(39)
+    raw = raw.strip().strip(QUOTES).replace(chr(10), ';')
     if raw.lower().startswith('cookie:'):
         raw = raw[7:]
     out = []
@@ -90,7 +90,7 @@ def fix_cookie(raw):
         if '=' not in part:
             continue
         k, v = part.split('=', 1)
-        k, v = k.strip(), v.strip().strip('"'')
+        k, v = k.strip(), v.strip().strip(QUOTES)
         m = re.fullmatch(r'[lLI1|](token|tuid|tmid)(_v2)?', k, re.I)
         if m:
             k = 'l' + m.group(1).lower() + (m.group(2) or '').lower()
