@@ -228,10 +228,12 @@ const GG_PREV = { v: '7.1', at: '2026-09-23', tier: {
   kaeya:'B', chongyun:'C', qiqi:'S', diona:'A', ganyu:'B', rosaria:'A', eula:'C', ayaka:'B', aloy:'D', shenhe:'A+', layla:'A', mika:'C', freminet:'D', wriothesley:'S', charlotte:'A', citlali:'SS', escoffier:'S', skirk:'S', roen:'A+', sandrone:'SS', odette:'SS',
   ningguang:'D', noelle:'C', zhongli:'A', albedo:'A+', gorou:'A', itto:'C', yunjin:'B', navia:'B', chiori:'A', kachina:'C', xilonen:'S', illuga:'A+', zibai:'SS', linnea:'SS',
 } };
+// 등급이 점수를 정하고 나무위키 평가는 같은 등급 안에서만 ±3점(60점 기준 10점마다 1점). 등급 사이 간격(8점 이상)보다 작아 아래 등급이 위 등급을 넘지 못함
+const blendScore = (g, n) => g == null ? n : n == null ? g : g + Math.max(-3, Math.min(3, Math.round((n - 60) / 10)));
 const PERF = {};
 for (const id of new Set([...Object.keys(PERF_NAMU), ...Object.keys(GG)])) {
   const n = PERF_NAMU[id], g = GG[id] ? GG_SCORE[GG[id]] : null;
-  PERF[id] = n != null && g != null ? Math.round(0.6 * g + 0.4 * n) : (g ?? n);
+  PERF[id] = blendScore(g, n);
 }
 const PERF_DEFAULT = 60;
 const GP = { EL: { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' },
@@ -265,9 +267,9 @@ const ICON = {
 GP.iconUrl = id => { const n = ICON[id] || (id.startsWith('traveler') ? 'PlayerGirl' : null); return n ? `https://enka.network/ui/UI_AvatarIcon_${n}.png` : null; };
 
 // ───────── 역할별 · 운명의 자리별 성능 ─────────
-// 칸 점수 = 그 칸 GamsGo 등급 점수 60% + 나무위키 40%(한쪽만 있으면 그 값)
+// 칸 점수 = 그 칸 GamsGo 등급 점수 + 나무위키 평가 보정(±3)
 GP.POS = [['main', '메인 딜러'], ['sub', '서브 딜러'], ['sup', '서포터 · 힐러 · 보호막']];
-GP.roleScore = (id, t) => { const n = PERF_NAMU[id] ?? null; return n != null ? Math.round(0.6 * GG_SCORE[t] + 0.4 * n) : GG_SCORE[t]; };
+GP.roleScore = (id, t) => blendScore(GG_SCORE[t], PERF_NAMU[id] ?? null);
 // 운명의 자리 가치 곡선(C0 → C6 사이를 채우는 비율): 5성은 1돌·2돌이 크고 뒤로 갈수록 작음, 4성은 고르게
 GP.CONS_W = { 5: [0, .35, .55, .65, .75, .85, 1], 4: [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1] };
 const roleArr = s => s ? s.split('/').map(x => x === '-' ? null : x) : null;
@@ -300,14 +302,14 @@ function markAlt(sl) {
   return sl;
 }
 GP.perfAt = (id, cons = null) => Math.max(...GP.slotsAt(id, cons).map(x => x.perf));
-// 직전 티어표 대비 변동: 종합 점수(0.6×GamsGo 등급 + 0.4×나무위키) 기준. 점수가 오르면 올라감, 떨어지면 내려감(등급이 같아도)
+// 직전 티어표 대비 변동: 종합 점수(GamsGo 등급 점수 + 나무위키 ±3) 기준. 점수가 오르면 올라감, 떨어지면 내려감(등급이 같아도)
 // 직전 점수 = 직전 등급(GG_PREV.tier) + 직전 나무위키 점수(GG_PREV.namu, 없으면 지금 PERF_NAMU)
 const TIER_ORDER = ['D', 'C', 'B', 'A', 'A+', 'S', 'SS'];
 GP.prevScore = id => {
   const t = GG_PREV.tier[id];
   if (!t) return null;
   const n = (GG_PREV.namu && GG_PREV.namu[id] != null) ? GG_PREV.namu[id] : (PERF_NAMU[id] ?? null);
-  return n != null ? Math.round(0.6 * GG_SCORE[t] + 0.4 * n) : GG_SCORE[t];
+  return blendScore(GG_SCORE[t], n);
 };
 // 점수 순 전체 순위(같은 점수는 같은 순위)
 const rankOf = get => {

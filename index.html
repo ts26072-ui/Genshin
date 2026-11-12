@@ -383,7 +383,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
-<script src="shell.js?v=20261112f"></script>
+<script src="shell.js?v=20261112g"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -446,7 +446,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
     </div>
   </section>
 
-  <p class="foot-note">점수는 커뮤니티에서 통용되는 육성 기준(레벨 90, 주력 특성 8–9, 치명 비율 1:2, 캐릭터별 원충 목표 등)을 단순화한 추정치입니다. 레진 비용은 대략적인 상대값입니다. 파티 가치 = 딜량 50% + 육성 25% + 시너지 25%이며, 딜량은 가장 비슷한 실측 파티(genshin.im 7.2 허수아비 실측)의 DPS × 대체 멤버 배율(내 동료 평균 성능 ÷ 실측 동료 평균 성능의 제곱, 최대 1) × 내 육성 배율로 추정하고(육성 배율은 원신 데미지 공식으로 계산: 실측 기준 육성(Lv.90·핵심 특성 9·치명 70/150·기준 핵심 스탯·추천 무기/세트) 대비 내 캐릭터의 핵심 스탯 × 치명 기대값 × 특성 배율 × Lv.100 적 방어 계수 × 무기·세트·주옵·원충·돌파 계수를 곱하고, 메인 60%·서브 25%·서포터 8%의 피해 비중으로 합침. 서포터는 버프 성능으로 팀 전체에 곱함) 실측 1위(251k)를 100점으로 봅니다. 같은 메인의 실측 파티가 없으면 캐릭터 성능 점수로 보수적으로 추정합니다(최대 실측 1위의 75%). 캐릭터 성능 점수(T0–T4)는 GamsGo 원신 7.2 종합 티어표(2026년 11월, SS=92 · S=84 · A+=76 · A=68 · B=56 · C=44 · D=30)를 60%, 나무위키 각 캐릭터 문서의 '평가' 항목(2026년 10월 열람)을 읽고 매긴 값을 40% 섞은 것이며, 캐릭터 편집 화면에서 직접 바꿀 수 있습니다. 레벨 점수는 모험 등급이 허용하는 최대 레벨 대비 방어 계수 × 기초 스탯 곡선으로 계산하고, Lv.60 전에는 두 번째 고유 특성이 잠긴 만큼 감점합니다. 레벨이 낮으면 무기·성유물이 좋아도 기초 스탯이 낮아 제 힘을 못 내므로, 레벨 점수의 제곱근을 육성 점수 전체에 곱합니다(Lv.80 약 ×0.94, Lv.50 약 ×0.7, Lv.1 약 ×0.3). 특성은 돌파 단계별 상한(2·4·6·8·10단계 돌파 시 2·4·6·8·10)을 넘을 수 없습니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러오며, 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
+  <p class="foot-note">점수는 커뮤니티에서 통용되는 육성 기준(레벨 90, 주력 특성 8–9, 치명 비율 1:2, 캐릭터별 원충 목표 등)을 단순화한 추정치입니다. 레진 비용은 대략적인 상대값입니다. 파티 가치 = 딜량 50% + 육성 25% + 시너지 25%이며, 딜량은 가장 비슷한 실측 파티(genshin.im 7.2 허수아비 실측)의 DPS × 대체 멤버 배율(내 동료 평균 성능 ÷ 실측 동료 평균 성능의 제곱, 최대 1) × 내 육성 배율로 추정하고(육성 배율은 원신 데미지 공식으로 계산: 실측 기준 육성(Lv.90·핵심 특성 9·치명 70/150·기준 핵심 스탯·추천 무기/세트) 대비 내 캐릭터의 핵심 스탯 × 치명 기대값 × 특성 배율 × Lv.100 적 방어 계수 × 무기·세트·주옵·원충·돌파 계수를 곱하고, 메인 60%·서브 25%·서포터 8%의 피해 비중으로 합침. 서포터는 버프 성능으로 팀 전체에 곱함) 실측 1위(251k)를 100점으로 봅니다. 같은 메인의 실측 파티가 없으면 캐릭터 성능 점수로 보수적으로 추정합니다(최대 실측 1위의 75%). 캐릭터 성능 점수(T0 SS · T1 S·A+ · T2 A · T3 B · T4 C·D)는 GamsGo 원신 7.2 종합 티어표(2026년 11월, SS=92 · S=84 · A+=76 · A=68 · B=56 · C=44 · D=30) 등급 점수에, 나무위키 각 캐릭터 문서의 '평가' 항목(2026년 10월 열람)을 읽고 매긴 값으로 같은 등급 안에서만 ±3점 보정한 것이며(아래 등급이 위 등급을 넘지 않음), 캐릭터 편집 화면에서 직접 바꿀 수 있습니다. 레벨 점수는 모험 등급이 허용하는 최대 레벨 대비 방어 계수 × 기초 스탯 곡선으로 계산하고, Lv.60 전에는 두 번째 고유 특성이 잠긴 만큼 감점합니다. 레벨이 낮으면 무기·성유물이 좋아도 기초 스탯이 낮아 제 힘을 못 내므로, 레벨 점수의 제곱근을 육성 점수 전체에 곱합니다(Lv.80 약 ×0.94, Lv.50 약 ×0.7, Lv.1 약 ×0.3). 특성은 돌파 단계별 상한(2·4·6·8·10단계 돌파 시 2·4·6·8·10)을 넘을 수 없습니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러오며, 이 사이트는 HoYoverse와 관련 없는 비상업 팬 도구입니다.</p>
 </div>
 
 <dialog id="dlg-link" aria-labelledby="link-title">
@@ -562,11 +562,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261112f"></script>
-<script src="weapons.js?v=20261112f"></script>
-<script src="rot.js?v=20261112f"></script>
-<script src="names.js?v=20261112f"></script>
-<script src="account.js?v=20261112f"></script>
+<script src="builds.js?v=20261112g"></script>
+<script src="weapons.js?v=20261112g"></script>
+<script src="rot.js?v=20261112g"></script>
+<script src="names.js?v=20261112g"></script>
+<script src="account.js?v=20261112g"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -719,7 +719,7 @@ const RAW = [
 // 캐릭터 성능 점수(0~100)는 두 출처를 섞어서 만든다.
 // 1) PERF_NAMU: 나무위키 각 캐릭터 문서 '평가' 항목(2026년 10월 열람, 미탸·발레리는 11월)의 장단점과 총평을 읽고 매긴 값. null = 평가 문서 없음
 // 2) GG: GamsGo 원신 7.2 종합 티어표(2026-11-04) — 메인/서브/서포터 칸 중 가장 높은 등급
-// 최종 = 티어표 60% + 나무위키 40%, 한쪽만 있으면 그 값
+// 최종 = 티어표 등급 점수 + 나무위키 보정(±3, 등급 사이를 넘지 않음). 한쪽만 있으면 그 값
 const PERF_NAMU = {
   'traveler-pyro':55, 'traveler-hydro':20, 'traveler-anemo':30, 'traveler-electro':30, 'traveler-dendro':52, 'traveler-cryo':70, 'traveler-geo':25,
   amber:20, xiangling:78, bennett:92, diluc:45, klee:45, xinyan:25, hutao:75, yanfei:50, yoimiya:50, thoma:55, dehya:55, lyney:72, chevreuse:72, gaming:62, arlecchino:85, mavuika:92, durin:82, nicole:85,
@@ -742,10 +742,12 @@ const GG = {
   mitya:'SS', valery:'S',
 };
 const GG_SCORE = { SS: 92, S: 84, 'A+': 76, A: 68, B: 56, C: 44, D: 30 };
+// 등급이 점수를 정하고 나무위키 평가는 같은 등급 안에서만 ±3점(60점 기준 10점마다 1점). 등급 사이 간격(8점 이상)보다 작아 아래 등급이 위 등급을 넘지 못함
+const blendScore = (g, n) => g == null ? n : n == null ? g : g + Math.max(-3, Math.min(3, Math.round((n - 60) / 10)));
 const PERF = {};
 for (const id of new Set([...Object.keys(PERF_NAMU), ...Object.keys(GG)])) {
   const n = PERF_NAMU[id], g = GG[id] ? GG_SCORE[GG[id]] : null;
-  PERF[id] = n != null && g != null ? Math.round(0.6 * g + 0.4 * n) : (g ?? n);
+  PERF[id] = blendScore(g, n);
 }
 const PERF_DEFAULT = 60;
 // GamsGo 7.2 명함(C0) 티어표의 역할별 등급 '메인/서브/서포터'
@@ -794,7 +796,7 @@ function consPerf(id, cons) {
   const d = DB[id], arr = x => x ? x.split('/').map(t => t === '-' ? null : t) : null;
   const a = arr(GG_ROLE_C0[id]), b = arr(GG_ROLE_C6[id]) || a;
   if (!a) return d.perf;
-  const n = PERF_NAMU[id] ?? null, sc = t => n != null ? Math.round(0.6 * GG_SCORE[t] + 0.4 * n) : GG_SCORE[t];
+  const n = PERF_NAMU[id] ?? null, sc = t => blendScore(GG_SCORE[t], n);
   const w = CONS_W[d.r === 5 ? 5 : 4][clamp(Math.round(cons || 0), 0, 6)];
   let best = 0;
   for (let i = 0; i < 3; i++) {
@@ -805,7 +807,8 @@ function consPerf(id, cons) {
   }
   return best || d.perf;
 }
-const TIER = p => p >= 85 ? 'T0' : p >= 72 ? 'T1' : p >= 58 ? 'T2' : p >= 45 ? 'T3' : 'T4';
+// T0 = SS, T1 = S·A+, T2 = A, T3 = B, T4 = C·D (등급 점수 ±3 범위에 맞춘 경계)
+const TIER = p => p >= 88 ? 'T0' : p >= 72 ? 'T1' : p >= 62 ? 'T2' : p >= 50 ? 'T3' : 'T4';
 const DB = {};
 for (const [id,name,el,wp,r,roles,scale,er,crit,tal,guess] of RAW)
   DB[id] = { id, name, el, wp, r, roles: roles.split('/'), scale, er, crit: !!crit, tal: tal.split('').map(k => 'NEQ'.indexOf(k)), guess: !!guess,
@@ -2167,6 +2170,16 @@ $('#btn-del-party').addEventListener('click', () => {
 const NAME_ID = Object.fromEntries(Object.values(DB).map(d => [d.name, d.id]));
 const KEY_STAT = { atk: '공격력', hp: '최대 HP', def: '방어력', em: '원소 마스터리' };
 const TRAVELER_HID = [10000005, 10000007];
+// 운명의 자리 3·5번째가 올려 주는 특성(0 평타 · 1 E · 2 Q, -1 없음). HoYoLAB은 이 +3을 더한 레벨을 주므로 빼고 원래 레벨만 저장
+// (Enka 쇼케이스·GOOD 파일은 원래 레벨이라 그대로). dex/<캐릭터>.json의 운명의 자리 설명에서 뽑음
+const CONS_BOOST = {'aino':[2,1],'albedo':[1,2],'alhaitham':[1,2],'alyosha':[1,2],'amber':[2,1],'arlecchino':[0,2],'ayaka':[2,1],'ayato':[1,2],'baizhu':[2,1],'barbara':[2,1],'barca':[1,2],'beidou':[1,2],'bennett':[1,2],'candace':[2,1],'charlotte':[2,1],'chasca':[1,2],'chevreuse':[1,2],'chiori':[1,2],'chongyun':[2,1],'citlali':[1,2],'clorinde':[1,2],'collei':[1,2],'columbina':[1,2],'cyno':[2,1],'dahlia':[2,1],'dehya':[2,1],'diluc':[1,2],'diona':[2,1],'dori':[2,1],'durin':[2,1],'emilie':[1,2],'escoffier':[1,2],'eula':[2,1],'faruzan':[1,2],'fischl':[1,2],'flins':[2,1],'freminet':[0,1],'furina':[2,1],'gaming':[1,2],'ganyu':[2,1],'gorou':[1,2],'heizou':[1,2],'hutao':[1,2],'iansan':[1,2],'ifa':[1,2],'illuga':[2,1],'ineffa':[1,2],'itto':[1,2],'jahoda':[2,1],'jean':[2,1],'kachina':[1,2],'kaeya':[1,2],'kaveh':[2,1],'kazuha':[1,2],'keqing':[2,1],'kinich':[1,2],'kirara':[1,2],'klee':[1,2],'kokomi':[2,1],'lanyan':[1,2],'lauma':[2,1],'layla':[1,2],'linnea':[1,2],'lisa':[2,1],'lynette':[2,1],'lyney':[0,2],'mavuika':[2,1],'mika':[2,1],'mitya':[1,0],'mizuki':[1,2],'mona':[2,1],'mualani':[1,2],'nahida':[1,2],'navia':[1,2],'nefer':[1,2],'neuvillette':[0,2],'nicole':[1,2],'nilou':[2,1],'ningguang':[2,1],'noelle':[1,2],'odette':[1,2],'ororon':[2,1],'prune':[2,1],'qiqi':[2,1],'raiden':[2,1],'razor':[2,1],'roen':[1,2],'rosaria':[1,2],'sandrone':[0,2],'sara':[2,1],'sayu':[2,1],'sethos':[0,2],'shenhe':[1,2],'shinobu':[1,2],'sigewinne':[1,2],'skirk':[2,1],'sucrose':[1,2],'tartaglia':[1,2],'thoma':[1,2],'tighnari':[2,1],'traveler-anemo':[2,1],'traveler-cryo':[2,1],'traveler-dendro':[1,2],'traveler-electro':[2,1],'traveler-geo':[2,1],'traveler-hydro':[1,2],'traveler-pyro':[1,2],'valery':[0,1],'varesa':[2,0],'venti':[2,1],'vesna':[1,2],'vodyanitsa':[1,2],'wanderer':[2,1],'wriothesley':[0,2],'xiangling':[2,1],'xianyun':[2,1],'xiao':[1,2],'xilonen':[1,2],'xingqiu':[2,1],'xinyan':[1,2],'yae':[1,2],'yanfei':[1,2],'yaoyao':[1,2],'yelan':[2,1],'yoimiya':[1,2],'yunjin':[2,1],'zhongli':[1,2],'zibai':[1,2]};
+function baseTalents(id, row) {
+  const t = (row.talents || [1, 1, 1]).slice(0, 3), b = CONS_BOOST[id];
+  if (!b) return t;
+  if (row.cons >= 3 && b[0] >= 0) t[b[0]] -= 3;
+  if (row.cons >= 5 && b[1] >= 0) t[b[1]] -= 3;
+  return t.map(x => Math.max(1, x));
+}
 function idOfRow(row) {
   if (row.traveler || TRAVELER_HID.includes(row.hid)) { const el = row.traveler || ACCT.EL_HOYO[row.element] || String(row.element || '').toLowerCase(); return DB['traveler-' + el] ? 'traveler-' + el : null; }
   return NAME_ID[row.name] || null;
@@ -2192,15 +2205,17 @@ function mainOkOf(id, arts) {
   });
 }
 // 불러온 캐릭터 한 명 → 이 사이트의 캐릭터 입력값. 돌파·특성 상한·핵심 스탯은 기존 규칙(mk) 그대로
-function charFromRow(id, row, prev, statsOk) {
+function charFromRow(id, row, prev, statsOk, boosted) {
   const d = DB[id], base = prev || defaultsFor(id), arts = row.arts || [];
   const st = statsOk ? row.stats || {} : ACCT.statsFromArts(arts);
   const w = row.weapon;
   const ap = row.ascension != null ? ASC_EDGE.includes(row.level) && row.ascension < ascOf(row.level) : false;
   const c = { ...base, id, lv: row.level, ap, cons: row.cons };
-  c.t = row.talents.map(x => clamp(Math.round(x), 1, 10)).map(x => Math.min(x, talCapOf(c)));
+  c.t = (boosted ? baseTalents(id, row) : row.talents).map(x => clamp(Math.round(x), 1, 10)).map(x => Math.min(x, talCapOf(c)));
   if (w) Object.assign(c, { wn: WEAPONS[w.name] ? w.name : '', wt: (WEAPONS[w.name]?.r || w.rarity) >= 5 ? 'five' : (WEAPONS[w.name]?.r || w.rarity) === 4 ? 'four' : 'three', wl: w.level, wr: w.ref || 1 });
+  // 성유물을 하나도 안 끼고 있으면 예전 값·기본값(추천 세트 가정)을 남기지 않고 '세트 없음'으로
   if (arts.length) Object.assign(c, setsOf(arts), { mainOk: mainOkOf(id, arts) });
+  else if (statsOk) Object.assign(c, { set: 'broken', sa: '', sb: '', mainOk: false });
   const pick = (k, dflt) => st[k] != null && (statsOk || arts.length) ? Math.round(st[k] * 10) / 10 : dflt;
   c.cr = pick('치명타 확률', base.cr); c.cd = pick('치명타 피해', base.cd); c.er = pick('원소 충전 효율', base.er);
   // 핵심 스탯은 최종 스탯이 있을 때만(HoYoLAB). GOOD 파일은 무기 기초 공격력을 몰라 기존 값 유지
@@ -2224,13 +2239,13 @@ function shareTraveler(fromId) {
   for (const id of TRAV_IDS()) if (id !== fromId && S.roster[id]) { S.roster[id] = travelerFrom(src, id, S.roster[id]); n++; }
   return n;
 }
-function applyRows(rows, src, statsOk) {
+function applyRows(rows, src, statsOk, boosted) {
   if (S.sample) { S.roster = {}; S.parties = []; S.sample = false; }
   let n = 0; const miss = [];
   for (const row of rows) {
     const id = idOfRow(row);
     if (!id) { miss.push(row.name || row.key); continue; }
-    S.roster[id] = charFromRow(id, row, S.roster[id], statsOk); n++;
+    S.roster[id] = charFromRow(id, row, S.roster[id], statsOk, boosted); n++;
     if (id.startsWith('traveler-')) shareTraveler(id);
   }
   save(); render();
@@ -2244,7 +2259,7 @@ async function syncHoyo(manual) {
     return;
   }
   if (!manual && (!S.hoyoAuto || S.hoyoAt === h.updated)) return;
-  const { n, miss } = applyRows(h.chars || [], 'hoyolab', true);
+  const { n, miss } = applyRows(h.chars || [], 'hoyolab', true, h.source !== 'enka');
   if (h.ar) S.ar = h.ar;
   S.hoyoAt = h.updated; S.hoyoAuto = true; save(); render();
   toast(`${h.source === 'enka' ? 'UID 쇼케이스' : 'HoYoLAB'}에서 ${n}명 불러옴${h.ar ? ` · 모험 등급 ${h.ar}` : ''}${miss.length ? ` · 못 찾음: ${miss.join(', ')}` : ''}`);

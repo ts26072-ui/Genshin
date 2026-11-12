@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>티어표 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261112f">
+<link rel="stylesheet" href="common.css?v=20261112g">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -93,7 +93,7 @@ button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: poin
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261112f"></script>
+<script src="shell.js?v=20261112g"></script>
 <div class="wrap" style="max-width:1200px">
   <header class="top">
     <h1><span class="star">✦</span> 캐릭터 티어표</h1>
@@ -126,10 +126,10 @@ button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: poin
   <div class="tgrid" id="tiers"></div>
   <dialog id="dlg" aria-label="캐릭터 점수"></dialog>
 
-  <p class="foot-note">점수 = 그 칸의 GamsGo 등급 점수(SS 92 · S 84 · A+ 76 · A 68 · B 56 · C 44 · D 30) 60% + 나무위키 각 캐릭터 문서의 '평가'를 읽고 매긴 점수 40%(한쪽만 있으면 그 값). 행은 SS 85점 이상 · S 72 · A 58 · B 45 · C 그 아래. 종합은 GamsGo 원신 7.2 종합 티어표, C0·C6은 같은 글의 명함(0돌)·풀돌(6돌) 티어표(2026년 11월 4일)를 그대로 쓰고, C1~C5는 두 표 사이를 운명의 자리 가치 곡선(5성 0 · 35 · 55 · 65 · 75 · 85 · 100%, 4성은 고르게)으로 채운 <b>추정</b>입니다. 포지션은 GamsGo 표의 메인 딜러·서브 딜러·서포터 칸(힐러·보호막은 서포터 칸)을 따르고, 한 캐릭터가 여러 칸에 있으면 가장 높은 칸이 아닌 타일에 '부'가 붙습니다. 순위 변동은 직전 GamsGo 표(7.1, 2026년 9월 23일)의 가장 높은 칸 등급과 비교합니다. 매주 목요일 자동 업데이트에서 갱신됩니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
+  <p class="foot-note">점수 = 그 칸의 GamsGo 등급 점수(SS 92 · S 84 · A+ 76 · A 68 · B 56 · C 44 · D 30) + 나무위키 각 캐릭터 문서의 '평가'를 읽고 매긴 점수로 같은 등급 안에서만 ±3점 보정(60점 기준 10점마다 1점). 등급 사이 간격보다 작아서 아래 등급 캐릭터가 위 등급을 넘지 못합니다. 행은 SS(88점 이상) · S와 A+(72) · A(62) · B(50) · C와 D(그 아래). 종합은 GamsGo 원신 7.2 종합 티어표, C0·C6은 같은 글의 명함(0돌)·풀돌(6돌) 티어표(2026년 11월 4일)를 그대로 쓰고, C1~C5는 두 표 사이를 운명의 자리 가치 곡선(5성 0 · 35 · 55 · 65 · 75 · 85 · 100%, 4성은 고르게)으로 채운 <b>추정</b>입니다. 포지션은 GamsGo 표의 메인 딜러·서브 딜러·서포터 칸(힐러·보호막은 서포터 칸)을 따르고, 한 캐릭터가 여러 칸에 있으면 가장 높은 칸이 아닌 타일에 '부'가 붙습니다. 점수·순위 변동은 직전 GamsGo 표(7.1, 2026년 9월 23일)로 같은 방식으로 계산한 점수와 비교합니다. 매주 목요일 자동 업데이트에서 갱신됩니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
 </div>
 
-<script src="chars.js?v=20261112f"></script>
+<script src="chars.js?v=20261112g"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster();
@@ -137,7 +137,8 @@ const PREF = GP.KEY + ':tier';
 let st = { el: '', mine: false, mode: 'all' };
 try { st = { ...st, ...JSON.parse(localStorage.getItem(PREF)) }; } catch (e) {}
 
-const ROWS = [['SS', '#d4553b', 85, '85+'], ['S', '#e08a3c', 72, '72+'], ['A', '#7fae4a', 58, '58+'], ['B', '#4a9fae', 45, '45+'], ['C', '#8a7a9a', 0, '45 미만']];
+// 행 = GamsGo 등급 묶음(SS · S와 A+ · A · B · C와 D). 점수는 등급 점수 ±3이라 경계를 넘지 않음
+const ROWS = [['SS', '#d4553b', 88, '88+'], ['S', '#e08a3c', 72, '72+'], ['A', '#7fae4a', 62, '62+'], ['B', '#4a9fae', 50, '50+'], ['C', '#8a7a9a', 0, '50 미만']];
 const POS = GP.POS;
 const posName = p => POS.find(x => x[0] === p)[1];
 const rowOf = perf => ROWS.find(r => perf >= r[2])[0];
@@ -212,7 +213,7 @@ function renderChanges() {
     ${down.length ? `<div class="cgroup"><h3 class="low">내려감 · 점수 하락</h3><div class="clist">${down.map(chip).join('')}</div></div>` : ''}
     ${nw.length ? `<div class="cgroup"><h3>새로 들어옴</h3><div class="clist">${nw.map(chip).join('')}</div></div>` : ''}
     ${moved.length ? `<details class="cgroup"><summary><h3 style="display:inline">점수는 그대로, 순위만 바뀜 (${moved.length}명)</h3></summary><div class="clist" style="margin-top:6px">${moved.map(chip).join('')}</div></details>` : ''}
-    <p class="muted" style="margin:8px 0 0;font-size:12.5px">종합 점수(GamsGo 등급 60% + 나무위키 평가 40%) 기준입니다. 등급이 같아도 점수가 떨어지면 내려감으로 셉니다. 순위는 전체 캐릭터 중 점수 순(같은 점수는 같은 순위)이라, 다른 캐릭터가 오르내리면 내 점수가 그대로여도 바뀝니다. 종합 기준 티어표 타일에는 ▲▼ 점수 차가 붙습니다.</p>`;
+    <p class="muted" style="margin:8px 0 0;font-size:12.5px">종합 점수(GamsGo 등급 점수 + 나무위키 평가 ±3) 기준입니다. 등급이 같아도 점수가 떨어지면 내려감으로 셉니다. 순위는 전체 캐릭터 중 점수 순(같은 점수는 같은 순위)이라, 다른 캐릭터가 오르내리면 내 점수가 그대로여도 바뀝니다. 종합 기준 티어표 타일에는 ▲▼ 점수 차가 붙습니다.</p>`;
   if (fresh) $('#changes').open = true;
   try { localStorage.setItem(SEEN, NOW_KEY); } catch (e) {}
 }
