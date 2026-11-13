@@ -1575,7 +1575,8 @@ function renderRoster() {
   const v = $('#view-roster');
   const ids = Object.keys(S.roster);
   const head = `<div class="bar"><h2>내 캐릭터</h2><div class="actions"><button class="btn ghost" type="button" data-act="hoyo-sync" title="GitHub Actions가 3시간마다 받아 둔 HoYoLAB 데이터로 채움">HoYoLAB 동기화</button><button class="btn ghost" type="button" data-act="link-help">연동 방법</button><button class="btn ghost" type="button" data-act="good-import" title="Inventory Kamera 등 스캐너가 만든 GOOD(JSON) 파일">GOOD 파일 불러오기</button><button class="btn primary" type="button" data-act="new-char">+ 캐릭터 등록</button></div></div>`
-    + (S.hoyoAt ? `<p class="legend">HoYoLAB 동기화: ${esc(new Date(S.hoyoAt).toLocaleString('ko-KR'))} 데이터 · 사이트를 열 때 새 데이터가 있으면 자동으로 반영합니다.</p>` : '');
+    + (S.hoyoAt ? `<p class="legend">HoYoLAB 동기화: ${esc(new Date(S.hoyoAt).toLocaleString('ko-KR'))} 데이터${(Date.now() - new Date(S.hoyoAt)) > 3 * 3600e3 ? ` <b>(${Math.floor((Date.now() - new Date(S.hoyoAt)) / 3600e3)}시간 전)</b>` : ''} · 사이트를 열 때 새 데이터가 있으면 자동으로 반영합니다.
+      게임에서 세팅을 바꿨으면 <a href="https://github.com/${esc(ACCT.OWNER)}/Genshin/actions/workflows/hoyolab.yml" target="_blank" rel="noopener"><b>지금 새로 받기</b></a>(GitHub → <b>Run workflow</b>)를 누르고 1~2분 뒤 <b>HoYoLAB 동기화</b>를 누르세요. 자동 실행은 3시간마다로 정해 두었지만 GitHub가 몇 시간씩 늦추는 일이 많아요.</p>` : '');
   if (!ids.length) {
     v.innerHTML = head + `<div class="empty-state"><p>등록된 캐릭터가 없습니다.</p><p>게임의 캐릭터 상세 화면을 보면서 레벨, 특성, 무기, 치명타·원충 수치를 입력하세요.</p></div>`;
     return;
