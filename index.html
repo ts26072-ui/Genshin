@@ -435,7 +435,19 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
-<script src="shell.js?v=20261113d"></script>
+<script>
+// 다른 페이지(도감·비교) 안에 넣었을 때: 가상 파티 비교 칸만 보여 주고, 높이를 바깥 페이지에 알려 줌
+window.EMBED = /[?&]embed=vp\b/.test(location.search);
+if (EMBED) document.documentElement.classList.add('embed');
+</script>
+<style>
+html.embed .appbar, html.embed header.top, html.embed .tabs, html.embed .foot-note, html.embed footer, html.embed [role="tabpanel"]:not(#view-parties),
+html.embed #view-parties > :not(.vp), html.embed .wrap > :not(:has(#view-parties)):not(#view-parties) { display: none !important; }
+html.embed body { background: transparent !important; padding: 0 !important; min-height: 0 !important; }
+html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
+html.embed .vp { margin: 0; }
+</style>
+<script src="shell.js?v=20261113e"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -616,11 +628,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261113d"></script>
-<script src="weapons.js?v=20261113d"></script>
-<script src="rot.js?v=20261113d"></script>
-<script src="names.js?v=20261113d"></script>
-<script src="account.js?v=20261113d"></script>
+<script src="builds.js?v=20261113e"></script>
+<script src="weapons.js?v=20261113e"></script>
+<script src="rot.js?v=20261113e"></script>
+<script src="names.js?v=20261113e"></script>
+<script src="account.js?v=20261113e"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -1635,6 +1647,10 @@ function swapBlock(roster, mode) {
       <span class="swrx">${[...r.gain.map(k => `<i class="ok">+${esc(k)}</i>`), ...r.lose.map(k => `<i class="low">−${esc(k)}</i>`)].join(' ') || `<i class="muted">반응 그대로${r.e.rx.length ? ' (' + r.e.rx.map(esc).join('·') + ')' : ''}</i>`} <i class="muted">· 딜 ${r.e.dpsScore.toFixed(0)} · 시너지 ${r.e.syn.toFixed(0)}</i></span></button>`).join('') || '<p class="muted">후보가 없어요.</p>'}</div>
     <p class="muted bt-why">줄을 누르면 그 캐릭터로 바꿔요.</p></div>`;
 }
+if (window.EMBED) {
+  const tell = () => { try { parent.postMessage({ type: 'gp-vp-h', h: document.documentElement.scrollHeight }, '*'); } catch (e) {} };
+  addEventListener('load', () => { tell(); new ResizeObserver(tell).observe(document.body); });
+}
 function vpBlock() {
   if (!Array.isArray(S.vp)) S.vp = [];
   while (S.vp.length < VP_N) S.vp.push({ m: [null, null, null, null] });
@@ -1645,7 +1661,7 @@ function vpBlock() {
   const res = S.vp.map((p, i) => p.m.some(Boolean) ? evalParty({ pid: 'vp' + i, name: '', m: p.m }, null, roster) : null);
   const best = Math.max(...res.filter(Boolean).map(e => e.value));
   const load = S.parties.length ? `<select id="vp-load" aria-label="내 파티 불러오기"><option value="">내 파티 불러오기…</option>${S.parties.map(p => `<option value="${esc(p.pid)}">${esc(p.name)}</option>`).join('')}</select>` : '';
-  return `<section class="vp"><div class="bar"><h2>가상 파티 비교</h2><div class="actions">${load}<div class="seg" role="group" aria-label="캐릭터 값">
+  return `<section class="vp"><div class="bar"><h2>파티 비교 · 1명씩 바꿔 보기</h2><div class="actions">${load}<div class="seg" role="group" aria-label="캐릭터 값">
       <button type="button" data-vpmode="ideal" aria-pressed="${mode === 'ideal'}">잘 키운 가정</button><button type="button" data-vpmode="mine" aria-pressed="${mode === 'mine'}">보유 캐릭터는 내 값</button></div></div></div>
     <p class="legend">아무 캐릭터로나 파티를 짜서 비교해요(보유하지 않아도 됨). '잘 키운 가정'은 모두 C0 · 최대 레벨 · 키울 특성 목표 · 추천 무기·세트 · 기준 스탯으로 똑같이 맞춰 순수하게 조합만 비교하고, '내 값'은 보유한 캐릭터만 내 실제 육성으로 바꿔요. 점수는 파티 순위와 같은 계산이에요.</p>
     <div class="vpg">${S.vp.map((p, i) => { const e = res[i];
