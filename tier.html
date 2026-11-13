@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>티어표 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261113i">
+<link rel="stylesheet" href="common.css?v=20261113j">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -99,7 +99,7 @@ button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: poin
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261113i"></script>
+<script src="shell.js?v=20261113j"></script>
 <div class="wrap" style="max-width:1200px">
   <header class="top">
     <h1><span class="star">✦</span> 캐릭터 티어표</h1>
@@ -136,7 +136,7 @@ button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: poin
   <p class="foot-note">점선 테두리 = <b>역할 추정</b> 칸: 게임에서 그 역할도 맡지만(예: 미탸·헤이조 서브 딜러, 닐루 서포터) GamsGo 티어표에는 그 역할 평가가 없는 경우예요. 그 캐릭터의 가장 높은 칸보다 한 등급 아래로 추정해 넣었어요.</p>
 </div>
 
-<script src="chars.js?v=20261113i"></script>
+<script src="chars.js?v=20261113j"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster();
@@ -189,7 +189,7 @@ function scoreCard(id, pos) {
       <div><div class="pts">${best.perf}<small> / 100점 · ${label}${best.xrole ? ' · 역할 추정' : best.est ? ' 추정' : ''}</small></div><div class="meta muted" style="font-size:12.5px">${posName(best.pos)} ${inPos.length}명 중 ${rank}위</div></div></div>
     <div class="roles">${sls.map(x => `<span${x.pos === best.pos ? ' aria-current="true"' : ''}${x.xrole ? ' class="xr" title="GamsGo 티어표에는 이 역할 평가가 없어, 가장 높은 칸보다 한 등급 아래로 추정"' : ''}>${posName(x.pos)}<b>${x.tier || ''} ${x.perf}점${x.xrole ? ' · 추정' : ''}</b></span>`).join('')}</div>
     <div><h3>운명의 자리별 점수 <span class="muted" style="font-size:13px;font-weight:400">· ${posName(best.pos)}</span></h3><div class="ccurve">${curve.map((v, k) => `<div class="cc${cons === k ? ' on' : ''}"><i style="height:${Math.max(4, v - 30) / 70 * 100}%"></i><b>${v}</b><span>C${k}</span></div>`).join('')}</div>
-      <p class="muted" style="margin:4px 0 0;font-size:12px">C0·C6은 GamsGo 명함·풀돌 표, C1~C5는 그 사이 추정</p></div>
+      <p class="muted" style="margin:4px 0 0;font-size:12px">C0·C6은 GamsGo 명함·풀돌 표, C1~C5는 그 사이 추정. 두 표 등급이 같으면 같은 등급 칸 안에서 풀돌 가치만큼(5성 +6 · 4성 +4점) 올려요</p></div>
     <div class="parts">
       <span>GamsGo 종합</span><span class="pbar"><i style="width:${GG[id] ? GG_SCORE[GG[id]] : 0}%"></i></span><span class="v">${GG[id] ? `${GG[id]} · ${GG_SCORE[GG[id]]}점` : '없음'}</span>
       <span>나무위키 평가</span><span class="pbar"><i style="width:${n ?? 0}%"></i></span><span class="v">${n != null ? `${n}점` : '없음'}</span>

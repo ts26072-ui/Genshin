@@ -295,7 +295,11 @@ GP.slotsAt = (id, cons = null) => {
   for (let i = 0; i < 3; i++) {
     const ta = a[i], tb = b[i];
     if (!(ta && w < 1) && !(tb && w >= 0.5)) continue;
-    const sa = ta ? GP.roleScore(id, ta) : null, sb = tb ? GP.roleScore(id, tb) : null;
+    const sa = ta ? GP.roleScore(id, ta) : null;
+    let sb = tb ? GP.roleScore(id, tb) : null;
+    // GamsGo 명함·풀돌 등급이 같으면 점수도 같아져 돌파 가치가 0으로 보이므로, 같은 등급 칸 안에서 풀돌 가치만큼 올림
+    // (5성 +6 · 4성 +4, 등급 칸 위쪽 끝까지, 적어도 +2). 풀돌 등급이 더 낮게 적힌 경우도 돌파로 성능이 줄지는 않으니 명함 점수 이상으로
+    if (sa != null && sb != null && sb <= sa) sb = Math.min(100, Math.max(sa + 2, Math.min((GG_BAND[GG_SCORE[ta]] || [0, 100])[1], sa + (d.r === 5 ? 6 : 4))));
     const perf = sa != null && sb != null ? Math.round(sa + (sb - sa) * w) : (sa ?? sb);
     out.push({ pos: GP.POS[i][0], tier: cons === 0 ? ta : cons === 6 ? tb : null, perf, est: cons > 0 && cons < 6 && ta !== tb });
   }
@@ -311,7 +315,7 @@ function addRoles(d, out) {
     const pos = ROLE_POS[r];
     if (!pos || out.some(x => x.pos === pos)) continue;
     const ti = best.tier ? TIER_ORDER.indexOf(best.tier) : -1, tier = ti > 0 ? TIER_ORDER[ti - 1] : ti === 0 ? 'D' : null;
-    const perf = tier ? Math.min(best.perf - 1, GP.roleScore(d.id, tier)) : Math.max(0, best.perf - 8);
+    const perf = Math.max(0, best.perf - 8);
     out.push({ pos, tier, perf, est: true, xrole: true });
   }
   out.sort((a, b) => GP.POS.findIndex(p => p[0] === a.pos) - GP.POS.findIndex(p => p[0] === b.pos));
