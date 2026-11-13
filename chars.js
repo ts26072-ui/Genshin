@@ -287,7 +287,7 @@ GP.slotsAt = (id, cons = null) => {
     const g = roleArr(GG_ROLE[id]);
     if (!g) return markAlt(fallback());
     g.forEach((t, i) => t && out.push({ pos: GP.POS[i][0], tier: t, perf: GP.roleScore(id, t), est: false }));
-    return markAlt(out);
+    return markAlt(addRoles(d, out));
   }
   const a = roleArr(GG_ROLE_C0[id]) || roleArr(GG_ROLE[id]), b = roleArr(GG_ROLE_C6[id]) || a;
   if (!a) return markAlt(fallback());
@@ -299,8 +299,24 @@ GP.slotsAt = (id, cons = null) => {
     const perf = sa != null && sb != null ? Math.round(sa + (sb - sa) * w) : (sa ?? sb);
     out.push({ pos: GP.POS[i][0], tier: cons === 0 ? ta : cons === 6 ? tb : null, perf, est: cons > 0 && cons < 6 && ta !== tb });
   }
-  return markAlt(out.length ? out : fallback());
+  return markAlt(addRoles(d, out.length ? out : fallback()));
 };
+// 게임에서 맡는 역할인데 티어표(GamsGo)에 칸이 없으면(예: 미탸 서브 딜러, 헤이조 서브 딜러) 그 칸도 넣음.
+// 점수는 그 캐릭터의 가장 높은 칸보다 한 등급 아래로 추정(xrole = 역할 추정)
+const ROLE_POS = { main: 'main', sub: 'sub', sup: 'sup', heal: 'sup', shield: 'sup' };
+function addRoles(d, out) {
+  if (!out.length) return out;
+  const best = out.reduce((a, b) => b.perf > a.perf ? b : a);
+  for (const r of d.roles) {
+    const pos = ROLE_POS[r];
+    if (!pos || out.some(x => x.pos === pos)) continue;
+    const ti = best.tier ? TIER_ORDER.indexOf(best.tier) : -1, tier = ti > 0 ? TIER_ORDER[ti - 1] : ti === 0 ? 'D' : null;
+    const perf = tier ? Math.min(best.perf - 1, GP.roleScore(d.id, tier)) : Math.max(0, best.perf - 8);
+    out.push({ pos, tier, perf, est: true, xrole: true });
+  }
+  out.sort((a, b) => GP.POS.findIndex(p => p[0] === a.pos) - GP.POS.findIndex(p => p[0] === b.pos));
+  return out;
+}
 function markAlt(sl) {
   const top = Math.max(...sl.map(x => x.perf)), first = sl.findIndex(x => x.perf === top);
   sl.forEach((x, i) => x.alt = i !== first);

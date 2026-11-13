@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>캐릭터 도감 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261113g">
+<link rel="stylesheet" href="common.css?v=20261113h">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -128,7 +128,7 @@
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261113g"></script>
+<script src="shell.js?v=20261113h"></script>
 <div class="wrap">
   <header class="top">
     <h1><span class="star">✦</span> 캐릭터 도감</h1>
@@ -152,13 +152,13 @@
   <p class="foot-note">종합(OVR) = 그 운명의 자리에서의 성능 점수(티어표와 같은 값: GamsGo 등급 점수와 나무위키 평가의 평균(등급 칸 안), C1~C5는 명함·풀돌 표 사이 추정) × 레벨 계수(핵심 스탯 기초값이 Lv.90의 몇 %인지의 제곱근 — 파티 감정소의 레벨 감점과 같은 방식) × 성유물 계수(0.75 + 0.25 × 성유물 가치: 세트 50% — 추천 4세트 1위 1.0, 순위마다 −0.06, 추천 밖 0.6, 2+2 0.75, 없음 0.35 — + 주옵 25% + 부옵 수준 25%) × 무기 계수(0.75 + 0.25 × 무기 가치. 무기 가치는 파티 감정소와 같이 추천 1위 1.0에서 순위가 내려갈수록 줄고, 추천 밖은 성급별 값, 재련마다 조금 오르며, 무기 레벨이 낮으면 공격력 비율만큼 깎임). 카드의 공격력은 캐릭터 + 무기 기초 공격력이고, 최종 스탯은 여기에 5성 +20 성유물 주옵(꽃 HP 4780 · 깃털 공격력 311 · 시계·성배·왕관), 부옵 수준(다섯 부위 유효 옵션 합 보통 20 · 좋음 28 · 종결 36회를 추천 부옵 상위 4개에 1 · 1 · 0.8 · 0.6 비율로 나눈 가정치), 2세트 스탯 효과를 더한 값입니다(4세트·무기 효과처럼 조건이 붙는 것은 뺌). HP·공격력·방어력·돌파 스탯은 무기·성유물을 뺀 캐릭터 기초값이며, 경계 레벨(20·40·50·60·70·80)은 돌파한 뒤 값입니다. 특성·운명의 자리 설명, 기초 스탯, 무기 스탯·재련 효과는 <a href="https://github.com/theBowja/genshin-db" target="_blank" rel="noopener">genshin-db</a>(게임 데이터, 2026년 11월)에서 가져왔습니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
 </div>
 
-<script src="chars.js?v=20261113g"></script>
-<script src="dex/stats.js?v=20261113g"></script>
-<script src="builds.js?v=20261113g"></script>
-<script src="weapons.js?v=20261113g"></script>
-<script src="gear.js?v=20261113g"></script>
-<script src="dex/artifacts.js?v=20261113g"></script>
-<script src="dex/weapons.js?v=20261113g"></script>
+<script src="chars.js?v=20261113h"></script>
+<script src="dex/stats.js?v=20261113h"></script>
+<script src="builds.js?v=20261113h"></script>
+<script src="weapons.js?v=20261113h"></script>
+<script src="gear.js?v=20261113h"></script>
+<script src="dex/artifacts.js?v=20261113h"></script>
+<script src="dex/weapons.js?v=20261113h"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster(), MASTER = GP.appraisal();
@@ -366,7 +366,7 @@ const dexCache = {};
 let infoTab = 'skills';
 const fmt = s => GP.esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
 async function loadDex(id) {
-  if (!dexCache[id]) dexCache[id] = fetch(`dex/${id}.json?v=20261113g`).then(r => r.ok ? r.json() : null).catch(() => null);
+  if (!dexCache[id]) dexCache[id] = fetch(`dex/${id}.json?v=20261113h`).then(r => r.ok ? r.json() : null).catch(() => null);
   return dexCache[id];
 }
 async function renderInfo(id) {
