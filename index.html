@@ -454,7 +454,7 @@ html.embed body { background: transparent !important; padding: 0 !important; min
 html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 html.embed .vp { margin: 0; }
 </style>
-<script src="shell.js?v=20261113j"></script>
+<script src="shell.js?v=20261113k"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -635,11 +635,11 @@ html.embed .vp { margin: 0; }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261113j"></script>
-<script src="weapons.js?v=20261113j"></script>
-<script src="rot.js?v=20261113j"></script>
-<script src="names.js?v=20261113j"></script>
-<script src="account.js?v=20261113j"></script>
+<script src="builds.js?v=20261113k"></script>
+<script src="weapons.js?v=20261113k"></script>
+<script src="rot.js?v=20261113k"></script>
+<script src="names.js?v=20261113k"></script>
+<script src="account.js?v=20261113k"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -869,6 +869,9 @@ const GG_ROLE_C6 = {
 // 운명의 자리별 성능(티어표 페이지와 같은 계산): 칸마다 명함(C0)·풀돌(C6) 표 점수 사이를 돌파 가치 곡선으로 채우고 가장 높은 칸을 씀
 const CONS_W = { 5: [0, .35, .55, .65, .75, .85, 1], 4: [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1] };
 // 운명의 자리 수에 맞춘 역할별 성능: [{ pos: 'main'|'sub'|'sup', perf }] (GamsGo 역할 칸 기준, consPerf와 같은 계산)
+// 명함·풀돌 등급이 같아 점수가 같으면 같은 등급 칸 안에서 풀돌 가치만큼 올림(5성 +6 · 4성 +4, 적어도 +2). 돌파로 점수가 줄지 않게 (chars.js slotsAt과 같은 규칙)
+const c6Fix = (d, ta, sa, sb) => sa != null && sb != null && sb <= sa ? Math.min(100, Math.max(sa + 2, Math.min((GG_BAND[GG_SCORE[ta]] || [0, 100])[1], sa + (d.r === 5 ? 6 : 4)))) : sb;
+const ROLE_POS = { main: 'main', sub: 'sub', sup: 'sup', heal: 'sup', shield: 'sup' };
 function posPerfs(id, cons) {
   const d = DB[id], arr = x => x ? x.split('/').map(t => t === '-' ? null : t) : null;
   const a = arr(GG_ROLE_C0[id]), b = arr(GG_ROLE_C6[id]) || a;
@@ -878,9 +881,11 @@ function posPerfs(id, cons) {
   ['main', 'sub', 'sup'].forEach((pos, i) => {
     const ta = a[i], tb = b[i];
     if (!(ta && w < 1) && !(tb && w >= 0.5)) return;
-    const sa = ta ? sc(ta) : null, sb = tb ? sc(tb) : null;
+    const sa = ta ? sc(ta) : null, sb = c6Fix(d, ta, sa, tb ? sc(tb) : null);
     out.push({ pos, perf: sa != null && sb != null ? Math.round(sa + (sb - sa) * w) : (sa ?? sb) });
   });
+  // 게임 역할인데 티어표에 칸이 없으면 가장 높은 칸 −8점으로 추정(티어표와 같음)
+  if (out.length) { const top = Math.max(...out.map(x => x.perf)); for (const r of d.roles) { const pos = ROLE_POS[r]; if (pos && !out.some(x => x.pos === pos)) out.push({ pos, perf: Math.max(0, top - 8), xrole: true }); } }
   return out.sort((x, y) => y.perf - x.perf);
 }
 function consPerf(id, cons) {
@@ -893,7 +898,7 @@ function consPerf(id, cons) {
   for (let i = 0; i < 3; i++) {
     const ta = a[i], tb = b[i];
     if (!(ta && w < 1) && !(tb && w >= 0.5)) continue;
-    const sa = ta ? sc(ta) : null, sb = tb ? sc(tb) : null;
+    const sa = ta ? sc(ta) : null, sb = c6Fix(d, ta, sa, tb ? sc(tb) : null);
     best = Math.max(best, sa != null && sb != null ? Math.round(sa + (sb - sa) * w) : (sa ?? sb));
   }
   return best || d.perf;
