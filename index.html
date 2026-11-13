@@ -287,6 +287,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .bn-who { display: flex; flex-wrap: wrap; gap: 6px; }
 .bn-who .mchip.r5 { color: var(--ink); border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); border-style: solid; }
 .bn-note { margin: 0; font-size: 12.5px; color: var(--muted); }
+.bn-chron { margin-top: 8px; padding: 8px 10px; border-left: 3px solid var(--gold); background: color-mix(in srgb, var(--gold) 7%, transparent); border-radius: 6px; display: grid; gap: 6px; }
 .res { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: end; margin-bottom: 14px; }
 .res label:not(.check) input { width: 110px; }
 .res label.check { padding-bottom: 8px; }
@@ -453,7 +454,7 @@ html.embed body { background: transparent !important; padding: 0 !important; min
 html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 html.embed .vp { margin: 0; }
 </style>
-<script src="shell.js?v=20261113f"></script>
+<script src="shell.js?v=20261113g"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -634,11 +635,11 @@ html.embed .vp { margin: 0; }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261113f"></script>
-<script src="weapons.js?v=20261113f"></script>
-<script src="rot.js?v=20261113f"></script>
-<script src="names.js?v=20261113f"></script>
-<script src="account.js?v=20261113f"></script>
+<script src="builds.js?v=20261113g"></script>
+<script src="weapons.js?v=20261113g"></script>
+<script src="rot.js?v=20261113g"></script>
+<script src="names.js?v=20261113g"></script>
+<script src="account.js?v=20261113g"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -693,7 +694,7 @@ const RAW = [
  ['sayu','사유','anemo','claymore',4,'heal/sup','em',150,0,'EQ'],
  ['lynette','리넷','anemo','sword',4,'sup','atk',140,1,'E'],
  ['chasca','차스카','anemo','bow',5,'main','atk',110,1,'E'],
- ['heizou','시카노인 헤이조','anemo','catalyst',4,'main','atk',120,1,'EQ'],
+ ['heizou','시카노인 헤이조','anemo','catalyst',4,'main/sub','atk',120,1,'EQ'],
  ['raiden','라이덴 쇼군','electro','polearm',5,'main/sub','atk',250,1,'Q'],
  ['fischl','피슬','electro','bow',4,'sub','atk',120,1,'E'],
  ['beidou','북두','electro','claymore',4,'sub/shield','atk',170,1,'Q'],
@@ -716,7 +717,7 @@ const RAW = [
  ['yaoyao','요요','dendro','polearm',4,'heal','hp',150,0,'Q'],
  ['emilie','에밀리','dendro','polearm',5,'sub','atk',130,1,'EQ'],
  ['kinich','키니치','dendro','claymore',5,'main','atk',110,1,'E'],
- ['ganyu','감우','cryo','bow',5,'main','atk',110,1,'NQ'],
+ ['ganyu','감우','cryo','bow',5,'main/sub','atk',110,1,'NQ'],
  ['ayaka','카미사토 아야카','cryo','sword',5,'main','atk',130,1,'EQ'],
  ['shenhe','신학','cryo','polearm',5,'sup','atk',160,0,'EQ'],
  ['rosaria','로자리아','cryo','polearm',4,'sub','atk',140,1,'Q'],
@@ -2236,10 +2237,12 @@ $('#a-wl').addEventListener('change', () => { const v = $('#a-wl').value; S.wl =
 
 // ───────── 픽업 일정 · AI 상담 ─────────
 // 픽업 일정(매주 업데이트에서 갱신). st: live 진행 중 | official 공식 발표 | leak 유출·추정(확정 아님)
-const BANNERS_AT = '2026-11-12';
+const BANNERS_AT = '2026-11-13';
 const BANNERS = [
   { v: '7.2 전반', from: '2026-11-04', to: '2026-11-24', st: 'live', five: ['mitya', 'furina'], four: ['valery'], weapons: ['별빛 계시', '고요히 샘솟는 빛'], note: '나머지 4성 2명과 4성 무기는 기사마다 엇갈려 확인 못 함' },
-  { v: '7.2 후반', from: '2026-11-24', to: '2026-12-15', st: 'official', five: ['zibai', 'linnea'], four: [], weapons: ['신월의 달빛', '서리 맺힌 금빛 가지'], note: '자백·린네아 복각은 공식 일정 기준(genshin-build.com, prydwen 인용). 4성과 무기 기원 구성은 아직 미발표라 무기는 각자 전용 무기로 적음. 나타 집록 기원(바레사·차스카·실로닌·말라니·키니치)이 함께 열린다는 기사도 있으나 확인 못 함' },
+  { v: '7.2 후반', from: '2026-11-24', to: '2026-12-15', st: 'official', five: ['zibai', 'linnea'], four: [], weapons: ['신월의 달빛', '서리 맺힌 금빛 가지'],
+    chron: { n: '나타 집록 기원', five: ['varesa', 'chasca', 'xilonen', 'mualani', 'kinich'], weapons: ['빛나는 마음', '붉은 깃 별독수리', '바위산을 맴도는 노래', '서핑 타임', '산왕의 엄니'] },
+    note: '자백·린네아 복각과 나타 집록 기원은 7.2 방송 발표 기준(game8, 팬덤 위키, genshin-build.com). 집록 기원은 정확한 시작 시각이 아직 안 나와 날짜가 바뀔 수 있음. 4성과 무기 기원 구성은 아직 미발표라 무기는 각자 전용 무기로 적음' },
   { v: '7.3 전반', from: '2026-12-16', to: '2027-01-05', st: 'leak', five: [], four: [], names: ['아나스타샤(얼음 신, 5성 얼음 활)', '다니카(5성 번개)'], note: '신캐 2명은 유출끼리 대체로 일치. 다니카 무기는 양손검·장병기로 엇갈리고, 이름이 다른 유출(사리사·데니사)도 있음. 시작일은 42일 주기 추정' },
   { v: '7.3 후반', from: '2027-01-05', to: '2027-01-26', st: 'leak', five: ['nicole', 'barca'], four: [], note: '11월 기사 기준 니콜·바르카 복각. 10월 예측은 산드로네·로엔이었고 오데트 복각설도 있어 엇갈림' },
   { v: '7.4', from: '2027-01-27', to: null, st: 'leak', five: ['zhongli', 'xianyun'], four: [], names: ['리월 신규 5성(불 원소)'], note: '해등절 버전 예측: 전반 리월 불 원소 신캐 + 종려 복각, 후반 한운 복각. 리월 집록 기원(소·감우·호두·신학·종려) 예측도 있음. 모두 유출·예측' },
@@ -2251,7 +2254,8 @@ function renderBanners() {
   const who = (ids, r) => ids.filter(id => DB[id]).map(id => `<span class="mchip${r === 5 ? ' r5' : ''}${S.roster[id] ? ' own' : ''}">${av(id, 'sm')}${esc(DB[id].name)}${S.roster[id] ? ` · ${S.roster[id].cons}돌` : ''}</span>`).join('');
   $('#bn-list').innerHTML = BANNERS.map(b => `<div class="bn"><div class="bn-head"><b>${esc(b.v)}</b><span class="bn-date">${md(b.from)}${b.to ? ' – ' + md(b.to) : ' ~'}</span><span class="bn-st ${b.st}">${BN_ST[b.st]}</span></div>
     <div class="bn-who">${who(b.five, 5)}${(b.names || []).map(n => `<span class="mchip r5">${esc(n)}</span>`).join('')}${who(b.four, 4)}</div>
-    ${b.weapons && b.weapons.length ? `<p class="bn-note">무기: ${b.weapons.map(esc).join(', ')}</p>` : ''}${b.note ? `<p class="bn-note">${esc(b.note)}</p>` : ''}</div>`).join('');
+    ${b.weapons && b.weapons.length ? `<p class="bn-note">무기: ${b.weapons.map(esc).join(', ')}</p>` : ''}
+    ${b.chron ? `<div class="bn-chron"><p class="bn-note"><b>${esc(b.chron.n)}</b> · 5성 1명을 골라 뽑는 묶음 기원(따로 천장, 뒤얽힌 인연 사용)</p><div class="bn-who">${who(b.chron.five, 5)}</div>${b.chron.weapons ? `<p class="bn-note">무기: ${b.chron.weapons.map(esc).join(', ')}</p>` : ''}</div>` : ''}${b.note ? `<p class="bn-note">${esc(b.note)}</p>` : ''}</div>`).join('');
 }
 
 // 보유 재화(계정 데이터와 함께 동기화)
@@ -2270,19 +2274,22 @@ for (const [id, k] of [['r-guar', 'guar'], ['r-welkin', 'welkin']])
 
 // AI에게 넘길 계정 요약
 const nm = id => DB[id] ? DB[id].name : id;
+// 역할 전부(첫째가 주 역할). 예: 미탸 = 메인 딜러·서브 딜러 겸용
+const rolesKo = d => d.roles.length > 1 ? `${d.roles.map(r => ROLE[r]).join('·')} 겸용` : ROLE[d.roles[0]];
 function accountBrief() {
   const ranked = rankedParties(), r = resOf();
   const chars = Object.values(S.roster).filter(c => DB[c.id]).map(c => {
     const d = DB[c.id];
-    return `- ${d.name} (${d.r}성 ${EL[d.el]} ${WPN[d.wp] || ''} ${ROLE[d.roles[0]]}, 성능 ${TIER(d.perf)}) Lv.${c.lv} ${c.cons}돌 특성 ${c.t.join('/')} 무기 ${c.wn || '미입력'} 세트 ${c.sa || '미입력'} 육성 ${Math.round(charCalc(c).score)}점`;
+    return `- ${d.name} (${d.r}성 ${EL[d.el]} ${WPN[d.wp] || ''} ${rolesKo(d)}, 성능 ${TIER(d.perf)}) Lv.${c.lv} ${c.cons}돌 특성 ${c.t.join('/')} 무기 ${c.wn || '미입력'} 세트 ${c.sa || '미입력'} 육성 ${Math.round(charCalc(c).score)}점`;
   }).join('\n');
   const parties = ranked.map(({ p, e }, i) => `- #${i + 1} ${p.name}: ${p.m.map(nm).join(', ')} → ${e.grade} ${e.value.toFixed(1)}점 (딜 ${e.dpsScore.toFixed(0)}, 육성 ${e.build.toFixed(0)}, 시너지 ${e.syn.toFixed(0)})${e.issues.length ? ' / 문제: ' + e.issues.slice(0, 3).map(x => x[1]).join('; ') : ''}`).join('\n');
   const growth = growthList(ranked, null).inParty.slice(0, 8).map((a, i) => `${i + 1}. ${a.what} — ${a.why} (약 ${a.cost} 레진)`).join('\n');
   const own = id => S.roster[id] ? `보유 ${S.roster[id].cons}돌` : '미보유';
-  const five = id => DB[id] ? `${nm(id)}(${DB[id].r}성 ${EL[DB[id].el]} ${ROLE[DB[id].roles[0]]}, 성능 ${TIER(DB[id].perf)}, ${own(id)})` : id;
+  const five = id => DB[id] ? `${nm(id)}(${DB[id].r}성 ${EL[DB[id].el]} ${rolesKo(DB[id])}, 성능 ${TIER(DB[id].perf)}, ${own(id)})` : id;
   const banners = BANNERS.map(b => `- ${b.v} ${b.from}~${b.to || '?'} [${BN_ST[b.st]}] 5성: ${[...b.five.map(five), ...(b.names || [])].join(', ') || '미상'}`
     + (b.four.length ? ` / 4성: ${b.four.map(id => `${nm(id)}(${own(id)})`).join(', ')}` : '')
-    + (b.weapons ? ` / 무기: ${b.weapons.join(', ')}` : '') + (b.note ? ` / ${b.note}` : '')).join('\n');
+    + (b.weapons ? ` / 무기: ${b.weapons.join(', ')}` : '')
+    + (b.chron ? ` / ${b.chron.n}(같은 기간, 골라 뽑기) 5성: ${b.chron.five.map(five).join(', ')}${b.chron.weapons ? ' · 무기: ' + b.chron.weapons.join(', ') : ''}` : '') + (b.note ? ` / ${b.note}` : '')).join('\n');
   return `오늘: ${new Date().toISOString().slice(0, 10)}
 모험 등급 ${ar()}, 세계 레벨 ${wl()}${S.sample ? ' (주의: 아직 예시 데이터)' : ''}
 재화: 원석 ${r.primo || 0}, 뒤얽힌 인연 ${r.fate || 0} → ${pullsOf(r)}뽑 / 캐릭터 스택 ${r.pity || 0} / ${r.guar ? '다음 5성 픽업 확정' : '반천장(50:50) 상태'} / 공월 축복 ${r.welkin ? '사용' : '미사용'}
@@ -2306,12 +2313,14 @@ const AI_RULES = `너는 원신(Genshin Impact)을 잘 아는 친근한 상담 �
 - 캐릭터·무기·성유물 이름은 한국어 이름으로 쓴다.
 - 검색 도구가 있으면 최신 버전·이벤트·유출·리딤 코드·확실하지 않은 사실은 검색해서 답하고, 참고한 곳을 [이름](주소) 링크로 남긴다. 모르는 건 지어내지 말고 모른다고 한다.
 - 픽업 일정 중 '유출 · 추정'은 확정이 아니라고 분명히 말한다.
+- 캐릭터 역할에 '겸용'이 붙으면(예: 미탸 메인 딜러·서브 딜러 겸용) 두 역할 모두로 파티에 넣을 수 있다고 보고 추천한다. 앞에 적힌 역할이 주 역할이다.
+- 집록 기원(묶음 기원)은 픽업 기원과 따로 열리는 상시 아닌 기원이다. 목록에서 5성 1명(또는 무기)을 '운명의 길'로 골라 뽑고, 천장 90뽑, 고른 대상이 아닌 5성이 나오면 다음 5성은 고른 대상 확정(운명 포인트 1). 천장·확정 상태는 캐릭터 픽업 기원과 따로 센다. 계정에 없는 역할·원소를 채울 기회로 같이 비교해 준다.
 - 뽑기 계산: 캐릭터 기원 천장 90뽑(74뽑부터 확률 급상승, 평균 약 62뽑에 5성), 50:50에서 지면 다음 5성은 픽업 확정. 최악은 픽업까지 180뽑. 무기 기원은 80뽑 천장. 무과금 수입은 버전(약 6주)당 약 60~80뽑, 공월 축복이면 약 20뽑 더.
 - 마크다운은 굵게(**), 목록(-, 1.), 소제목(###), 링크([글](주소))만 쓴다.
 
 [계정 정보]
 `;
-const AI_QUICK = ['다음 픽업 뽑을까, 거를까?', '앞으로 3개월 원석 계획 짜 줘', '지금 레진은 어디에 쓰는 게 제일 좋아?', '내 계정에 부족한 역할·원소는?', '나선 비경 파티 두 개 추천해 줘', '지금 쓸 수 있는 리딤 코드 있어?', '이번 버전 이벤트 뭐 챙겨야 돼?'];
+const AI_QUICK = ['다음 픽업 뽑을까, 거를까?', '집록 기원에서 누굴 고를까?', '앞으로 3개월 원석 계획 짜 줘', '지금 레진은 어디에 쓰는 게 제일 좋아?', '내 계정에 부족한 역할·원소는?', '나선 비경 파티 두 개 추천해 줘', '지금 쓸 수 있는 리딤 코드 있어?', '이번 버전 이벤트 뭐 챙겨야 돼?'];
 let aiTurns = [], aiCtl = null, sampleFn = null;
 
 // 아주 작은 마크다운: 소제목·목록·굵게·링크(http/https만)
