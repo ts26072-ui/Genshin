@@ -89,6 +89,17 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .tboost { color: #5aa9ff; font-weight: 700; font-size: 12px; }
 .tb-note { font-size: 12px; margin: 8px 0 0; }
 .boss { margin-bottom: 18px; }
+.fadd { display: flex; gap: 6px; margin: 0 0 10px; }
+.fadd input { font: inherit; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); width: min(100%, 260px); }
+.flist { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.frow { position: relative; display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 40px 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; min-width: 0; }
+.frow.on { border-color: var(--gold); }
+.frow span { font-size: 12.5px; overflow-wrap: anywhere; }
+.frm { position: absolute; top: 8px; right: 10px; padding: 2px 6px; border-radius: 6px; color: var(--muted); }
+.frm:hover { color: var(--ink); background: var(--line); }
+.admin { margin-top: 18px; }
+.fview { margin-top: 18px; }
+.card.ro { cursor: default; }
 .boss select { font: inherit; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-width: 100%; }
 .bteams { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 10px; }
 .bteam { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; min-width: 0; }
@@ -400,7 +411,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
-<script src="shell.js?v=20261113a"></script>
+<script src="shell.js?v=20261113b"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -420,6 +431,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
     <button class="tab" role="tab" data-tab="roster" id="tab-roster">내 캐릭터<span class="n" id="cnt-r"></span></button>
     <button class="tab" role="tab" data-tab="growth" id="tab-growth">성장 우선순위</button>
     <button class="tab" role="tab" data-tab="meta" id="tab-meta">메타 · 엔진</button>
+    <button class="tab" role="tab" data-tab="friends" id="tab-friends">친구</button>
     <button class="tab" role="tab" data-tab="ai" id="tab-ai">AI 상담</button>
   </nav>
 
@@ -439,6 +451,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   <section id="view-roster" role="tabpanel" hidden></section>
   <section id="view-growth" role="tabpanel" hidden></section>
   <section id="view-meta" role="tabpanel" hidden></section>
+  <section id="view-friends" role="tabpanel" hidden></section>
   <section id="view-ai" role="tabpanel" hidden>
     <div class="bar"><h2>픽업 일정</h2><span class="muted" id="bn-at"></span></div>
     <div class="bn-list" id="bn-list"></div>
@@ -579,11 +592,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261113a"></script>
-<script src="weapons.js?v=20261113a"></script>
-<script src="rot.js?v=20261113a"></script>
-<script src="names.js?v=20261113a"></script>
-<script src="account.js?v=20261113a"></script>
+<script src="builds.js?v=20261113b"></script>
+<script src="weapons.js?v=20261113b"></script>
+<script src="rot.js?v=20261113b"></script>
+<script src="names.js?v=20261113b"></script>
+<script src="account.js?v=20261113b"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -896,7 +909,22 @@ let S;
 try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) { S = null; }
 if (!S || !S.roster || !S.parties) S = sampleState();
 // 브라우저에 바로 저장하고, 계정 연결이 되어 있으면 잠시 뒤 계정에도 올림(savedAt으로 기기 간 최신 판단)
-function save() { S.sample = false; S.savedAt = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} queuePush(); }
+function save() { S.sample = false; S.savedAt = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} saveAppraisal(); queuePush(); }
+// ───────── 캐릭터 감정 마스터 ─────────
+// 육성 점수·오버롤은 여기 한 곳에서만 계산함. 내 캐릭터·파티 순위·친구·관리자 보기는 이 함수를 그대로 쓰고,
+// 도감·종결 스탯 같은 다른 페이지는 저장해 둔 결과(KEY:appraisal)를 읽어서 같은 숫자를 보여 줌
+// 오버롤(OVR) = 캐릭터 성능 점수 × 육성 점수 ÷ 100 (성능 90이면 다 키워도 90이 최대)
+function appraise(c) {
+  const d = prof(c), a = charCalc(c);
+  return { d, a, score: a.score, perf: d.perf, ovr: Math.round(d.perf * a.score / 100) };
+}
+function saveAppraisal() {
+  try {
+    const A = { at: Date.now() };
+    for (const [id, c] of Object.entries(S.roster)) { if (!DB[id]) continue; const x = appraise(c); A[id] = { s: Math.round(x.score), o: x.ovr, p: x.perf }; }
+    localStorage.setItem(KEY + ':appraisal', JSON.stringify(A));
+  } catch (e) {}
+}
 
 // ───────── 계산 ─────────
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
@@ -1539,9 +1567,9 @@ function renderParties(ranked) {
   v.innerHTML = bossBlock() + head + `<div class="plist">` + ranked.map(({ p, e }, i) => {
     const mem = p.m.map(id => {
       if (!id || !S.roster[id]) return `<div class="mem empty">빈 슬롯</div>`;
-      const d = prof(S.roster[id]), sc = charCalc(S.roster[id]).score;
+      const x = appraise(S.roster[id]), d = x.d, sc = x.score;
       return `<div class="mem"><div class="nm" title="${esc(d.name)}">${av(id)}${esc(d.name)}</div>
-        <div class="meta"><span>${ROLE[d.roles[0]]} · <b class="tier t-${TIER(d.perf)}">${TIER(d.perf)}</b></span><span class="mono" title="육성 점수">${Math.round(sc)}</span></div>
+        <div class="meta"><span>${ROLE[d.roles[0]]} · <b class="tier t-${TIER(d.perf)}">${TIER(d.perf)}</b></span><span class="mono" title="오버롤 ${x.ovr} · 육성 점수 ${Math.round(sc)} (내 캐릭터 탭과 같은 값)">OVR ${x.ovr} · 육 ${Math.round(sc)}</span></div>
         <div class="meter"><i style="width:${sc}%;--c:${scoreColor(sc)}"></i></div></div>`;
     }).join('');
     const chips = [...e.arch.map(a => `<span class="chip rx">✦ ${esc(a)}</span>`), ...e.rx.map(r => `<span class="chip rx">${r}</span>`), ...e.res.map(r => `<span class="chip">${r}</span>`)].join('');
@@ -1551,7 +1579,7 @@ function renderParties(ranked) {
     return `<details class="prow"${open.has(String(p.pid)) ? ' open' : ''} data-pid="${p.pid}">
       <summary><span class="rank">#${i + 1}</span><span class="grade sm g-${e.grade}">${e.grade}</span><span class="val">${e.value.toFixed(1)}</span>
         <b class="pn">${esc(p.name)}</b><span class="faces">${faces}</span>
-        <span class="mini mono"><span title="딜량">딜 ${e.dpsScore.toFixed(0)}</span><span title="육성">육 ${e.build.toFixed(0)}</span><span title="시너지">시 ${e.syn.toFixed(0)}</span></span>
+        <span class="mini mono"><span title="딜량">딜 ${e.dpsScore.toFixed(0)}</span><span title="멤버 육성 점수의 역할 가중 평균(파티 평균)">평균 육 ${e.build.toFixed(0)}</span><span title="시너지">시 ${e.syn.toFixed(0)}</span></span>
         <span class="chev" aria-hidden="true"></span></summary>
       <div class="party">
       <div style="min-width:0">
@@ -1581,12 +1609,15 @@ function renderRoster() {
     v.innerHTML = head + `<div class="empty-state"><p>등록된 캐릭터가 없습니다.</p><p>게임의 캐릭터 상세 화면을 보면서 레벨, 특성, 무기, 치명타·원충 수치를 입력하세요.</p></div>`;
     return;
   }
-  // 오버롤(OVR) = 캐릭터 성능 점수 × 육성 점수 ÷ 100. 성능이 90인 캐릭터는 다 키워도 90이 최대이고, 덜 키운 만큼 비율로 줄어듦
-  const rows = ids.map(id => { const c = S.roster[id], d = prof(c), a = charCalc(c); return { id, c, d, a, ovr: Math.round(d.perf * a.score / 100) }; }).sort((x, y) => y.ovr - x.ovr || y.a.score - x.a.score);
-  v.innerHTML = head + `<p class="legend">큰 숫자는 <b>오버롤(OVR)</b> = 캐릭터 성능 × 육성 점수 ÷ 100이에요. 그 캐릭터의 성능 점수가 최대치(예: 성능 90이면 다 키워도 90)이고, 덜 키운 만큼 비율로 줄어요. 오버롤이 높은 순으로 정렬돼요.</p><div class="grid">` + rows.map(({ id, c, d, a, ovr }) => {
+  v.innerHTML = head + `<p class="legend">큰 숫자는 <b>오버롤(OVR)</b> = 캐릭터 성능 × 육성 점수 ÷ 100이에요. 그 캐릭터의 성능 점수가 최대치(예: 성능 90이면 다 키워도 90)이고, 덜 키운 만큼 비율로 줄어요. 오버롤이 높은 순으로 정렬돼요. 이 점수는 파티 순위·도감·종결 스탯·친구 보기에서도 똑같이 쓰여요.</p>` + rosterGrid(S.roster, true);
+}
+// 캐릭터 카드 묶음. editable = 내 캐릭터(눌러서 편집), 아니면 보기 전용(친구·관리자 보기)
+function rosterGrid(roster, editable) {
+  const rows = Object.keys(roster).filter(id => DB[id]).map(id => ({ id, c: roster[id], ...appraise(roster[id]) })).sort((x, y) => y.ovr - x.ovr || y.score - x.score);
+  return `<div class="grid">` + rows.map(({ id, c, d, a, ovr }) => {
     const iss = charIssues(c).filter(i => i[0] !== 'lo');
     const pr = [['레벨', a.parts.lv], ['특성', a.parts.tal], ['무기', a.parts.wep], ['성유물', a.parts.art]];
-    return `<button class="card" type="button" data-act="edit-char" data-id="${id}">
+    return `<${editable ? `button class="card" type="button" data-act="edit-char" data-id="${id}"` : 'div class="card ro"'}>
       <div class="head"><div><div class="nm">${av(id, 'lg')}${esc(d.name)}</div>
         <div class="tags"><span class="r${d.r}">${'★'.repeat(d.r)}</span> · ${EL[d.el]} · ${ROLE[d.roles[0]]} · C${c.cons}${d.guess ? ' · <span style="color:var(--warn)">역할 추정</span>' : ''}</div>
         <div class="tags">캐릭터 성능 <b class="tier t-${TIER(d.perf)}">${TIER(d.perf)}</b> <span class="mono">${d.perf}</span>${!d.rated ? ' · 평가 없음' : d.perfEdited ? ' · 직접 수정' : ''}</div>
@@ -1594,7 +1625,7 @@ function renderRoster() {
         <span class="score" style="color:${scoreColor(a.score)}" title="오버롤 = 캐릭터 성능 ${d.perf} × 육성 점수 ${Math.round(a.score)} ÷ 100">${ovr}<small class="cap">OVR / ${d.perf}</small><small class="cap">육성 ${Math.round(a.score)}</small></span></div>
       <div class="parts">${pr.map(([n, x]) => `<span>${n}</span><div class="meter"><i style="width:${x * 100}%;--c:${scoreColor(x * 100)}"></i></div>`).join('')}</div>
       <ul class="issues">${iss.length ? iss.slice(0, 2).map(([s, t]) => `<li class="sev-${s}">${esc(t)}</li>`).join('') : '<li class="sev-ok">기준 육성 완료</li>'}</ul>
-    </button>`;
+    </${editable ? 'button' : 'div'}>`;
   }).join('') + `</div>`;
 }
 
@@ -1849,12 +1880,90 @@ function renderHome(ranked) {
 function render() {
   const ranked = rankedParties();
   renderHome(ranked);
-  renderParties(ranked); renderRoster(); renderGrowth(ranked); renderMeta(); renderBanners(); renderRes();
+  renderParties(ranked); renderRoster(); renderGrowth(ranked); renderMeta(); renderBanners(); renderRes(); renderFriends();
   $('#cnt-p').textContent = S.parties.length;
   $('#cnt-r').textContent = Object.keys(S.roster).length;
   $('#sample-note').hidden = !S.sample;
   renderAccount();
 }
+
+// ───────── 친구 · 관리자 보기 ─────────
+// 친구가 Fork해서 만든 사이트의 공개 동기화 파일(https://아이디.github.io/Genshin/account/hoyolab.json)을 읽어
+// 내 캐릭터와 같은 감정 마스터로 점수를 매김(보기 전용, 친구 기기에 저장된 것은 건드리지 않음)
+// 관리자 보기: 원본 주인 사이트에서만, 이 저장소를 Fork한 사람 전부를 GitHub 공개 목록에서 불러옴(공개된 파일만 보임)
+const FR = { cur: null, data: {}, err: {}, forks: null, forkErr: '' };
+const ghOk = v => /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/.test(v);
+const IS_ADMIN = ACCT.OWNER === 'ts26072-ui';
+async function loadFriend(gid) {
+  gid = gid.toLowerCase();
+  FR.err[gid] = ''; FR.data[gid] = FR.data[gid] || null; renderFriends();
+  try {
+    const r = await fetch(`https://${gid}.github.io/Genshin/account/hoyolab.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status === 404 ? '아직 동기화 파일이 없어요(사이트·동기화 설정 전)' : `불러오기 실패(${r.status})`);
+    const h = await r.json();
+    if (h.repo && h.repo.split('/')[0].toLowerCase() !== gid) throw new Error('그 사이트의 파일이 그 사람 저장소에서 만든 게 아니에요');
+    if (h.none || !(h.chars || []).length) throw new Error('동기화는 됐지만 캐릭터가 0명이에요');
+    // 친구 모험 등급으로 계산(레벨 목표가 모험 등급에 따라 다름)
+    const keepAr = S.ar, roster = {};
+    S.ar = h.ar || S.ar;
+    try {
+      for (const row of h.chars) { const id = idOfRow(row); if (id && DB[id]) roster[id] = charFromRow(id, row, null, true, h.source !== 'enka'); }
+      const list = Object.keys(roster).map(id => appraise(roster[id]));
+      FR.data[gid] = { h, roster, n: list.length, avgOvr: list.length ? Math.round(list.reduce((a, x) => a + x.ovr, 0) / list.length) : 0,
+        top: list.sort((a, b) => b.ovr - a.ovr).slice(0, 3).map(x => x.d.name) };
+    } finally { S.ar = keepAr; }
+  } catch (e) { FR.data[gid] = null; FR.err[gid] = e.message || '불러오기 실패'; }
+  renderFriends();
+}
+async function loadForks() {
+  FR.forkErr = ''; FR.forks = 'loading'; renderFriends();
+  try {
+    const r = await fetch('https://api.github.com/repos/ts26072-ui/Genshin/forks?per_page=100&sort=newest');
+    if (!r.ok) throw new Error(r.status === 403 ? 'GitHub 요청 한도(시간당 60회)를 넘었어요. 잠시 뒤 다시 눌러 주세요' : `목록 불러오기 실패(${r.status})`);
+    FR.forks = (await r.json()).map(f => f.owner.login.toLowerCase());
+    for (const g of FR.forks) if (!(g in FR.data)) loadFriend(g);
+  } catch (e) { FR.forks = null; FR.forkErr = e.message; }
+  renderFriends();
+}
+function renderFriends() {
+  const v = $('#view-friends'); if (!v) return;
+  const list = S.friends || [];
+  const row = (gid, mine) => {
+    const x = FR.data[gid], er = FR.err[gid];
+    return `<button type="button" class="frow${FR.cur === gid ? ' on' : ''}" data-fr="${esc(gid)}">
+      <b>${esc(x ? x.h.nickname || gid : gid)}</b><span class="muted">${esc(gid)}.github.io${x ? ` · AR ${x.h.ar ?? '?'} · ${x.n}명 · 평균 OVR ${x.avgOvr}` : ''}</span>
+      <span class="muted">${er ? esc(er) : x ? `동기화 ${esc(new Date(x.h.updated).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' }))}${x.top.length ? ' · ' + x.top.map(esc).join(', ') : ''}` : gid in FR.data ? '불러오는 중…' : '눌러서 불러오기'}</span>
+      ${mine ? `<span class="frm" data-frm="${esc(gid)}" role="button" aria-label="${esc(gid)} 빼기">✕</span>` : ''}</button>`;
+  };
+  const cur = FR.cur && FR.data[FR.cur];
+  v.innerHTML = `<div class="bar"><h2>친구</h2></div>
+    <p class="legend">친구가 <a href="fork.html">내 계정으로 쓰기</a>대로 자기 사이트를 만들었으면, 친구의 <b>GitHub 아이디</b>를 넣어 그 친구 캐릭터를 볼 수 있어요. 점수는 내 캐릭터와 같은 방식(육성 점수·OVR)으로 매겨요. 친구 기기에 저장된 기록은 보이지 않고, 친구 저장소에 공개된 동기화 파일만 읽어요.</p>
+    <form class="fadd" id="fr-form"><input id="fr-id" placeholder="친구 GitHub 아이디" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="39"><button class="btn primary sm" type="submit">추가</button></form>
+    <div class="flist">${list.length ? list.map(g => row(g, true)).join('') : '<p class="muted">아직 추가한 친구가 없어요.</p>'}</div>
+    ${IS_ADMIN ? `<section class="admin"><div class="bar"><h2>관리자 보기 · 모든 사용자</h2><div class="actions"><button class="btn sm" type="button" data-act="fr-forks">${FR.forks === 'loading' ? '불러오는 중…' : FR.forks ? '다시 불러오기' : '사용자 목록 불러오기'}</button></div></div>
+      <p class="legend">이 저장소를 Fork해서 쓰는 사람 전부예요(GitHub 공개 목록). 각자 저장소에 공개된 동기화 파일만 보여요. Fork 없이 이 사이트(원본)만 쓰는 사람의 기록은 그 사람 기기에만 있어서 볼 수 없어요. 원본 주인 사이트에서만 보이는 칸이에요.</p>
+      ${FR.forkErr ? `<p class="muted">${esc(FR.forkErr)}</p>` : ''}
+      ${Array.isArray(FR.forks) ? `<div class="flist">${FR.forks.length ? FR.forks.map(g => row(g, false)).join('') : '<p class="muted">아직 Fork한 사람이 없어요.</p>'}</div>` : ''}</section>` : ''}
+    ${cur ? `<section class="fview"><div class="bar"><h2>${esc(cur.h.nickname || FR.cur)}의 캐릭터 <span class="muted" style="font-size:14px">${cur.n}명 · AR ${cur.h.ar ?? '?'}</span></h2><div class="actions"><a class="btn ghost sm" href="https://${esc(FR.cur)}.github.io/Genshin/" target="_blank" rel="noopener">친구 사이트</a><button class="btn ghost sm" type="button" data-act="fr-close">닫기</button></div></div>${rosterGrid(cur.roster, false)}</section>` : ''}`;
+}
+document.addEventListener('submit', e => {
+  if (e.target.id !== 'fr-form') return;
+  e.preventDefault();
+  const g = $('#fr-id').value.trim().replace(/^@/, '').toLowerCase();
+  if (!ghOk(g)) { toast('GitHub 아이디는 영문·숫자·하이픈(-)만, 39자까지예요'); return; }
+  if (g === ACCT.OWNER) { toast('내 아이디예요'); return; }
+  S.friends = [...new Set([...(S.friends || []), g])]; save();
+  FR.cur = g; loadFriend(g);
+});
+document.addEventListener('click', e => {
+  const rm = e.target.closest('[data-frm]');
+  if (rm) { e.stopPropagation(); S.friends = (S.friends || []).filter(g => g !== rm.dataset.frm); if (FR.cur === rm.dataset.frm) FR.cur = null; save(); renderFriends(); return; }
+  const fr = e.target.closest('[data-fr]');
+  if (fr) { FR.cur = fr.dataset.fr; if (!FR.data[FR.cur]) loadFriend(FR.cur); else renderFriends(); setTimeout(() => $('.fview') && $('.fview').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); return; }
+  const a = e.target.closest('[data-act]');
+  if (a && a.dataset.act === 'fr-forks') loadForks();
+  if (a && a.dataset.act === 'fr-close') { FR.cur = null; renderFriends(); }
+});
 
 // ───────── 계정 진행도 입력 ─────────
 $('#a-wl').innerHTML = `<option value="auto">자동</option>` + [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<option value="${n}">${n}</option>`).join('');
@@ -2012,7 +2121,7 @@ aiBusy(false);
 
 // ───────── 탭 ─────────
 // 주소의 #탭(상단바 링크)이 있으면 그 탭, 없으면 홈(메인 로비)에서 시작
-const TABS = ['home', 'parties', 'roster', 'growth', 'meta', 'ai'];
+const TABS = ['home', 'parties', 'roster', 'growth', 'meta', 'friends', 'ai'];
 const hashTab = () => { const h = location.hash.slice(1); return TABS.includes(h) ? h : null; };
 let tab = hashTab() || 'home';
 function setTab(t) {

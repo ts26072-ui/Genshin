@@ -247,6 +247,8 @@ for (const [id, name, el, wp, r, roles, scale, er, crit, tal, guess] of RAW)
 GP.ORDER = Object.keys(GP.EL);
 GP.KEY = 'genshin-party-appraiser-v1';
 // 메인 앱(파티 감정소)에 저장된 내 캐릭터 목록. 없거나 읽을 수 없으면 빈 객체
+// 파티 감정소(감정 마스터)가 저장해 둔 육성 점수·오버롤: { id: { s: 육성, o: OVR, p: 성능 } }
+GP.appraisal = () => { try { return JSON.parse(localStorage.getItem(GP.KEY + ':appraisal')) || {}; } catch (e) { return {}; } };
 GP.roster = () => { try { return (JSON.parse(localStorage.getItem(GP.KEY)) || {}).roster || {}; } catch (e) { return {}; } };
 GP.esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
 // 캐릭터 아이콘 파일 이름(게임 내부 이름, enka.network 제공 · © HoYoverse). index.html의 ICON과 같은 표 — 신캐 추가 시 둘 다 고칠 것
