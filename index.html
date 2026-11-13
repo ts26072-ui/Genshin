@@ -95,6 +95,17 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .vpc.win { border-color: var(--gold); }
 .vpc select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; }
 .vph { display: flex; align-items: center; gap: 8px; }
+.vph .btn { margin-left: auto; }
+.vpa { display: flex; gap: 6px; flex-wrap: wrap; }
+#vp-load { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-width: 100%; }
+.swap { margin-top: 12px; background: var(--surface); border: 1px solid var(--gold); border-radius: 14px; padding: 12px; }
+.swf { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 8px 0; font-size: 13px; }
+.swf select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.swl { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 6px; }
+.swr { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.swr .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.swr .swrx { grid-column: 2 / -1; font-size: 12px; display: flex; flex-wrap: wrap; gap: 2px 8px; }
+.swr .swrx i { font-style: normal; }
 .tags.roles { display: flex; gap: 10px; flex-wrap: wrap; }
 .tags.roles b { color: var(--ink); }
 #dlg-view .vgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 14px; }
@@ -424,7 +435,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
-<script src="shell.js?v=20261113c"></script>
+<script src="shell.js?v=20261113d"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -605,11 +616,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261113c"></script>
-<script src="weapons.js?v=20261113c"></script>
-<script src="rot.js?v=20261113c"></script>
-<script src="names.js?v=20261113c"></script>
-<script src="account.js?v=20261113c"></script>
+<script src="builds.js?v=20261113d"></script>
+<script src="weapons.js?v=20261113d"></script>
+<script src="rot.js?v=20261113d"></script>
+<script src="names.js?v=20261113d"></script>
+<script src="account.js?v=20261113d"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -1600,6 +1611,30 @@ function idealChar(id) {
   return mk(id, T, 0, t, 'five', T, 1, sa ? 'full' : 'two', true, d.crit ? Math.round(rr * 100) : 5, d.crit ? Math.round(rd * 100) : 50, d.er, keyTarget(d), w, sa);
 }
 const VP_N = 3;
+// 1명씩 바꿔 보기: 가상 파티 하나의 한 자리를 다른 캐릭터로 바꿨을 때 파티 점수가 어떻게 변하는지 전부 계산해 순위로 보여 줌
+const SWAP = { p: null, s: 0, pool: 'own' };
+function swapBlock(roster, mode) {
+  const p = S.vp[SWAP.p]; if (!p || !p.m.some(Boolean)) return '';
+  const base = evalParty({ pid: 'sw', name: '', m: p.m }, null, roster), cur = p.m[SWAP.s];
+  const ids = Object.keys(DB).filter(id => !p.m.includes(id) && (SWAP.pool === 'all' || S.roster[id]) && !(id.startsWith('traveler-') && p.m.some(x => x && x.startsWith('traveler-') && x !== cur)));
+  const r2 = { ...roster };
+  const rows = ids.map(id => {
+    if (!r2[id]) r2[id] = mode === 'mine' && S.roster[id] ? S.roster[id] : idealChar(id);
+    const m = p.m.slice(); m[SWAP.s] = id;
+    const e = evalParty({ pid: 'sw', name: '', m }, null, r2);
+    // 원소 반응·엔진이 어떻게 바뀌는지(얻는 것 + / 잃는 것 −)
+    const has = x => new Set([...x.rx, ...x.arch.map(a => '✦ ' + a)]), b0 = has(base), b1 = has(e);
+    const gain = [...b1].filter(k => !b0.has(k)), lose = [...b0].filter(k => !b1.has(k));
+    return { id, e, dv: e.value - base.value, gain, lose };
+  }).sort((a, b) => b.e.value - a.e.value).slice(0, 15);
+  return `<div class="swap"><div class="vph"><b>가상 ${SWAP.p + 1}의 한 자리 바꿔 보기</b><button class="btn ghost sm" type="button" data-act="sw-close">닫기</button></div>
+    <div class="swf"><label>바꿀 자리 <select id="sw-slot">${p.m.map((id, i) => `<option value="${i}"${i === SWAP.s ? ' selected' : ''}>${i + 1}번 · ${id ? esc(DB[id].name) : '빈 자리'}</option>`).join('')}</select></label>
+      <div class="seg" role="group" aria-label="후보"><button type="button" data-swpool="own" aria-pressed="${SWAP.pool === 'own'}">보유 캐릭터만</button><button type="button" data-swpool="all" aria-pressed="${SWAP.pool === 'all'}">전체 캐릭터</button></div></div>
+    <p class="muted bt-why">지금 파티 ${base.value.toFixed(1)}점(${base.grade}) · 반응 ${[...base.arch.map(a => '✦ ' + a), ...base.rx].map(esc).join(' · ') || '없음'} · ${cur ? esc(DB[cur].name) : '빈 자리'} 대신 넣었을 때 점수가 높은 순 15명. 점수에는 원소 반응(증발·융해·만개·격화 등)·공명·엔진 조합이 시너지로, 실측 파티 딜량이 딜로 들어가 있어요. 줄마다 얻는 반응은 +, 잃는 반응은 −로 보여요.</p>
+    <div class="swl">${rows.map(r => `<button type="button" class="swr" data-swpick="${r.id}">${av(r.id)}<span class="nm">${esc(DB[r.id].name)}${S.roster[r.id] ? '' : ' <small class="muted">미보유</small>'}</span><span class="grade sm g-${r.e.grade}">${r.e.grade}</span><span class="val">${r.e.value.toFixed(1)}</span><b class="${r.dv > 0.05 ? 'ok' : r.dv < -0.05 ? 'low' : ''}">${r.dv > 0 ? '+' : ''}${r.dv.toFixed(1)}</b>
+      <span class="swrx">${[...r.gain.map(k => `<i class="ok">+${esc(k)}</i>`), ...r.lose.map(k => `<i class="low">−${esc(k)}</i>`)].join(' ') || `<i class="muted">반응 그대로${r.e.rx.length ? ' (' + r.e.rx.map(esc).join('·') + ')' : ''}</i>`} <i class="muted">· 딜 ${r.e.dpsScore.toFixed(0)} · 시너지 ${r.e.syn.toFixed(0)}</i></span></button>`).join('') || '<p class="muted">후보가 없어요.</p>'}</div>
+    <p class="muted bt-why">줄을 누르면 그 캐릭터로 바꿔요.</p></div>`;
+}
 function vpBlock() {
   if (!Array.isArray(S.vp)) S.vp = [];
   while (S.vp.length < VP_N) S.vp.push({ m: [null, null, null, null] });
@@ -1609,7 +1644,8 @@ function vpBlock() {
   const opts = cur => `<option value="">— 비움 —</option>` + EL_ORDER.map(el => `<optgroup label="${EL[el]}">${Object.values(DB).filter(d => d.el === el).sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(d => `<option value="${d.id}"${d.id === cur ? ' selected' : ''}>${esc(d.name)}${S.roster[d.id] ? ' · 보유' : ''}</option>`).join('')}</optgroup>`).join('');
   const res = S.vp.map((p, i) => p.m.some(Boolean) ? evalParty({ pid: 'vp' + i, name: '', m: p.m }, null, roster) : null);
   const best = Math.max(...res.filter(Boolean).map(e => e.value));
-  return `<section class="vp"><div class="bar"><h2>가상 파티 비교</h2><div class="actions"><div class="seg" role="group" aria-label="캐릭터 값">
+  const load = S.parties.length ? `<select id="vp-load" aria-label="내 파티 불러오기"><option value="">내 파티 불러오기…</option>${S.parties.map(p => `<option value="${esc(p.pid)}">${esc(p.name)}</option>`).join('')}</select>` : '';
+  return `<section class="vp"><div class="bar"><h2>가상 파티 비교</h2><div class="actions">${load}<div class="seg" role="group" aria-label="캐릭터 값">
       <button type="button" data-vpmode="ideal" aria-pressed="${mode === 'ideal'}">잘 키운 가정</button><button type="button" data-vpmode="mine" aria-pressed="${mode === 'mine'}">보유 캐릭터는 내 값</button></div></div></div>
     <p class="legend">아무 캐릭터로나 파티를 짜서 비교해요(보유하지 않아도 됨). '잘 키운 가정'은 모두 C0 · 최대 레벨 · 키울 특성 목표 · 추천 무기·세트 · 기준 스탯으로 똑같이 맞춰 순수하게 조합만 비교하고, '내 값'은 보유한 캐릭터만 내 실제 육성으로 바꿔요. 점수는 파티 순위와 같은 계산이에요.</p>
     <div class="vpg">${S.vp.map((p, i) => { const e = res[i];
@@ -1617,14 +1653,27 @@ function vpBlock() {
         ${[0, 1, 2, 3].map(s => `<select class="vp-sel" data-p="${i}" data-s="${s}" aria-label="가상 ${i + 1} 자리 ${s + 1}">${opts(p.m[s])}</select>`).join('')}
         ${e ? `<p class="muted bt-why">딜 ${e.dpsScore.toFixed(0)} · 평균 육 ${e.build.toFixed(0)} · 시너지 ${e.syn.toFixed(0)}${e.rx.length || e.arch.length ? ' · ' + [...e.arch.map(a => '✦ ' + a), ...e.rx].map(esc).join(' · ') : ''}</p>
           <ul class="issues">${e.issues.slice(0, 3).map(([sv, t]) => `<li class="sev-${sv}">${esc(t)}</li>`).join('') || '<li class="sev-ok">눈에 띄는 약점 없음</li>'}</ul>
-          <button class="btn sm" type="button" data-act="vp-save" data-i="${i}">파티로 저장</button>` : '<p class="muted">캐릭터를 골라 주세요.</p>'}</div>`; }).join('')}</div></section>`;
+          <div class="vpa"><button class="btn sm" type="button" data-act="sw-open" data-i="${i}">1명씩 바꿔 보기</button><button class="btn ghost sm" type="button" data-act="vp-save" data-i="${i}">파티로 저장</button><button class="btn ghost sm" type="button" data-act="vp-clear" data-i="${i}">비우기</button></div>` : '<p class="muted">캐릭터를 골라 주세요. 위의 "내 파티 불러오기"로 저장한 파티를 가져올 수도 있어요.</p>'}</div>`; }).join('')}</div>
+    ${SWAP.p != null ? swapBlock(roster, mode) : ''}</section>`;
 }
 document.addEventListener('change', e => {
+  if (e.target.id === 'vp-load' && e.target.value) {
+    const src = S.parties.find(p => p.pid === e.target.value); if (!src) return;
+    // 빈 가상 칸에 넣고, 다 차 있으면 첫 칸을 바꿈
+    let i = S.vp.findIndex(p => !p.m.some(Boolean)); if (i < 0) i = 0;
+    S.vp[i] = { m: src.m.slice(0, 4).concat([null, null, null, null]).slice(0, 4) }; save(); renderParties(rankedParties()); toast(`가상 ${i + 1}에 '${src.name}'을(를) 불러왔어요`); return;
+  }
+  if (e.target.id === 'sw-slot') { SWAP.s = +e.target.value; renderParties(rankedParties()); return; }
   const s = e.target.closest('.vp-sel'); if (!s) return;
   S.vp[+s.dataset.p].m[+s.dataset.s] = s.value || null; save(); renderParties(rankedParties());
 });
 document.addEventListener('click', e => {
   const m = e.target.closest('[data-vpmode]'); if (m) { S.vpMode = m.dataset.vpmode; save(); renderParties(rankedParties()); return; }
+  const so = e.target.closest('[data-act="sw-open"]'); if (so) { SWAP.p = +so.dataset.i; SWAP.s = Math.max(0, S.vp[SWAP.p].m.findIndex(x => !x)); if (S.vp[SWAP.p].m.every(Boolean)) SWAP.s = 3; renderParties(rankedParties()); setTimeout(() => $('.swap') && $('.swap').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50); return; }
+  if (e.target.closest('[data-act="sw-close"]')) { SWAP.p = null; renderParties(rankedParties()); return; }
+  const sp = e.target.closest('[data-swpool]'); if (sp) { SWAP.pool = sp.dataset.swpool; renderParties(rankedParties()); return; }
+  const pk = e.target.closest('[data-swpick]'); if (pk) { S.vp[SWAP.p].m[SWAP.s] = pk.dataset.swpick; save(); renderParties(rankedParties()); return; }
+  const vc = e.target.closest('[data-act="vp-clear"]'); if (vc) { S.vp[+vc.dataset.i] = { m: [null, null, null, null] }; if (SWAP.p === +vc.dataset.i) SWAP.p = null; save(); renderParties(rankedParties()); return; }
   const a = e.target.closest('[data-act="vp-save"]'); if (!a) return;
   const p = S.vp[+a.dataset.i], miss = p.m.filter(id => id && !S.roster[id]);
   if (miss.length) { toast(`보유하지 않은 캐릭터가 있어 저장할 수 없어요: ${miss.map(id => DB[id].name).join(', ')}`); return; }

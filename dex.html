@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>캐릭터 도감 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261113c">
+<link rel="stylesheet" href="common.css?v=20261113d">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -117,10 +117,13 @@
 .wadd select { font: inherit; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-width: 100%; }
 .wrm { font: inherit; font-size: 11.5px; padding: 2px 6px; margin-top: 4px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
 .wrm:hover { color: var(--ink); }
+.cposbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0 4px; font-size: 13px; }
+.cposbar .seg button[disabled] { opacity: .4; }
+.cpnote { font-size: 12.5px; margin: 0 0 8px; }
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261113c"></script>
+<script src="shell.js?v=20261113d"></script>
 <div class="wrap">
   <header class="top">
     <h1><span class="star">✦</span> 캐릭터 도감</h1>
@@ -141,18 +144,18 @@
   <p class="foot-note">종합(OVR) = 그 운명의 자리에서의 성능 점수(티어표와 같은 값: GamsGo 등급 점수와 나무위키 평가의 평균(등급 칸 안), C1~C5는 명함·풀돌 표 사이 추정) × 레벨 계수(핵심 스탯 기초값이 Lv.90의 몇 %인지의 제곱근 — 파티 감정소의 레벨 감점과 같은 방식) × 성유물 계수(0.75 + 0.25 × 성유물 가치: 세트 50% — 추천 4세트 1위 1.0, 순위마다 −0.06, 추천 밖 0.6, 2+2 0.75, 없음 0.35 — + 주옵 25% + 부옵 수준 25%) × 무기 계수(0.75 + 0.25 × 무기 가치. 무기 가치는 파티 감정소와 같이 추천 1위 1.0에서 순위가 내려갈수록 줄고, 추천 밖은 성급별 값, 재련마다 조금 오르며, 무기 레벨이 낮으면 공격력 비율만큼 깎임). 카드의 공격력은 캐릭터 + 무기 기초 공격력이고, 최종 스탯은 여기에 5성 +20 성유물 주옵(꽃 HP 4780 · 깃털 공격력 311 · 시계·성배·왕관), 부옵 수준(다섯 부위 유효 옵션 합 보통 20 · 좋음 28 · 종결 36회를 추천 부옵 상위 4개에 1 · 1 · 0.8 · 0.6 비율로 나눈 가정치), 2세트 스탯 효과를 더한 값입니다(4세트·무기 효과처럼 조건이 붙는 것은 뺌). HP·공격력·방어력·돌파 스탯은 무기·성유물을 뺀 캐릭터 기초값이며, 경계 레벨(20·40·50·60·70·80)은 돌파한 뒤 값입니다. 특성·운명의 자리 설명, 기초 스탯, 무기 스탯·재련 효과는 <a href="https://github.com/theBowja/genshin-db" target="_blank" rel="noopener">genshin-db</a>(게임 데이터, 2026년 11월)에서 가져왔습니다. 캐릭터 이미지 © HoYoverse (enka.network).</p>
 </div>
 
-<script src="chars.js?v=20261113c"></script>
-<script src="dex/stats.js?v=20261113c"></script>
-<script src="builds.js?v=20261113c"></script>
-<script src="weapons.js?v=20261113c"></script>
-<script src="gear.js?v=20261113c"></script>
-<script src="dex/artifacts.js?v=20261113c"></script>
-<script src="dex/weapons.js?v=20261113c"></script>
+<script src="chars.js?v=20261113d"></script>
+<script src="dex/stats.js?v=20261113d"></script>
+<script src="builds.js?v=20261113d"></script>
+<script src="weapons.js?v=20261113d"></script>
+<script src="gear.js?v=20261113d"></script>
+<script src="dex/artifacts.js?v=20261113d"></script>
+<script src="dex/weapons.js?v=20261113d"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster(), MASTER = GP.appraisal();
 const PREF = GP.KEY + ':dex';
-let st = { q: '', el: '', mine: false, cur: '', cmp: [], view: 'me', wl: {} };
+let st = { q: '', el: '', mine: false, cur: '', cmp: [], view: 'me', wl: {}, cpos: 'auto' };
 // 카드 열쇠: 'hutao' = 기본(C0 · Lv.90 · 추천 무기·성유물), 'me:hutao' = 내 캐릭터(보유 목록의 돌파·레벨·무기·실제 성유물)
 const idOf = k => k.replace(/^me:/, ''), isMe = k => k.startsWith('me:');
 const okKey = k => typeof k === 'string' && !!GP.DB[idOf(k)] && (!isMe(k) || !!own[idOf(k)]);
@@ -355,7 +358,7 @@ const dexCache = {};
 let infoTab = 'skills';
 const fmt = s => GP.esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
 async function loadDex(id) {
-  if (!dexCache[id]) dexCache[id] = fetch(`dex/${id}.json?v=20261113c`).then(r => r.ok ? r.json() : null).catch(() => null);
+  if (!dexCache[id]) dexCache[id] = fetch(`dex/${id}.json?v=20261113d`).then(r => r.ok ? r.json() : null).catch(() => null);
   return dexCache[id];
 }
 async function renderInfo(id) {
@@ -478,7 +481,7 @@ function setCmp(id, key) {
 // ───────── 그리기 ─────────
 $('#els').innerHTML = `<button type="button" class="elchip" data-el="">전체</button>` + GP.ORDER.map(el => `<button type="button" class="elchip" data-el="${el}"><span class="dot" style="--c:var(--${el})"></span>${GP.EL[el]}</button>`).join('');
 $('#mine').disabled = !Object.keys(own).length;
-const save = () => { try { localStorage.setItem(PREF, JSON.stringify({ q: st.q, el: st.el, mine: st.mine, cur: st.cur, cmp: st.cmp, view: st.view, wl: st.wl })); } catch (e) {} };
+const save = () => { try { localStorage.setItem(PREF, JSON.stringify({ q: st.q, el: st.el, mine: st.mine, cur: st.cur, cmp: st.cmp, view: st.view, wl: st.wl, cpos: st.cpos })); } catch (e) {} };
 // 위쪽 상세 카드: 보유 캐릭터면 '내 캐릭터'/'기본' 중 고른 쪽
 const detailKey = () => own[st.cur] && st.view !== 'base' ? 'me:' + st.cur : st.cur;
 const cmpKeys = () => st.cmp.filter(okKey).slice(0, 3);
@@ -511,13 +514,29 @@ function renderCmp() {
   $('#cmp').innerHTML = `<div class="bar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h2>캐릭터 비교 <span class="muted" style="font-size:14px">${ids.length}/3</span></h2><div style="display:flex;gap:6px;flex-wrap:wrap">${addMine}${ids.length ? '<button type="button" class="btn sm" data-act="cmp-clear">비교 비우기</button>' : ''}</div></div>
     <div class="cmp-cards">${slots}</div><div id="cmp-table">${cmpTable(ids)}</div>`;
 }
+// 비교 역할: 메인 딜러는 메인 딜러끼리, 서포터는 서포터끼리만 견줌. 두 역할 캐릭터(서브·서포터 등)는 양쪽 모두에서 비교 가능
+// 자동 = 모두가 가진 역할 가운데 첫 카드가 가장 잘하는 역할. 함께 가진 역할이 없으면 역할별 비교를 하지 않음
+const POS_LIST = [['main', '메인 딜러'], ['sub', '서브 딜러'], ['sup', '서포터']];
+function cmpPos(xs) {
+  const has = x => new Set(x.sls.map(s => s.pos));
+  const common = POS_LIST.map(p => p[0]).filter(p => xs.every(x => has(x).has(p)));
+  if (st.cpos !== 'auto') return { pos: st.cpos, common };
+  const mine = xs[0].sls.slice().sort((a, b) => b.perf - a.perf).map(s => s.pos).find(p => common.includes(p));
+  return { pos: mine || null, common };
+}
+// 그 역할에서의 OVR: 역할 성능 × (지금 카드 OVR ÷ 가장 잘하는 역할 성능) — 육성·무기·성유물 계수는 그대로 두고 역할 성능만 바꿈
+const roleOvr = (x, pos) => { const s = x.sls.find(y => y.pos === pos); return s ? Math.round(s.perf * x.ovr / Math.max(1, x.best.perf)) : null; };
 function cmpTable(ids) {
   let table = '';
   if (ids.length >= 2) {
-    const xs = ids.map(card);
+    const xs = ids.map(card), cp = cmpPos(xs), pn = cp.pos ? POS_LIST.find(p => p[0] === cp.pos)[1] : '';
+    const seg = `<div class="cposbar"><span>비교 역할</span><div class="seg" role="group" aria-label="비교 역할">${[['auto', '자동'], ...POS_LIST].map(([k, n]) => `<button type="button" data-cpos="${k}" aria-pressed="${st.cpos === k}"${k !== 'auto' && !xs.some(x => x.sls.some(s => s.pos === k)) ? ' disabled' : ''}>${n}${k !== 'auto' && cp.common.includes(k) ? ' ✓' : ''}</button>`).join('')}</div></div>`
+      + (cp.pos ? `<p class="muted cpnote">${pn} 기준으로 비교해요. ${xs.filter(x => !x.sls.some(s => s.pos === cp.pos)).map(x => GP.esc(x.d.name)).join(', ') || ''}${xs.some(x => !x.sls.some(s => s.pos === cp.pos)) ? '은(는) 이 역할이 없어 비교에서 빠져요.' : '서브·서포터처럼 두 역할을 하는 캐릭터는 다른 역할로도 바꿔 비교할 수 있어요(✓ = 모두 가진 역할).'}</p>`
+        : `<p class="muted cpnote low">고른 캐릭터들이 함께 가진 역할이 없어요(예: 메인 딜러와 서포터). 역할이 다르면 점수를 그대로 견줄 수 없어서, 아래 역할 줄은 비워 두고 각자 가장 잘하는 역할 점수만 보여요.</p>`);
     const rows = [
-      ['종합(OVR)', x => x.ovr, v => v],
-      ['성능 점수', x => x.best.perf, v => v],
+      ...(cp.pos ? [[`${pn} OVR`, x => roleOvr(x, cp.pos), v => v ?? '역할 없음'], [`${pn} 성능 점수`, x => x.sls.find(s => s.pos === cp.pos)?.perf ?? null, v => v ?? '역할 없음']] : []),
+      ['종합 OVR (가장 잘하는 역할)', x => x.ovr, v => v],
+      ['가장 잘하는 역할', x => POS_LIST.find(p => p[0] === x.best.pos)[1] + ' ' + x.best.perf, v => v],
       ['메인 딜러', x => x.sls.find(s => s.pos === 'main')?.perf ?? null, v => v ?? '–'],
       ['서브 딜러', x => x.sls.find(s => s.pos === 'sub')?.perf ?? null, v => v ?? '–'],
       ['서포터', x => x.sls.find(s => s.pos === 'sup')?.perf ?? null, v => v ?? '–'],
@@ -539,8 +558,9 @@ function cmpTable(ids) {
       ['원소 마스터리', x => x.fs?.em ?? null, v => v == null ? '–' : Math.round(v)],
       ['원소 피해 보너스', x => x.fs?.dmg ?? null, v => v == null ? '–' : v.toFixed(1) + '%'],
     ];
-    table = `<table class="ctab"><thead><tr><th></th>${xs.map(x => `<th>${x.me ? '<span class="me">내</span> ' : ''}${GP.esc(x.d.name)} <span class="muted">C${x.c.cons} · Lv.${x.c.lv}</span></th>`).join('')}</tr></thead><tbody>
-      ${rows.map(([n, f, show]) => { const vs = xs.map(f), mx = Math.max(...vs.filter(v => v != null));
+    table = seg + `<table class="ctab"><thead><tr><th></th>${xs.map(x => `<th>${x.me ? '<span class="me">내</span> ' : ''}${GP.esc(x.d.name)} <span class="muted">C${x.c.cons} · Lv.${x.c.lv}</span></th>`).join('')}</tr></thead><tbody>
+      ${rows.map(([n, f, show]) => { const vs = xs.map(f), nums = vs.filter(v => typeof v === 'number'), mx = nums.length ? Math.max(...nums) : null;
+        if (!nums.length) return `<tr><th>${n}</th>${vs.map(v => `<td><div class="cell"><span>${show(v)}</span></div></td>`).join('')}</tr>`;
         return `<tr><th>${n}</th>${vs.map(v => `<td><div class="cell${v != null && v === mx && vs.filter(y => y === mx).length < vs.length ? ' win' : ''}"><span>${show(v)}</span><span class="bar"><i style="width:${v == null || !mx ? 0 : v / mx * 100}%"></i></span></div></td>`).join('')}</tr>`; }).join('')}
       <tr><th>무기</th>${xs.map(x => `<td>${x.w ? `${'★'.repeat(x.w.r)} ${GP.esc(x.c.wn)} R${x.c.wr} · Lv.${x.c.wlv}<br><span class="muted">${GP.esc(x.w.sp)} ${fmtSp(x.w.sp, x.w.spv)} · ${x.wq.rank >= 0 ? `추천 ${x.wq.rank + 1}위` : '추천 밖'}</span>` : '–'}</td>`).join('')}</tr>
       <tr><th>성유물</th>${xs.map(x => `<td>${GP.esc(setLabel(x.c))}<br><span class="muted">${['sands', 'goblet', 'circlet'].map(k => GP.esc(x.c.mains[k])).join(' / ')} · 부옵 ${GP.esc(subName(x.c))}</span></td>`).join('')}</tr>
@@ -576,6 +596,7 @@ $('#q').addEventListener('input', e => { st.q = e.target.value; save(); renderPi
 $('#mine').addEventListener('change', e => { st.mine = e.target.checked; save(); renderPick(); });
 document.addEventListener('click', e => {
   const t = e.target.closest('.tabs2 [data-t]'); if (t) { infoTab = t.dataset.t; renderInfo(st.cur); return; }
+  const cpb = e.target.closest('[data-cpos]'); if (cpb) { st.cpos = cpb.dataset.cpos; save(); $('#cmp-table').innerHTML = cmpTable(cmpKeys()); return; }
   const vb = e.target.closest('[data-view]'); if (vb) { st.view = vb.dataset.view; save(); renderDetail(); return; }
   const rb = e.target.closest('[data-wr]'); if (rb) { const id = rb.closest('.ctrl').dataset.id; confOf(id).wr = Number(rb.dataset.wr); confOf(id).dirty = true; refresh(id); return; }
   const cb = e.target.closest('[data-cons]'); if (cb) { const id = cb.closest('.ctrl').dataset.id; confOf(id).cons = Number(cb.dataset.cons); confOf(id).dirty = true; refresh(id); return; }
