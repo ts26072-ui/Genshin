@@ -96,6 +96,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .vpc select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; }
 .vph { display: flex; align-items: center; gap: 8px; }
 .vph .btn { margin-left: auto; }
+.vps { display: flex; flex-direction: column; gap: 2px; }
+.vpe { font: inherit; font-size: 11.5px; text-align: left; padding: 2px 6px; border-radius: 6px; border: 1px dashed var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.vpe:hover { color: var(--ink); border-color: var(--gold); }
+.vpe-src { margin-top: 4px; }
+.vpe-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); }
+.vpe-grid .wide2 { grid-column: 1 / -1; }
 .vpa { display: flex; gap: 6px; flex-wrap: wrap; }
 #vp-load { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-width: 100%; }
 .swap { margin-top: 12px; background: var(--surface); border: 1px solid var(--gold); border-radius: 14px; padding: 12px; }
@@ -447,7 +453,7 @@ html.embed body { background: transparent !important; padding: 0 !important; min
 html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 html.embed .vp { margin: 0; }
 </style>
-<script src="shell.js?v=20261113e"></script>
+<script src="shell.js?v=20261113f"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -628,11 +634,11 @@ html.embed .vp { margin: 0; }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261113e"></script>
-<script src="weapons.js?v=20261113e"></script>
-<script src="rot.js?v=20261113e"></script>
-<script src="names.js?v=20261113e"></script>
-<script src="account.js?v=20261113e"></script>
+<script src="builds.js?v=20261113f"></script>
+<script src="weapons.js?v=20261113f"></script>
+<script src="rot.js?v=20261113f"></script>
+<script src="names.js?v=20261113f"></script>
+<script src="account.js?v=20261113f"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -1624,9 +1630,10 @@ function idealChar(id) {
 }
 const VP_N = 3;
 // 1명씩 바꿔 보기: 가상 파티 하나의 한 자리를 다른 캐릭터로 바꿨을 때 파티 점수가 어떻게 변하는지 전부 계산해 순위로 보여 줌
-const SWAP = { p: null, s: 0, pool: 'own' };
+const SWAP = { p: null, s: 0, pool: 'all' };
 function swapBlock(roster, mode) {
   const p = S.vp[SWAP.p]; if (!p || !p.m.some(Boolean)) return '';
+  roster = vpRoster(p);
   const base = evalParty({ pid: 'sw', name: '', m: p.m }, null, roster), cur = p.m[SWAP.s];
   const ids = Object.keys(DB).filter(id => !p.m.includes(id) && (SWAP.pool === 'all' || S.roster[id]) && !(id.startsWith('traveler-') && p.m.some(x => x && x.startsWith('traveler-') && x !== cur)));
   const r2 = { ...roster };
@@ -1651,22 +1658,34 @@ if (window.EMBED) {
   const tell = () => { try { parent.postMessage({ type: 'gp-vp-h', h: document.documentElement.scrollHeight }, '*'); } catch (e) {} };
   addEventListener('load', () => { tell(); new ResizeObserver(tell).observe(document.body); });
 }
+// 가상 파티 한 칸의 캐릭터 값: 칸마다 고른 기준(내 값 · 잘 키운 가정 · 직접 입력), 안 골랐으면 전체 기준
+function vpSrc(p, si) { const o = (p.o || [])[si]; return o && o.src ? o.src : (S.vpMode || 'ideal'); }
+function vpChar(p, si) {
+  const id = p.m[si]; if (!id || !DB[id]) return null;
+  const o = (p.o || [])[si], src = vpSrc(p, si);
+  if (src === 'custom' && o && o.c && o.c.id === id) return o.c;
+  if (src === 'mine' && S.roster[id]) return S.roster[id];
+  return idealChar(id);
+}
+const vpRoster = p => { const r = {}; p.m.forEach((id, i) => { const c = vpChar(p, i); if (c) r[id] = c; }); return r; };
+const SRC_KO = { mine: '내 값', ideal: '가정', custom: '직접' };
 function vpBlock() {
   if (!Array.isArray(S.vp)) S.vp = [];
   while (S.vp.length < VP_N) S.vp.push({ m: [null, null, null, null] });
+  for (const p of S.vp) if (!Array.isArray(p.o)) p.o = [null, null, null, null];
   const mode = S.vpMode || 'ideal';
   const roster = {};
-  for (const p of S.vp) for (const id of p.m) if (id && DB[id]) roster[id] = mode === 'mine' && S.roster[id] ? S.roster[id] : idealChar(id);
   const opts = cur => `<option value="">— 비움 —</option>` + EL_ORDER.map(el => `<optgroup label="${EL[el]}">${Object.values(DB).filter(d => d.el === el).sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(d => `<option value="${d.id}"${d.id === cur ? ' selected' : ''}>${esc(d.name)}${S.roster[d.id] ? ' · 보유' : ''}</option>`).join('')}</optgroup>`).join('');
-  const res = S.vp.map((p, i) => p.m.some(Boolean) ? evalParty({ pid: 'vp' + i, name: '', m: p.m }, null, roster) : null);
+  const res = S.vp.map((p, i) => p.m.some(Boolean) ? evalParty({ pid: 'vp' + i, name: '', m: p.m }, null, vpRoster(p)) : null);
   const best = Math.max(...res.filter(Boolean).map(e => e.value));
   const load = S.parties.length ? `<select id="vp-load" aria-label="내 파티 불러오기"><option value="">내 파티 불러오기…</option>${S.parties.map(p => `<option value="${esc(p.pid)}">${esc(p.name)}</option>`).join('')}</select>` : '';
   return `<section class="vp"><div class="bar"><h2>파티 비교 · 1명씩 바꿔 보기</h2><div class="actions">${load}<div class="seg" role="group" aria-label="캐릭터 값">
       <button type="button" data-vpmode="ideal" aria-pressed="${mode === 'ideal'}">잘 키운 가정</button><button type="button" data-vpmode="mine" aria-pressed="${mode === 'mine'}">보유 캐릭터는 내 값</button></div></div></div>
-    <p class="legend">아무 캐릭터로나 파티를 짜서 비교해요(보유하지 않아도 됨). '잘 키운 가정'은 모두 C0 · 최대 레벨 · 키울 특성 목표 · 추천 무기·세트 · 기준 스탯으로 똑같이 맞춰 순수하게 조합만 비교하고, '내 값'은 보유한 캐릭터만 내 실제 육성으로 바꿔요. 점수는 파티 순위와 같은 계산이에요.</p>
+    <p class="legend">아무 캐릭터로나 파티를 짜서 비교해요(보유하지 않아도 됨). 칸마다 <b>⚙</b>를 누르면 그 캐릭터만 <b>내 값 · 잘 키운 가정 · 직접 입력</b>(운명의 자리·레벨·특성·무기·세트·치명·원충·핵심 스탯)으로 바꿀 수 있어요. 위 버튼은 칸마다 따로 안 고른 캐릭터의 기본값이에요. '잘 키운 가정'은 모두 C0 · 최대 레벨 · 키울 특성 목표 · 추천 무기·세트 · 기준 스탯으로 똑같이 맞춰 순수하게 조합만 비교하고, '내 값'은 보유한 캐릭터만 내 실제 육성으로 바꿔요. 점수는 파티 순위와 같은 계산이에요.</p>
     <div class="vpg">${S.vp.map((p, i) => { const e = res[i];
       return `<div class="vpc${e && e.value === best && res.filter(Boolean).length > 1 ? ' win' : ''}"><div class="vph"><b>가상 ${i + 1}</b>${e ? `<span class="grade sm g-${e.grade}">${e.grade}</span><span class="val">${e.value.toFixed(1)}</span>${e.value === best && res.filter(Boolean).length > 1 ? ' 👑' : ''}` : ''}</div>
-        ${[0, 1, 2, 3].map(s => `<select class="vp-sel" data-p="${i}" data-s="${s}" aria-label="가상 ${i + 1} 자리 ${s + 1}">${opts(p.m[s])}</select>`).join('')}
+        ${[0, 1, 2, 3].map(s => { const c = vpChar(p, s), src = vpSrc(p, s), x = c ? appraise(c) : null;
+          return `<div class="vps"><select class="vp-sel" data-p="${i}" data-s="${s}" aria-label="가상 ${i + 1} 자리 ${s + 1}">${opts(p.m[s])}</select>${c ? `<button type="button" class="vpe" data-vpedit="${i},${s}" title="이 칸의 능력치 바꾸기">⚙ ${SRC_KO[src === 'mine' && !S.roster[p.m[s]] ? 'ideal' : src]} · C${c.cons} Lv${c.lv} · OVR ${x.ovr}</button>` : ''}</div>`; }).join('')}
         ${e ? `<p class="muted bt-why">딜 ${e.dpsScore.toFixed(0)} · 평균 육 ${e.build.toFixed(0)} · 시너지 ${e.syn.toFixed(0)}${e.rx.length || e.arch.length ? ' · ' + [...e.arch.map(a => '✦ ' + a), ...e.rx].map(esc).join(' · ') : ''}</p>
           <ul class="issues">${e.issues.slice(0, 3).map(([sv, t]) => `<li class="sev-${sv}">${esc(t)}</li>`).join('') || '<li class="sev-ok">눈에 띄는 약점 없음</li>'}</ul>
           <div class="vpa"><button class="btn sm" type="button" data-act="sw-open" data-i="${i}">1명씩 바꿔 보기</button><button class="btn ghost sm" type="button" data-act="vp-save" data-i="${i}">파티로 저장</button><button class="btn ghost sm" type="button" data-act="vp-clear" data-i="${i}">비우기</button></div>` : '<p class="muted">캐릭터를 골라 주세요. 위의 "내 파티 불러오기"로 저장한 파티를 가져올 수도 있어요.</p>'}</div>`; }).join('')}</div>
@@ -1681,20 +1700,73 @@ document.addEventListener('change', e => {
   }
   if (e.target.id === 'sw-slot') { SWAP.s = +e.target.value; renderParties(rankedParties()); return; }
   const s = e.target.closest('.vp-sel'); if (!s) return;
-  S.vp[+s.dataset.p].m[+s.dataset.s] = s.value || null; save(); renderParties(rankedParties());
+  S.vp[+s.dataset.p].m[+s.dataset.s] = s.value || null; if (S.vp[+s.dataset.p].o) S.vp[+s.dataset.p].o[+s.dataset.s] = null; save(); renderParties(rankedParties());
 });
 document.addEventListener('click', e => {
   const m = e.target.closest('[data-vpmode]'); if (m) { S.vpMode = m.dataset.vpmode; save(); renderParties(rankedParties()); return; }
   const so = e.target.closest('[data-act="sw-open"]'); if (so) { SWAP.p = +so.dataset.i; SWAP.s = Math.max(0, S.vp[SWAP.p].m.findIndex(x => !x)); if (S.vp[SWAP.p].m.every(Boolean)) SWAP.s = 3; renderParties(rankedParties()); setTimeout(() => $('.swap') && $('.swap').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50); return; }
   if (e.target.closest('[data-act="sw-close"]')) { SWAP.p = null; renderParties(rankedParties()); return; }
   const sp = e.target.closest('[data-swpool]'); if (sp) { SWAP.pool = sp.dataset.swpool; renderParties(rankedParties()); return; }
-  const pk = e.target.closest('[data-swpick]'); if (pk) { S.vp[SWAP.p].m[SWAP.s] = pk.dataset.swpick; save(); renderParties(rankedParties()); return; }
+  const pk = e.target.closest('[data-swpick]'); if (pk) { S.vp[SWAP.p].m[SWAP.s] = pk.dataset.swpick; (S.vp[SWAP.p].o || [])[SWAP.s] = null; save(); renderParties(rankedParties()); return; }
+  const ve = e.target.closest('[data-vpedit]'); if (ve) { const [pi, si] = ve.dataset.vpedit.split(',').map(Number); openVpEdit(pi, si); return; }
   const vc = e.target.closest('[data-act="vp-clear"]'); if (vc) { S.vp[+vc.dataset.i] = { m: [null, null, null, null] }; if (SWAP.p === +vc.dataset.i) SWAP.p = null; save(); renderParties(rankedParties()); return; }
   const a = e.target.closest('[data-act="vp-save"]'); if (!a) return;
   const p = S.vp[+a.dataset.i], miss = p.m.filter(id => id && !S.roster[id]);
-  if (miss.length) { toast(`보유하지 않은 캐릭터가 있어 저장할 수 없어요: ${miss.map(id => DB[id].name).join(', ')}`); return; }
-  S.parties.push({ pid: 'p' + Date.now(), name: `가상 ${+a.dataset.i + 1}`, m: p.m.slice() }); save(); render(); toast('파티로 저장했어요');
+  S.parties.push({ pid: 'p' + Date.now(), name: `가상 ${+a.dataset.i + 1}`, m: p.m.slice() }); save(); render();
+  toast(miss.length ? `파티로 저장했어요. 보유하지 않은 ${miss.map(id => DB[id].name).join(', ')}은(는) 파티 순위에서 빈 자리로 계산돼요` : '파티로 저장했어요');
 });
+// ───────── 가상 파티 칸 능력치 편집 ─────────
+function openVpEdit(pi, si) {
+  const p = S.vp[pi], id = p.m[si]; if (!id) return;
+  const d = DB[id], cur = vpChar(p, si), src = vpSrc(p, si);
+  let dlg = $('#dlg-vpe');
+  if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'dlg-vpe'; document.body.appendChild(dlg);
+    dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); }); }
+  const type = weaponType(d), rec = recWeapons(id), rest = (type ? WEAPONS_BY_TYPE[type] : []).filter(n => !rec.includes(n));
+  const wo = n => `<option value="${esc(n)}"${n === cur.wn ? ' selected' : ''}>${esc(n)}${WEAPONS[n] ? ' · ' + WEAPONS[n].r + '★' : ''}</option>`;
+  const b = BUILDS[id], fours = b ? b.sets.filter(x => x.set).map(x => x.set) : [];
+  const so = n => `<option value="${esc(n)}"${n === cur.sa ? ' selected' : ''}>${esc(n)}</option>`;
+  const num = (k, lab, v, min, max, step = 1) => `<label>${lab}<input type="number" data-k="${k}" value="${v}" min="${min}" max="${max}" step="${step}"></label>`;
+  const plan = talPlan(prof(cur));
+  dlg.innerHTML = `<form class="dlg" id="vpe-form" data-p="${pi}" data-s="${si}"><div class="dlg-head"><h2>${av(id, 'lg')}${esc(d.name)} · 가상 ${pi + 1}</h2><button class="btn ghost sm" type="button" data-close>닫기</button></div>
+    <div class="seg vpe-src" role="group" aria-label="값 기준">
+      <button type="button" data-src="mine" aria-pressed="${src === 'mine'}"${S.roster[id] ? '' : ' disabled title="보유하지 않은 캐릭터"'}>내 값</button>
+      <button type="button" data-src="ideal" aria-pressed="${src === 'ideal'}">잘 키운 가정</button>
+      <button type="button" data-src="custom" aria-pressed="${src === 'custom'}">직접 입력</button></div>
+    <p class="muted" style="font-size:12.5px;margin:6px 0 10px">아래 값을 바꾸면 '직접 입력'으로 저장돼요. 지금 값(${SRC_KO[src === 'mine' && !S.roster[id] ? 'ideal' : src]})에서 시작해요. 키울 특성: ${esc(talPlanTxt(prof(cur)))}</p>
+    <div class="fgrid vpe-grid">
+      ${num('cons', '운명의 자리', cur.cons, 0, 6)}${num('lv', '레벨', cur.lv, 1, 90)}
+      ${[0, 1, 2].map(i => num('t' + i, `${TAL[i]}${plan.some(q => q.i === i) ? ' ★' : ''}`, cur.t[i], 1, 10)).join('')}
+      <label class="wide2">무기<select data-k="wn"><option value="">—</option>${rec.length ? `<optgroup label="추천 순">${rec.map(wo).join('')}</optgroup>` : ''}<optgroup label="그 밖">${rest.map(wo).join('')}</optgroup></select></label>
+      ${num('wr', '재련', cur.wr, 1, 5)}${num('wl', '무기 레벨', cur.wl, 1, 90)}
+      <label class="wide2">세트(4세트)<select data-k="sa"><option value="">세트 효과 없음</option>${fours.length ? `<optgroup label="추천 4세트">${fours.map(so).join('')}</optgroup>` : ''}<optgroup label="그 밖">${ART_SETS.filter(x => x.r >= 4 && !fours.includes(x.name)).map(x => so(x.name)).join('')}</optgroup></select></label>
+      ${num('cr', '치명타 확률 %', cur.cr, 0, 150, 0.1)}${num('cd', '치명타 피해 %', cur.cd, 0, 400, 0.1)}${num('er', '원소 충전 효율 %', cur.er, 100, 400, 0.1)}${num('key', ({ atk: '공격력', hp: '최대 HP', def: '방어력', em: '원소 마스터리' })[prof(cur).scale] + '(핵심 스탯)', cur.key, 0, 80000)}
+    </div>
+    <div class="preview" style="margin-top:10px"><span class="score" id="vpe-score">–</span><span class="muted" id="vpe-note"></span></div>
+    <div class="dlg-foot" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button class="btn primary" type="submit">적용</button></div></form>`;
+  const form = $('#vpe-form'), read = () => {
+    const c = JSON.parse(JSON.stringify(cur)); delete c.arts;   // 직접 입력은 부위별 성유물 대신 아래 수치로 평가
+    for (const el of form.querySelectorAll('[data-k]')) {
+      const k = el.dataset.k, v = el.value;
+      if (/^t\d$/.test(k)) c.t[+k[1]] = clamp(Math.round(+v || 1), 1, 10);
+      else if (k === 'wn') c.wn = v; else if (k === 'sa') { c.sa = v; c.sb = ''; c.set = v ? 'full' : 'broken'; }
+      else c[k] = k === 'cons' ? clamp(Math.round(+v || 0), 0, 6) : k === 'lv' || k === 'wl' ? clamp(Math.round(+v || 1), 1, 90) : k === 'wr' ? clamp(Math.round(+v || 1), 1, 5) : +v || 0;
+    }
+    if (c.wn && WEAPONS[c.wn]) c.wt = WEAPONS[c.wn].r >= 5 ? 'five' : WEAPONS[c.wn].r === 4 ? 'four' : 'three';
+    c.mainOk = true; c.t = c.t.map(x => Math.min(x, talCapOf(c)));
+    return c;
+  };
+  const show = () => { const x = appraise(read()); $('#vpe-score').textContent = x.ovr; $('#vpe-note').textContent = `OVR · 육성 ${Math.round(x.score)} · 성능 ${x.perf}`; };
+  form.addEventListener('input', show);
+  form.addEventListener('click', e => {
+    const b = e.target.closest('[data-src]'); if (!b || b.disabled) return;
+    p.o[si] = b.dataset.src === 'custom' ? { src: 'custom', c: read() } : { src: b.dataset.src };
+    save(); renderParties(rankedParties()); openVpEdit(pi, si);
+  });
+  form.addEventListener('submit', e => { e.preventDefault(); p.o[si] = { src: 'custom', c: read() }; save(); dlg.close(); renderParties(rankedParties()); toast(`${d.name} 값을 바꿨어요`); });
+  show();
+  if (!dlg.open) dlg.showModal();
+}
 function bossBlock() {
   const ids = Object.keys(S.roster);
   const sel = BOSSES.find(b => b.n === S.boss);
