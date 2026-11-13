@@ -89,6 +89,19 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .tboost { color: #5aa9ff; font-weight: 700; font-size: 12px; }
 .tb-note { font-size: 12px; margin: 8px 0 0; }
 .boss { margin-bottom: 18px; }
+.vp { margin-bottom: 18px; }
+.vpg { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 10px; }
+.vpc { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.vpc.win { border-color: var(--gold); }
+.vpc select { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); width: 100%; }
+.vph { display: flex; align-items: center; gap: 8px; }
+.tags.roles { display: flex; gap: 10px; flex-wrap: wrap; }
+.tags.roles b { color: var(--ink); }
+#dlg-view .vgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 14px; }
+#dlg-view h3 { font-size: 14px; margin: 10px 0 4px; }
+#dlg-view p { margin: 0; line-height: 1.6; }
+.vart { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.card.ro { cursor: pointer; }
 .fadd { display: flex; gap: 6px; margin: 0 0 10px; }
 .fadd input { font: inherit; padding: 8px 12px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); width: min(100%, 260px); }
 .flist { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
@@ -411,7 +424,7 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
-<script src="shell.js?v=20261113b"></script>
+<script src="shell.js?v=20261113c"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -592,11 +605,11 @@ dialog::backdrop { background: rgb(8 11 20 / .7); backdrop-filter: blur(3px); }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261113b"></script>
-<script src="weapons.js?v=20261113b"></script>
-<script src="rot.js?v=20261113b"></script>
-<script src="names.js?v=20261113b"></script>
-<script src="account.js?v=20261113b"></script>
+<script src="builds.js?v=20261113c"></script>
+<script src="weapons.js?v=20261113c"></script>
+<script src="rot.js?v=20261113c"></script>
+<script src="names.js?v=20261113c"></script>
+<script src="account.js?v=20261113c"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -825,6 +838,21 @@ const GG_ROLE_C6 = {
 
 // 운명의 자리별 성능(티어표 페이지와 같은 계산): 칸마다 명함(C0)·풀돌(C6) 표 점수 사이를 돌파 가치 곡선으로 채우고 가장 높은 칸을 씀
 const CONS_W = { 5: [0, .35, .55, .65, .75, .85, 1], 4: [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1] };
+// 운명의 자리 수에 맞춘 역할별 성능: [{ pos: 'main'|'sub'|'sup', perf }] (GamsGo 역할 칸 기준, consPerf와 같은 계산)
+function posPerfs(id, cons) {
+  const d = DB[id], arr = x => x ? x.split('/').map(t => t === '-' ? null : t) : null;
+  const a = arr(GG_ROLE_C0[id]), b = arr(GG_ROLE_C6[id]) || a;
+  if (!a) return [];
+  const n = PERF_NAMU[id] ?? null, sc = t => blendScore(GG_SCORE[t], n);
+  const w = CONS_W[d.r === 5 ? 5 : 4][clamp(Math.round(cons || 0), 0, 6)], out = [];
+  ['main', 'sub', 'sup'].forEach((pos, i) => {
+    const ta = a[i], tb = b[i];
+    if (!(ta && w < 1) && !(tb && w >= 0.5)) return;
+    const sa = ta ? sc(ta) : null, sb = tb ? sc(tb) : null;
+    out.push({ pos, perf: sa != null && sb != null ? Math.round(sa + (sb - sa) * w) : (sa ?? sb) });
+  });
+  return out.sort((x, y) => y.perf - x.perf);
+}
 function consPerf(id, cons) {
   const d = DB[id], arr = x => x ? x.split('/').map(t => t === '-' ? null : t) : null;
   const a = arr(GG_ROLE_C0[id]), b = arr(GG_ROLE_C6[id]) || a;
@@ -916,7 +944,9 @@ function save() { S.sample = false; S.savedAt = Date.now(); try { localStorage.s
 // 오버롤(OVR) = 캐릭터 성능 점수 × 육성 점수 ÷ 100 (성능 90이면 다 키워도 90이 최대)
 function appraise(c) {
   const d = prof(c), a = charCalc(c);
-  return { d, a, score: a.score, perf: d.perf, ovr: Math.round(d.perf * a.score / 100) };
+  // 역할별(메인·서브·서포터) 성능 → 역할별 OVR. 서포터·서브처럼 두 칸에 있는 캐릭터는 둘 다 보여 줌
+  const byPos = d.perfEdited ? [] : posPerfs(c.id, c.cons).map(x => ({ ...x, ovr: Math.round(x.perf * a.score / 100) }));
+  return { d, a, score: a.score, perf: d.perf, ovr: Math.round(d.perf * a.score / 100), byPos };
 }
 function saveAppraisal() {
   try {
@@ -961,6 +991,20 @@ const baseRatio = lv => (lv + 10) / 100;
 const talTargetRole = d => d.roles[0] === 'main' ? 9 : d.roles[0] === 'sub' ? 8 : 6;
 const lvTarget = () => lvCapOf(ar());
 const talTarget = d => Math.min(talTargetRole(d), talCapAt(lvTarget()));
+// 캐릭터별 특성 우선순위(genshin-builds.com 각 캐릭터 '특성 우선순위', 2026년 11월 열람 · N 평타 E 원소전투 스킬 Q 원소폭발).
+// 라이덴은 출처 첫 빌드가 만개 전용이라 일반 딜(원소폭발) 기준으로 보정. 자료가 없는 캐릭터(발레리·로엔·바르카)는 예전 핵심 특성
+const TAL_PRI = {"traveler-cryo":"EQN","mitya":"NQE","vesna":"EQN","vodyanitsa":"EQN","alyosha":"QEN","odette":"EQN","sandrone":"NQE","nicole":"EQN","prune":"QEN","linnea":"EQN","illuga":"QEN","zibai":"EQN","columbina":"EQN","durin":"QEN","jahoda":"QEN","flins":"QEN","nefer":"EQN","aino":"QEN","lauma":"QEN","ineffa":"EQN","dahlia":"QEN","skirk":"EQN","escoffier":"EQN","ifa":"EQN","iansan":"QEN","varesa":"NQE","traveler-pyro":"EQN","citlali":"EQN","mavuika":"QEN","chasca":"EQN","ororon":"QEN","xilonen":"EQN","kinich":"EQN","kachina":"EQN","mualani":"EQN","emilie":"EQN","clorinde":"EQN","sigewinne":"EQN","sethos":"QNE","arlecchino":"NEQ","chiori":"EQN","gaming":"EQN","xianyun":"QEN","chevreuse":"EQN","navia":"EQN","furina":"QEN","charlotte":"QEN","wriothesley":"NEQ","neuvillette":"NQE","freminet":"ENQ","lynette":"QEN","lyney":"NEQ","traveler-hydro":"EQN","kirara":"EQN","baizhu":"QEN","kaveh":"QNE","mika":"EQN","dehya":"QEN","alhaitham":"ENQ","yaoyao":"QEN","wanderer":"NEQ","faruzan":"QEN","layla":"EQN","nahida":"EQN","nilou":"EQN","candace":"QEN","cyno":"QEN","yelan":"QEN","dori":"QEN","collei":"QEN","tighnari":"NQE","traveler-dendro":"QEN","shenhe":"EQN","gorou":"EQN","thoma":"EQN","aloy":"QEN","sayu":"QEN","yoimiya":"NEQ","traveler-electro":"EQN","eula":"NQE","yanfei":"NQE","rosaria":"QEN","xiao":"NQE","ganyu":"NEQ","albedo":"EQN","xinyan":"NQE","zhongli":"EQN","bennett":"QEN","diona":"QEN","tartaglia":"EQN","amber":"NEQ","barbara":"EQN","beidou":"QEN","chongyun":"QEN","diluc":"NEQ","fischl":"EQN","jean":"QEN","kaeya":"QNE","keqing":"NQE","klee":"NQE","lisa":"QEN","mona":"QNE","ningguang":"QNE","xiangling":"QEN","noelle":"NQE","razor":"NEQ","qiqi":"QEN","traveler-geo":"EQN","traveler-anemo":"EQN","sucrose":"EQN","venti":"QEN","xingqiu":"QEN","heizou":"ENQ","shinobu":"EQN","ayato":"EQN","yae":"EQN","yunjin":"QEN","itto":"NQE","kokomi":"EQN","sara":"EQN","raiden":"QEN","ayaka":"QNE","kazuha":"QEN","hutao":"NEQ","mizuki":"EQN","lanyan":"EQN"};
+// 키울 특성과 목표: 1순위 = 역할 목표(메인 9 · 서브 8 · 서포터 6), 2순위 = 그보다 2 낮게(최소 4) 절반 비중,
+// 3순위는 키울 필요가 없어 1레벨이어도 점수·지적에 넣지 않음(평타가 아닌 2순위도 핵심 특성에 없으면 낮은 비중)
+function talPlan(d) {
+  const tg = talTarget(d), pri = TAL_PRI[d.id];
+  if (!pri) return d.tal.map(i => ({ i, w: 1, tg }));
+  const order = pri.split('').map(k => 'NEQ'.indexOf(k));
+  const out = [{ i: order[0], w: 1, tg }];
+  if (!(order[1] === 0 && !d.tal.includes(0))) out.push({ i: order[1], w: 0.5, tg: Math.max(Math.min(4, tg), tg - 2) });
+  return out;
+}
+const talPlanTxt = d => talPlan(d).map(p => `${TAL[p.i]} ${p.tg}`).join(' > ');
 const critTarget = d => Math.round((d.roles[0] === 'main' ? 230 : 190) * artStage(ar()));
 const cvOf = c => Math.round(2 * Math.max(0, c.cr - 5) + Math.max(0, c.cd - 50));
 // 다 키운 계정(모험 등급 55+, Lv.90)의 핵심 스탯 기준
@@ -990,8 +1034,8 @@ function dmgFactor(c) {
   // 치명 기대값 = 1 + 확률 × 피해 (확률은 100%에서 막힘)
   const [rr, rd] = CRIT_REF[role === 'main' ? 'main' : 'sub'];
   const crit = d.crit ? (1 + Math.min(1, c.cr / 100) * c.cd / 100) / (1 + rr * rd) : 1;
-  const tl = d.tal.length ? d.tal : [1];
-  const tal = avg(tl.map(i => TALM[Math.min(c.t[i] || 1, talCapOf(c))])) / TALM[9];
+  const tp = talPlan(d), tw = tp.reduce((s, p) => s + p.w, 0) || 1;
+  const tal = tp.reduce((s, p) => s + p.w * TALM[Math.min(c.t[p.i] || 1, talCapOf(c))], 0) / tw / TALM[9];
   // 원소 마스터리 반응 위주(치명 없음)는 방어 무시, 나머지는 Lv.100 적 기준 방어 계수
   const lv = d.scale === 'em' && !d.crit ? 1 : def100(Math.max(1, effLv(c))) / def100(90);
   const wv = weaponValue(c);
@@ -1109,6 +1153,15 @@ function artEval(c) {
   return { slots, eff, mainS: avg(slots.filter(x => MAIN_SLOTS.includes(x.slot)).map(x => x.mv)), subS: clamp(eff / SUB_GOAL) };
 }
 
+// 반응(증발·융해·격화 등) 딜러: 치명으로 딜을 넣지만 원소 마스터리도 중요한 캐릭터(추천 부옵 상위 3개에 마스터리)
+const emReact = d => d.crit && d.scale !== 'em' && !!BUILDS[d.id] && BUILDS[d.id].subs.slice(0, 3).includes('원소 마스터리');
+// 착용 성유물의 원소 마스터리 합(주옵 + 부옵). 성유물 정보가 없으면 null
+function artEM(c) {
+  if (!(c.arts || []).length) return null;
+  let em = 0;
+  for (const a of c.arts) { if (a.main && a.main[0] === '원소 마스터리') em += +a.main[1] || 0; for (const [k, v] of a.subs || []) if (k === '원소 마스터리') em += +v || 0; }
+  return em;
+}
 function charCalc(c) {
   const d = prof(c);
   // 레벨: 모험 등급이 허용하는 목표 레벨 대비 피해 비율(방어 계수 × 기초 스탯), Lv.60 전에는 두 번째 고유 특성이 잠겨 감점
@@ -1118,8 +1171,8 @@ function charCalc(c) {
   let lv = clamp((defMult(L) / defMult(T)) * (0.25 + 0.75 * clamp(L / T)));
   if (ascOfC(c) < 4 && T >= 60) lv *= 0.8;
   if (ascOfC(c) < 1 && T >= 20) lv *= 0.8;
-  const tg = talTarget(d);
-  const tal = tg <= 1 ? 1 : avg(d.tal.map(i => clamp((Math.min(c.t[i], talCapOf(c)) - 1) / (tg - 1))));
+  const tp = talPlan(d), tw = tp.reduce((s, p) => s + p.w, 0) || 1;
+  const tal = tp.reduce((s, p) => s + p.w * (p.tg <= 1 ? 1 : clamp((Math.min(c.t[p.i], talCapOf(c)) - 1) / (p.tg - 1))), 0) / tw;
   const wl = clamp((c.wl + 10) / (T + 10));
   const wv = weaponValue(c);
   const wep = clamp(wv.v * wl + (wv.five ? 0.03 : 0.02) * (c.wr - 1));
@@ -1130,7 +1183,8 @@ function charCalc(c) {
   if (c.cr > 100) critS *= 0.9;
   if (d.roles[0] === 'main' && c.cr < 45) critS *= 0.85;
   const erS = clamp(c.er / d.er) ** 1.5;
-  const keyS = clamp(c.key / keyTarget(d));
+  let keyS = clamp(c.key / keyTarget(d));
+  if (emReact(d)) { const em = artEM(c); if (em != null) keyS = 0.65 * keyS + 0.35 * clamp(em / 150); }
   // 부위별 성유물을 넣었으면 주옵 비중을 키우고 부옵 품질(유효 옵션 수)을 따로 더함
   const art = ae
     ? (d.crit ? 0.2 * setS + 0.15 * mainS + 0.15 * ae.subS + 0.3 * critS + 0.1 * erS + 0.1 * keyS
@@ -1156,10 +1210,11 @@ function charIssues(c) {
   }
   if (pendingAsc(c)) out.push([ascOf(c.lv) >= 4 ? 'hi' : 'md', `Lv.${c.lv} ${ascOf(c.lv)}단계 돌파 전 — 돌파해야 레벨과 특성(상한 ${TAL_CAP[ascOf(c.lv)]})을 올릴 수 있음`]);
   if (ascOfC(c) < 4 && T >= 60) out.push(['md', 'Lv.60(4단계 돌파) 전이라 두 번째 고유 특성이 잠겨 있음']);
-  const low = d.tal.filter(i => c.t[i] < tg);
+  const low = talPlan(d).filter(p => c.t[p.i] < p.tg);
   if (low.length) {
-    const capped = low.filter(i => c.t[i] >= cap);
-    out.push([low.some(i => c.t[i] <= tg - 3) ? 'hi' : 'md', `${low.map(i => TAL[i] + ' ' + c.t[i]).join(', ')} (목표 ${tg})` + (capped.length ? ` · 현재 돌파로는 ${cap}이 상한` : '')]);
+    const capped = low.filter(p => c.t[p.i] >= cap);
+    out.push([low.some(p => p.w === 1 && c.t[p.i] <= p.tg - 3) ? 'hi' : low.some(p => p.w === 1) ? 'md' : 'lo',
+      low.map(p => `${TAL[p.i]} ${c.t[p.i]}(목표 ${p.tg}${p.w < 1 ? ' · 2순위' : ''})`).join(', ') + (capped.length ? ` · 현재 돌파로는 ${cap}이 상한` : '')]);
   }
   const wv = weaponValue(c);
   if (!wv.picked && WT[c.wt].v < 0.7) out.push(['md', `무기가 약함 — ${WT[c.wt].n}`]);
@@ -1352,10 +1407,10 @@ function actionsFor(id) {
   // apAfter: 도착 레벨이 돌파 경계라 아직 다음 돌파 전인 상태(예: 4단계 돌파 후 Lv.70)
   const lvUp = (what, why, cost, toLv, apAfter = false) => {
     const cap1 = talCapOf({ lv: toLv, ap: apAfter }), to = Math.min(tg, cap1);
-    const raise = cap1 > cap ? d.tal.filter(i => c.t[i] >= cap && c.t[i] < to) : [];
-    let tc = 0; for (const i of raise) for (let l = c.t[i]; l < to; l++) tc += TAL_COST[l];
-    const tw = raise.map(i => `${TAL[i]} ${c.t[i]}→${to}`).join(', ');
-    add(what + (tw ? ` + ${tw}` : ''), why, cost + tc, n => { n.lv = toLv; n.ap = apAfter; for (const i of raise) n.t[i] = to; });
+    const raise = cap1 > cap ? talPlan(d).map(p => ({ i: p.i, to: Math.min(p.tg, cap1) })).filter(p => c.t[p.i] >= cap && c.t[p.i] < p.to) : [];
+    let tc = 0; for (const p of raise) for (let l = c.t[p.i]; l < p.to; l++) tc += TAL_COST[l];
+    const tw = raise.map(p => `${TAL[p.i]} ${c.t[p.i]}→${p.to}`).join(', ');
+    add(what + (tw ? ` + ${tw}` : ''), why, cost + tc, n => { n.lv = toLv; n.ap = apAfter; for (const p of raise) n.t[p.i] = p.to; });
   };
   const lvCost = to => to <= 60 ? 70 : to <= 80 ? 140 : 420;
   if (pendingAsc(c)) {
@@ -1371,7 +1426,7 @@ function actionsFor(id) {
     const why = to === 60 ? '두 번째 고유 특성 해금 · 특성 상한 6' : to === 90 ? '주간 보스·경험치 대량 소모' : `특성 상한 ${talCapAt(to)}`;
     lvUp(asc ? `${d.name} Lv.${to} + ${asc}단계 돌파` : `${d.name} 레벨 ${to}`, `Lv.${c.lv} → ${to} (${why})`, lvCost(to) + (asc ? 60 : 0), to);
   }
-  for (const i of d.tal) {
+  for (const { i, tg } of talPlan(d)) {
     if (c.t[i] >= tg || c.t[i] >= cap) continue;
     const to = Math.min(tg, cap, c.t[i] < 6 ? 6 : c.t[i] + 1);
     let cost = 0; for (let l = c.t[i]; l < to; l++) cost += TAL_COST[l];
@@ -1535,6 +1590,46 @@ function bossTeams(b) {
   }
   return (bossCache = { [key]: res })[key];
 }
+// ───────── 가상 파티 비교: 보유와 상관없이 아무 캐릭터로 파티를 짜서 나란히 비교 ─────────
+// '잘 키운 가정'은 모두 C0 · 모험 등급이 허용하는 최대 레벨 · 키울 특성은 목표 레벨 · 추천 1위 무기 R1 · 추천 4세트 · 기준 치명·원충·핵심 스탯
+function idealChar(id) {
+  const d = DB[id], T = lvTarget(), tc = talCapAt(T), t = [1, 1, 1];
+  for (const p of talPlan(d)) t[p.i] = Math.min(p.tg, tc);
+  const b = BUILDS[id], sa = b ? (b.sets.find(x => x.set) || {}).set || '' : '', w = recWeapons(id)[0] || '';
+  const [rr, rd] = CRIT_REF[d.roles[0] === 'main' ? 'main' : 'sub'];
+  return mk(id, T, 0, t, 'five', T, 1, sa ? 'full' : 'two', true, d.crit ? Math.round(rr * 100) : 5, d.crit ? Math.round(rd * 100) : 50, d.er, keyTarget(d), w, sa);
+}
+const VP_N = 3;
+function vpBlock() {
+  if (!Array.isArray(S.vp)) S.vp = [];
+  while (S.vp.length < VP_N) S.vp.push({ m: [null, null, null, null] });
+  const mode = S.vpMode || 'ideal';
+  const roster = {};
+  for (const p of S.vp) for (const id of p.m) if (id && DB[id]) roster[id] = mode === 'mine' && S.roster[id] ? S.roster[id] : idealChar(id);
+  const opts = cur => `<option value="">— 비움 —</option>` + EL_ORDER.map(el => `<optgroup label="${EL[el]}">${Object.values(DB).filter(d => d.el === el).sort((a, b) => a.name.localeCompare(b.name, 'ko')).map(d => `<option value="${d.id}"${d.id === cur ? ' selected' : ''}>${esc(d.name)}${S.roster[d.id] ? ' · 보유' : ''}</option>`).join('')}</optgroup>`).join('');
+  const res = S.vp.map((p, i) => p.m.some(Boolean) ? evalParty({ pid: 'vp' + i, name: '', m: p.m }, null, roster) : null);
+  const best = Math.max(...res.filter(Boolean).map(e => e.value));
+  return `<section class="vp"><div class="bar"><h2>가상 파티 비교</h2><div class="actions"><div class="seg" role="group" aria-label="캐릭터 값">
+      <button type="button" data-vpmode="ideal" aria-pressed="${mode === 'ideal'}">잘 키운 가정</button><button type="button" data-vpmode="mine" aria-pressed="${mode === 'mine'}">보유 캐릭터는 내 값</button></div></div></div>
+    <p class="legend">아무 캐릭터로나 파티를 짜서 비교해요(보유하지 않아도 됨). '잘 키운 가정'은 모두 C0 · 최대 레벨 · 키울 특성 목표 · 추천 무기·세트 · 기준 스탯으로 똑같이 맞춰 순수하게 조합만 비교하고, '내 값'은 보유한 캐릭터만 내 실제 육성으로 바꿔요. 점수는 파티 순위와 같은 계산이에요.</p>
+    <div class="vpg">${S.vp.map((p, i) => { const e = res[i];
+      return `<div class="vpc${e && e.value === best && res.filter(Boolean).length > 1 ? ' win' : ''}"><div class="vph"><b>가상 ${i + 1}</b>${e ? `<span class="grade sm g-${e.grade}">${e.grade}</span><span class="val">${e.value.toFixed(1)}</span>${e.value === best && res.filter(Boolean).length > 1 ? ' 👑' : ''}` : ''}</div>
+        ${[0, 1, 2, 3].map(s => `<select class="vp-sel" data-p="${i}" data-s="${s}" aria-label="가상 ${i + 1} 자리 ${s + 1}">${opts(p.m[s])}</select>`).join('')}
+        ${e ? `<p class="muted bt-why">딜 ${e.dpsScore.toFixed(0)} · 평균 육 ${e.build.toFixed(0)} · 시너지 ${e.syn.toFixed(0)}${e.rx.length || e.arch.length ? ' · ' + [...e.arch.map(a => '✦ ' + a), ...e.rx].map(esc).join(' · ') : ''}</p>
+          <ul class="issues">${e.issues.slice(0, 3).map(([sv, t]) => `<li class="sev-${sv}">${esc(t)}</li>`).join('') || '<li class="sev-ok">눈에 띄는 약점 없음</li>'}</ul>
+          <button class="btn sm" type="button" data-act="vp-save" data-i="${i}">파티로 저장</button>` : '<p class="muted">캐릭터를 골라 주세요.</p>'}</div>`; }).join('')}</div></section>`;
+}
+document.addEventListener('change', e => {
+  const s = e.target.closest('.vp-sel'); if (!s) return;
+  S.vp[+s.dataset.p].m[+s.dataset.s] = s.value || null; save(); renderParties(rankedParties());
+});
+document.addEventListener('click', e => {
+  const m = e.target.closest('[data-vpmode]'); if (m) { S.vpMode = m.dataset.vpmode; save(); renderParties(rankedParties()); return; }
+  const a = e.target.closest('[data-act="vp-save"]'); if (!a) return;
+  const p = S.vp[+a.dataset.i], miss = p.m.filter(id => id && !S.roster[id]);
+  if (miss.length) { toast(`보유하지 않은 캐릭터가 있어 저장할 수 없어요: ${miss.map(id => DB[id].name).join(', ')}`); return; }
+  S.parties.push({ pid: 'p' + Date.now(), name: `가상 ${+a.dataset.i + 1}`, m: p.m.slice() }); save(); render(); toast('파티로 저장했어요');
+});
 function bossBlock() {
   const ids = Object.keys(S.roster);
   const sel = BOSSES.find(b => b.n === S.boss);
@@ -1560,11 +1655,11 @@ function renderParties(ranked) {
   const v = $('#view-parties');
   const head = `<div class="bar"><h2>파티 순위</h2><div class="actions"><button class="btn primary" type="button" data-act="new-party">+ 새 파티</button></div></div>`;
   if (!S.parties.length) {
-    v.innerHTML = bossBlock() + head + `<div class="empty-state"><p>아직 파티가 없습니다.</p><p>먼저 <b>내 캐릭터</b>에 보유 캐릭터를 등록한 뒤, 새 파티를 만들어 4명을 배치하세요.</p></div>`;
+    v.innerHTML = bossBlock() + vpBlock() + head + `<div class="empty-state"><p>아직 파티가 없습니다.</p><p>먼저 <b>내 캐릭터</b>에 보유 캐릭터를 등록한 뒤, 새 파티를 만들어 4명을 배치하세요.</p></div>`;
     return;
   }
   const open = new Set([...v.querySelectorAll('details.prow[open]')].map(d => d.dataset.pid));
-  v.innerHTML = bossBlock() + head + `<div class="plist">` + ranked.map(({ p, e }, i) => {
+  v.innerHTML = bossBlock() + vpBlock() + head + `<div class="plist">` + ranked.map(({ p, e }, i) => {
     const mem = p.m.map(id => {
       if (!id || !S.roster[id]) return `<div class="mem empty">빈 슬롯</div>`;
       const x = appraise(S.roster[id]), d = x.d, sc = x.score;
@@ -1614,18 +1709,19 @@ function renderRoster() {
 // 캐릭터 카드 묶음. editable = 내 캐릭터(눌러서 편집), 아니면 보기 전용(친구·관리자 보기)
 function rosterGrid(roster, editable) {
   const rows = Object.keys(roster).filter(id => DB[id]).map(id => ({ id, c: roster[id], ...appraise(roster[id]) })).sort((x, y) => y.ovr - x.ovr || y.score - x.score);
-  return `<div class="grid">` + rows.map(({ id, c, d, a, ovr }) => {
+  return `<div class="grid">` + rows.map(({ id, c, d, a, ovr, byPos }) => {
     const iss = charIssues(c).filter(i => i[0] !== 'lo');
     const pr = [['레벨', a.parts.lv], ['특성', a.parts.tal], ['무기', a.parts.wep], ['성유물', a.parts.art]];
-    return `<${editable ? `button class="card" type="button" data-act="edit-char" data-id="${id}"` : 'div class="card ro"'}>
+    return `<${editable ? `button class="card" type="button" data-act="edit-char" data-id="${id}"` : `button class="card ro" type="button" data-act="view-char" data-id="${id}"`}>
       <div class="head"><div><div class="nm">${av(id, 'lg')}${esc(d.name)}</div>
         <div class="tags"><span class="r${d.r}">${'★'.repeat(d.r)}</span> · ${EL[d.el]} · ${ROLE[d.roles[0]]} · C${c.cons}${d.guess ? ' · <span style="color:var(--warn)">역할 추정</span>' : ''}</div>
         <div class="tags">캐릭터 성능 <b class="tier t-${TIER(d.perf)}">${TIER(d.perf)}</b> <span class="mono">${d.perf}</span>${!d.rated ? ' · 평가 없음' : d.perfEdited ? ' · 직접 수정' : ''}</div>
-        <div class="tags">${esc(weaponValue(c).name)} · ${esc(setInfo(c).label)}</div></div>
+        <div class="tags">${esc(weaponValue(c).name)} · ${esc(setInfo(c).label)}</div>
+        ${byPos.length > 1 ? `<div class="tags roles">${byPos.map(x => `<span title="${POS_KO[x.pos]} 칸 성능 ${x.perf} × 육성 ÷ 100">${POS_KO[x.pos]} <b>${x.ovr}</b></span>`).join('')}</div>` : ''}</div>
         <span class="score" style="color:${scoreColor(a.score)}" title="오버롤 = 캐릭터 성능 ${d.perf} × 육성 점수 ${Math.round(a.score)} ÷ 100">${ovr}<small class="cap">OVR / ${d.perf}</small><small class="cap">육성 ${Math.round(a.score)}</small></span></div>
       <div class="parts">${pr.map(([n, x]) => `<span>${n}</span><div class="meter"><i style="width:${x * 100}%;--c:${scoreColor(x * 100)}"></i></div>`).join('')}</div>
       <ul class="issues">${iss.length ? iss.slice(0, 2).map(([s, t]) => `<li class="sev-${s}">${esc(t)}</li>`).join('') : '<li class="sev-ok">기준 육성 완료</li>'}</ul>
-    </${editable ? 'button' : 'div'}>`;
+    </button>`;
   }).join('') + `</div>`;
 }
 
@@ -1946,6 +2042,26 @@ function renderFriends() {
       ${Array.isArray(FR.forks) ? `<div class="flist">${FR.forks.length ? FR.forks.map(g => row(g, false)).join('') : '<p class="muted">아직 Fork한 사람이 없어요.</p>'}</div>` : ''}</section>` : ''}
     ${cur ? `<section class="fview"><div class="bar"><h2>${esc(cur.h.nickname || FR.cur)}의 캐릭터 <span class="muted" style="font-size:14px">${cur.n}명 · AR ${cur.h.ar ?? '?'}</span></h2><div class="actions"><a class="btn ghost sm" href="https://${esc(FR.cur)}.github.io/Genshin/" target="_blank" rel="noopener">친구 사이트</a><button class="btn ghost sm" type="button" data-act="fr-close">닫기</button></div></div>${rosterGrid(cur.roster, false)}</section>` : ''}`;
 }
+const POS_KO = { main: '메인', sub: '서브', sup: '서포터' };
+// 보기 전용 상세 창: 특성(우선순위)·운명의 자리·무기·세트·성유물·스탯·부족한 점
+function viewChar(roster, id, owner) {
+  const c = roster[id]; if (!c) return;
+  const x = appraise(c), d = x.d, plan = talPlan(d), cap = talCapOf(c);
+  let dlg = $('#dlg-view');
+  if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'dlg-view'; document.body.appendChild(dlg); dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); }); }
+  const artRow = a => `<li><b>${esc(({ flower: '꽃', plume: '깃털', sands: '시계', goblet: '성배', circlet: '왕관' })[a.slot] || a.slot)}</b> ${esc(a.set || '')} +${a.level ?? '?'} · <b>${esc(a.main ? a.main[0] : '')}</b><br><span class="muted">${(a.subs || []).map(([k, v]) => `${esc(k)} ${v}`).join(' · ')}</span></li>`;
+  dlg.innerHTML = `<div class="dlg"><div class="dlg-head"><h2>${av(id, 'lg')}${esc(d.name)} <span class="muted" style="font-size:14px">${esc(owner)}</span></h2><button class="btn ghost sm" type="button" data-close>닫기</button></div>
+    <p class="legend">OVR <b>${x.ovr}</b> / ${d.perf} · 육성 ${Math.round(x.score)}${x.byPos.length > 1 ? ' · ' + x.byPos.map(p => `${POS_KO[p.pos]} ${p.ovr}`).join(' · ') : ''} · ${'★'.repeat(d.r)} ${EL[d.el]} · ${ROLE[d.roles[0]]}</p>
+    <div class="vgrid">
+      <div><h3>기본</h3><p>Lv.${c.lv}${c.ap ? ' (돌파 전)' : ''} · 운명의 자리 C${c.cons}</p>
+        <h3>특성</h3><p>${[0, 1, 2].map(i => { const p = plan.find(q => q.i === i); return `${TAL[i]} <b>${c.t[i]}</b>${p ? ` <span class="muted">(목표 ${p.tg}${p.w < 1 ? ', 2순위' : ''})</span>` : ' <span class="muted">(안 키워도 됨)</span>'}`; }).join('<br>')}<br><span class="muted">특성 상한 ${cap}</span></p>
+        <h3>무기</h3><p>${esc(c.wn || '미입력')} · Lv.${c.wl} · R${c.wr}</p>
+        <h3>스탯</h3><p>치명 ${c.cr}% / ${c.cd}% · 원충 ${c.er}% · ${({ atk: '공격력', hp: 'HP', def: '방어력', em: '원소 마스터리' })[d.scale]} ${c.key ?? '?'}</p></div>
+      <div><h3>성유물 · ${esc(setInfo(c).label)}</h3><ul class="vart">${(c.arts || []).length ? c.arts.map(artRow).join('') : '<li class="muted">착용 정보 없음</li>'}</ul>
+        <h3>부족한 점</h3><ul class="issues">${(charIssues(c).filter(i => i[0] !== 'lo').slice(0, 5).map(([s, t]) => `<li class="sev-${s}">${esc(t)}</li>`).join('')) || '<li class="sev-ok">기준 육성 완료</li>'}</ul></div>
+    </div></div>`;
+  dlg.showModal();
+}
 document.addEventListener('submit', e => {
   if (e.target.id !== 'fr-form') return;
   e.preventDefault();
@@ -1961,6 +2077,7 @@ document.addEventListener('click', e => {
   const fr = e.target.closest('[data-fr]');
   if (fr) { FR.cur = fr.dataset.fr; if (!FR.data[FR.cur]) loadFriend(FR.cur); else renderFriends(); setTimeout(() => $('.fview') && $('.fview').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); return; }
   const a = e.target.closest('[data-act]');
+  if (a && a.dataset.act === 'view-char' && FR.cur && FR.data[FR.cur]) { const keep = S.ar; S.ar = FR.data[FR.cur].h.ar || S.ar; try { viewChar(FR.data[FR.cur].roster, a.dataset.id, FR.data[FR.cur].h.nickname || FR.cur); } finally { S.ar = keep; } return; }
   if (a && a.dataset.act === 'fr-forks') loadForks();
   if (a && a.dataset.act === 'fr-close') { FR.cur = null; renderFriends(); }
 });
@@ -2236,7 +2353,7 @@ function fillChar(c) {
   fillArts(c);
   legacySet = editId && !c.sa ? c.set : null;
   $('#f-cr').value = c.cr; $('#f-cd').value = c.cd; $('#f-er').value = c.er; $('#f-key').value = c.key;
-  for (const i of [0, 1, 2]) $('#f-t' + i).parentElement.style.fontWeight = d.tal.includes(i) ? '600' : '';
+  for (const i of [0, 1, 2]) $('#f-t' + i).parentElement.style.fontWeight = talPlan(d).some(p => p.i === i) ? '600' : '';
   previewChar();
 }
 function readChar() {
@@ -2280,7 +2397,7 @@ function previewChar() {
   for (const i of [0, 1, 2]) $('#f-b' + i).textContent = bs[i] ? `+${bs[i]} → ${Math.min(15, c.t[i] + bs[i])}` : '';
   $('#f-bnote').hidden = !bs.some(Boolean);
   $('#ap-wrap').hidden = !ASC_EDGE.includes(c.lv);
-  $('#pv-note').textContent = `${ROLE[d.roles[0]]} · 목표 Lv.${lvTarget()} · 핵심 특성 ${d.tal.map(i => TAL[i]).join(', ')} (목표 ${talTarget(d)}, Lv.${c.lv}${pendingAsc(c) ? ' 돌파 전' : ''} 상한 ${cap}) · 원충 목표 ${d.er}%` + (d.crit ? ` · 치명 수치 ${cvOf(c)}/${critTarget(d)}` : '');
+  $('#pv-note').textContent = `${ROLE[d.roles[0]]} · 목표 Lv.${lvTarget()} · 키울 특성 ${talPlanTxt(d)} (나머지는 1이어도 괜찮음 · Lv.${c.lv}${pendingAsc(c) ? ' 돌파 전' : ''} 상한 ${cap}) · 원충 목표 ${d.er}%` + (d.crit ? ` · 치명 수치 ${cvOf(c)}/${critTarget(d)}` : '');
 }
 function openChar(id) {
   editId = id;
