@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>티어표 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261113h">
+<link rel="stylesheet" href="common.css?v=20261113i">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -33,6 +33,7 @@
 .roles span { font-size: 12.5px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); }
 .roles b { margin-left: 4px; }
 .roles span.xr { border-style: dashed; }
+.roles span[aria-current] { border-color: var(--gold); color: var(--gold); }
 .tt:hover .pic { outline: 2px solid var(--gold); outline-offset: 1px; }
 .empty-cell { color: var(--muted); font-size: 12px; align-self: center; }
 button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
@@ -98,7 +99,7 @@ button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: poin
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261113h"></script>
+<script src="shell.js?v=20261113i"></script>
 <div class="wrap" style="max-width:1200px">
   <header class="top">
     <h1><span class="star">✦</span> 캐릭터 티어표</h1>
@@ -135,7 +136,7 @@ button.tt { font: inherit; background: none; border: 0; padding: 0; cursor: poin
   <p class="foot-note">점선 테두리 = <b>역할 추정</b> 칸: 게임에서 그 역할도 맡지만(예: 미탸·헤이조 서브 딜러, 닐루 서포터) GamsGo 티어표에는 그 역할 평가가 없는 경우예요. 그 캐릭터의 가장 높은 칸보다 한 등급 아래로 추정해 넣었어요.</p>
 </div>
 
-<script src="chars.js?v=20261113h"></script>
+<script src="chars.js?v=20261113i"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster();
@@ -165,17 +166,18 @@ const chgLine = c => c.isNew ? `${GG_NOW.v} 표에 새로 들어옴 — ${c.now}
 function tile(d, sl) {
   const u = GP.iconUrl(d.id), o = own[d.id];
   const c = st.mode === 'all' && !sl.alt ? GP.tierChange(d.id) : null;
-  return `<button type="button" class="tt r${d.r}${st.mine && !o ? ' dim' : ''}${sl.xrole ? ' xr' : ''}" data-id="${d.id}" title="${GP.esc(d.name)} · ${posName(sl.pos)} ${sl.perf}점${sl.xrole ? ' (역할 추정: 티어표엔 이 역할 평가가 없음)' : sl.est ? ' (추정)' : ''}" style="--c:var(--${d.el})">
+  return `<button type="button" class="tt r${d.r}${st.mine && !o ? ' dim' : ''}${sl.xrole ? ' xr' : ''}" data-id="${d.id}" data-pos="${sl.pos}" title="${GP.esc(d.name)} · ${posName(sl.pos)} ${sl.perf}점${sl.xrole ? ' (역할 추정: 티어표엔 이 역할 평가가 없음)' : sl.est ? ' (추정)' : ''}" style="--c:var(--${d.el})">
     ${sl.alt ? '<span class="alt">부</span>' : ''}<span class="pic">${u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : ''}${chg(c)}</span>
     <span class="n">${GP.esc(d.name)}</span>${o ? `<span class="own">${o.cons}돌</span>` : ''}</button>`;
 }
 // 캐릭터를 누르면 뜨는 점수 창: 지금 기준 점수, 역할별 점수, C0~C6 점수 흐름, 근거, 직전 표 대비 변동
-function scoreCard(id) {
-  const d = GP.DB[id], o = own[id], sls = slots(d), best = sls.find(x => !x.alt) || sls[0], row = ROWS.find(r => r[0] === rowOf(best.perf));
+// pos = 누른 칸의 역할(서브 딜러 칸에서 누르면 서브 딜러 점수로). 없으면 가장 높은 칸
+function scoreCard(id, pos) {
+  const d = GP.DB[id], o = own[id], sls = slots(d), best = (pos && sls.find(x => x.pos === pos)) || sls.find(x => !x.alt) || sls[0], row = ROWS.find(r => r[0] === rowOf(best.perf));
   const n = PERF_NAMU[id] ?? null, cons = consOf(id);
   const inPos = Object.values(GP.DB).map(x => ({ id: x.id, s: slots(x).find(y => y.pos === best.pos) })).filter(x => x.s).sort((a, b) => b.s.perf - a.s.perf);
   const rank = inPos.findIndex(x => x.id === id) + 1;
-  const curve = [0, 1, 2, 3, 4, 5, 6].map(k => GP.perfAt(id, k));
+  const curve = [0, 1, 2, 3, 4, 5, 6].map(k => { const x = GP.slotsAt(id, k).find(y => y.pos === best.pos); return x ? x.perf : GP.perfAt(id, k); });
   const c = GP.tierChange(id);
   const label = cons == null ? '종합' : `C${cons}${st.mode === 'mine' ? ' (내 돌파)' : ''}`;
   return `<div class="sc" style="--c:var(--${d.el})">
@@ -184,9 +186,9 @@ function scoreCard(id) {
       ${o ? `<div class="meta">내 캐릭터 · Lv.${o.lv} · ${o.cons}돌파</div>` : ''}</div>
       <button type="button" class="btn sm" data-close>닫기</button></div>
     <div class="big"><span class="grade" style="--tc:${row[1]}">${row[0]}</span>
-      <div><div class="pts">${best.perf}<small> / 100점 · ${label}${best.est ? ' 추정' : ''}</small></div><div class="meta muted" style="font-size:12.5px">${posName(best.pos)} ${inPos.length}명 중 ${rank}위</div></div></div>
-    <div class="roles">${sls.map(x => `<span${x.xrole ? ' class="xr" title="GamsGo 티어표에는 이 역할 평가가 없어, 가장 높은 칸보다 한 등급 아래로 추정"' : ''}>${posName(x.pos)}<b>${x.tier || ''} ${x.perf}점${x.xrole ? ' · 추정' : ''}</b></span>`).join('')}</div>
-    <div><h3>운명의 자리별 점수</h3><div class="ccurve">${curve.map((v, k) => `<div class="cc${cons === k ? ' on' : ''}"><i style="height:${Math.max(4, v - 30) / 70 * 100}%"></i><b>${v}</b><span>C${k}</span></div>`).join('')}</div>
+      <div><div class="pts">${best.perf}<small> / 100점 · ${label}${best.xrole ? ' · 역할 추정' : best.est ? ' 추정' : ''}</small></div><div class="meta muted" style="font-size:12.5px">${posName(best.pos)} ${inPos.length}명 중 ${rank}위</div></div></div>
+    <div class="roles">${sls.map(x => `<span${x.pos === best.pos ? ' aria-current="true"' : ''}${x.xrole ? ' class="xr" title="GamsGo 티어표에는 이 역할 평가가 없어, 가장 높은 칸보다 한 등급 아래로 추정"' : ''}>${posName(x.pos)}<b>${x.tier || ''} ${x.perf}점${x.xrole ? ' · 추정' : ''}</b></span>`).join('')}</div>
+    <div><h3>운명의 자리별 점수 <span class="muted" style="font-size:13px;font-weight:400">· ${posName(best.pos)}</span></h3><div class="ccurve">${curve.map((v, k) => `<div class="cc${cons === k ? ' on' : ''}"><i style="height:${Math.max(4, v - 30) / 70 * 100}%"></i><b>${v}</b><span>C${k}</span></div>`).join('')}</div>
       <p class="muted" style="margin:4px 0 0;font-size:12px">C0·C6은 GamsGo 명함·풀돌 표, C1~C5는 그 사이 추정</p></div>
     <div class="parts">
       <span>GamsGo 종합</span><span class="pbar"><i style="width:${GG[id] ? GG_SCORE[GG[id]] : 0}%"></i></span><span class="v">${GG[id] ? `${GG[id]} · ${GG_SCORE[GG[id]]}점` : '없음'}</span>
@@ -197,7 +199,7 @@ function scoreCard(id) {
   </div>`;
 }
 const dlg = document.getElementById('dlg');
-$('#tiers').addEventListener('click', e => { const b = e.target.closest('.tt'); if (!b) return; dlg.innerHTML = scoreCard(b.dataset.id); dlg.showModal(); });
+$('#tiers').addEventListener('click', e => { const b = e.target.closest('.tt'); if (!b) return; dlg.innerHTML = scoreCard(b.dataset.id, b.dataset.pos); dlg.showModal(); });
 $('#changes').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (!b) return; dlg.innerHTML = scoreCard(b.dataset.id); dlg.showModal(); });
 dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); });
 
