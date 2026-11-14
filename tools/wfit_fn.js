@@ -15,11 +15,13 @@ const WFIT = (() => {
   //  flatEm: 마스터리의 n%만큼 추가 피해 · cr/dmg: 무기와 상관없이 늘 붙는 값(치명 무기 가치를 바르게 보려고)
   //  teamEmDmg: 마스터리 1pt당 파티 피해% · teamEmFrac: 본인 마스터리의 n%를 파티에 · teamEmFromAtk: 공격력의 n%를 파티 마스터리로 · teamFromAtk: 공격력에 비례한 파티 추가 피해
   const CHAR = {
-    hutao: { key: 'atk', atkFromHp: 0.0626, cap: 4, dmg: 0.165 },   // 원소전투 스킬: HP의 6.26%만큼 공격력(기초 공격력 4배까지) · HP 50% 이하 불 피해 +33%(절반 유지)
-    noelle: { key: 'atk', atkFromDef: 0.68 },                      // 원소폭발: 방어력의 68%만큼 공격력
+    // 스킬 계수(HP·방어력 → 공격력 변환, 두 스탯 혼합 계수, 스탯 비례 추가 피해)는 CMIX(스킬 계수표)에서 자동으로 옴. 아래는 그 밖의 것만
+    hutao: { key: 'atk', cap: 4, dmg: 0.165 },                     // 공격력 변환은 기초 공격력 4배까지 · HP 50% 이하 불 피해 +33%(절반 유지)
+    noelle: { key: 'atk' },                                        // 원소폭발로 방어력 → 공격력
+    itto: { key: 'atk' },                                          // 원소폭발로 방어력 → 공격력
     furina: { hpDmg: [0.000007, 0.28] },                            // HP 1000마다 살롱 멤버 피해 +0.7%(최대 28%)
     nahida: { emDmg: [200, 0.001, 0.8], emCr: [200, 0.0003, 0.24], teamEmFrac: 0.25 }, // 마스터리 200 초과분 1pt당 피해 +0.1%(80%)·치명 +0.03%(24%) · 필드 캐릭터에 마스터리 25%
-    alhaitham: { key: 'em', emDmg: [0, 0.001, 1] },                // 스킬 계수가 공격력 + 마스터리 × 2 · 마스터리 1pt당 투사 피해 +0.1%(100%)
+    alhaitham: { emDmg: [0, 0.001, 1] },                           // 마스터리 1pt당 투사 피해 +0.1%(100%)
     cyno: { flatEm: 1.5 },                                         // 일반 공격 피해 + 마스터리의 150%
     mona: { erDmg: 0.2 },                                          // 원충의 20%만큼 물 피해
     kazuha: { teamEmDmg: 0.0004 },                                 // 마스터리 1pt당 파티 원소 피해 +0.04%
@@ -40,9 +42,6 @@ const WFIT = (() => {
     tighnari: { emDmg: [0, 0.0006, 0.6] },                         // 마스터리 1pt당 강공격 피해 +0.06%(최대 60%)
     yae: { emDmg: [0, 0.0015, 2] },                                // 마스터리 1pt당 살생앵 피해 +0.15%
     'traveler-dendro': { emDmg: [0, 0.00075, 1] },                 // 마스터리 1pt당 스킬 +0.15%·폭발 +0.1%(평균)
-    // 스킬 계수가 두 스탯에 걸친 캐릭터(스킬 Lv.10 계수 비율)
-    chiori: { mix: { atk: 1, def: 1.25 } },                        // 자동 인형: 공격력 147% + 방어력 184%
-    dehya: { mix: { atk: 1, hp: 0.017 } },                         // 원소전투·폭발: 공격력 + HP 약 1.7%
     // 나히다는 파티에서 마스터리가 가장 높은 캐릭터의 25%를 필드 캐릭터에게 줌(최대 250)
   };
   const keyOf = d => d.scale === 'em' ? 'em' : d.scale + 'P';
@@ -84,7 +83,10 @@ const WFIT = (() => {
       if (wn === '예초의 번개') s.atkP += Math.min(0.8, 0.28 * Math.max(0, s.er - 1));
       let atk = (cb[1] + w[1]) * (1 + s.atkP) + 311 + 40;
       const hp = cb[0] * (1 + s.hpP) + 4780, def = cb[2] * (1 + s.defP) + 40;
-      const C = CHAR[d.id] || {};
+      // 캐릭터 정보 = 스킬 계수표(CMIX) + 직접 넣은 특성(CHAR)
+      const CM = (typeof CMIX !== 'undefined' && CMIX[d.id]) || {};
+      const C = Object.assign({}, CM, CHAR[d.id] || {});
+      if (Array.isArray(C.mix)) C.mix = { atk: C.mix[0], hp: C.mix[1], def: C.mix[2], em: C.mix[3] };
       if (C.cr) s.cr += C.cr;
       // 스탯 비례 효과(예: 성현의 열쇠 = HP의 0.36%만큼 마스터리 + 파티에 HP의 0.2%, 호마 = HP의 0.8%만큼 공격력). 본인 몫은 75%
       let teamAdd = 0;
@@ -111,7 +113,8 @@ const WFIT = (() => {
       if (C.teamAtkFromHp) teamAdd += Math.min(C.teamAtkFromHp[1], hp * C.teamAtkFromHp[0]) * 0.6 * 0.6;
       // 마스터리 캐릭터: 치명 딜러(나히다·미탸 등)는 (공격력 + 마스터리 × 2) × 촉진·격화류 반응 배율(반응은 일부 타격에만 붙어 약하게), 치명 없는 반응 캐릭터는 반응 배율만
       const emK = d.crit ? (atk + 2 * s.em) * (1 + 2 * s.em / (s.em + 1200)) : 1 + 16 * s.em / (s.em + 2000);
-      const mixK = C.mix ? Object.entries(C.mix).reduce((a, [k, c]) => a + c * ({ atk, hp, def, em: s.em })[k], 0) : 0;
+      // 한 공격에 두 스탯이 붙는 캐릭터(나히다·알하이탐·치오리 등): 스킬 계수 그대로 섞음. 마스터리 치명 딜러는 촉진·격화류 반응 배율도
+      const mixK = C.mix ? Object.entries(C.mix).reduce((a, [k, c]) => a + c * ({ atk, hp, def, em: s.em })[k], 0) * (d.scale === 'em' && d.crit ? 1 + 2 * s.em / (s.em + 1200) : 1) : 0;
       let key = { atk, hp, def, em: emK, base: cb[1] + w[1], mix: mixK }[C.mix ? 'mix' : C.key || d.scale] || atk;
       if (d.id === 'bennett') key = cb[1] + w[1]; // 베넷 버프는 기초 공격력(캐릭터 + 무기)만 따라감
       const crit = d.crit ? 1 + Math.min(1, s.cr) * s.cd : 1;
@@ -121,7 +124,11 @@ const WFIT = (() => {
       // 물리 딜러는 물리 피해%, 라이덴 쇼군은 원충 100% 넘는 1%마다 번개 피해 +0.4%(고유 특성)
       // 스탯 비례 추가 피해(예: 방어력의 40%만큼 스킬 피해 증가): 한 타 피해를 핵심 스탯 × 2 정도로 보고 비율로 환산, 일부 공격에만 붙어 50%
       const keyRaw = { atk, hp, def, em: s.em, base: cb[1] + w[1], mix: mixK }[C.mix ? 'mix' : C.key || d.scale] || atk;
-      const flatF = (ps.flat || []).reduce((a, [from, r]) => a + srcOf(from) * r / (2 * keyRaw) * 0.5, 0) + (C.flatEm ? s.em * C.flatEm / (2 * keyRaw) * 0.6 : 0);
+      const hitC = C.hit || 2; // 한 타 계수(스킬 계수표 중앙값)
+      const flatF = (ps.flat || []).reduce((a, [from, r]) => a + srcOf(from) * r / (2 * keyRaw) * 0.5, 0) + (C.flatEm ? s.em * C.flatEm / (2 * keyRaw) * 0.6 : 0)
+        + (Array.isArray(C.flat) ? C.flat.reduce((a, [st, r]) => a + srcOf(st) * r / (hitC * keyRaw) * 0.5, 0) : 0); // 스킬의 '스탯의 n%만큼 피해 증가'(일부 공격, 50%)
+      // 스킬의 파티 버프('피해량 증가' = 파티원 한 타에 스탯의 n% 추가): 파티원 한 타를 약 5000으로 보고 환산, 유지율 50%
+      if (Array.isArray(C.team)) teamAdd += C.team.reduce((a, [st, r]) => a + srcOf(st) * r / 5000 * 0.5, 0);
       const dmg = 1 + s.dmg + flatF + (PHYS.includes(d.id) ? s.phys : 0) + (d.id === 'raiden' ? 0.4 * Math.max(0, s.er - 1) : 0);
       // 파티 버프(교체해 들어온 캐릭터·파티 전체): 서포터는 그대로, 서브 딜러 70%, 메인 딜러 40%만큼 '팀 딜'로 더함
       // 원소 구슬은 다른 파티원 원충도 채워 줘서 팀 딜 +4%

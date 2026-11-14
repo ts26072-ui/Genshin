@@ -112,6 +112,10 @@ js = ('// 무기 옵션 점수용 Lv.90 스탯표(tools/build_wfit.py가 dex/wea
       'const CBASE = ' + json.dumps(cbase, ensure_ascii=False, separators=(',', ':')) + ';\n'
       '// WPASS: 무기 효과 속 스탯 증가(재련 1) { cr, cd, em, er, atkP, hpP, defP, dmg }\n'
       'const WPASS = ' + json.dumps(wpass, ensure_ascii=False, separators=(',', ':')) + ';\n')
+cm = os.path.join(root, 'tools', 'cmix.json')
+if os.path.exists(cm):
+    js += '// CMIX: 스킬 계수표에서 뽑은 캐릭터별 스탯 비중·변환(tools/build_cmix.py)\n'
+    js += 'const CMIX = ' + open(cm, encoding='utf8').read().strip() + ';\n'
 js += open(os.path.join(root, 'tools', 'wfit_fn.js'), encoding='utf8').read()
 open(os.path.join(root, 'wfit.js'), 'w', encoding='utf8').write(js)
 print(len(wpass), 'passives', len(wstat), 'weapons', len(cbase), 'chars', len(js), 'bytes')
