@@ -454,7 +454,7 @@ html.embed body { background: transparent !important; padding: 0 !important; min
 html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 html.embed .vp { margin: 0; }
 </style>
-<script src="shell.js?v=20261114h"></script>
+<script src="shell.js?v=20261114i"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -635,12 +635,12 @@ html.embed .vp { margin: 0; }
   </div>
 </dialog>
 
-<script src="wfit.js?v=20261114h"></script>
-<script src="builds.js?v=20261114h"></script>
-<script src="weapons.js?v=20261114h"></script>
-<script src="rot.js?v=20261114h"></script>
-<script src="names.js?v=20261114h"></script>
-<script src="account.js?v=20261114h"></script>
+<script src="wfit.js?v=20261114i"></script>
+<script src="builds.js?v=20261114i"></script>
+<script src="weapons.js?v=20261114i"></script>
+<script src="rot.js?v=20261114i"></script>
+<script src="names.js?v=20261114i"></script>
+<script src="account.js?v=20261114i"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -2783,7 +2783,8 @@ function applyRows(rows, src, statsOk, boosted) {
   let n = 0; const miss = [];
   for (const row of rows) {
     const id = idOfRow(row);
-    if (!id) { miss.push(row.name || row.key); continue; }
+    // 별인형(Manekin·Manekina)은 천외의 별(미리아스트라) 전용 아바타라 본편 캐릭터 목록에 넣지 않음
+    if (!id) { if (!/별인형|Manekin/i.test(row.name || row.key || '')) miss.push(row.name || row.key); continue; }
     S.roster[id] = charFromRow(id, row, S.roster[id], statsOk, boosted); n++;
     if (id.startsWith('traveler-')) {
       // HoYoLAB은 지금 쓰는 원소 하나만 알려 줌. 한 번이라도 받아 온 원소(seen)와 직접 고친 원소(edited)는 그 값을 기억하고,
@@ -2823,7 +2824,7 @@ async function syncHoyo(manual) {
     S.hoyoAt = h.updated; save();
     return;
   }
-  if (!manual && (!S.hoyoAuto || (S.hoyoAt === h.updated && S.hoyoVer === IMPORT_VER))) return;
+  if (!manual && (!(S.hoyoAuto || S.hoyoAt) || (S.hoyoAt === h.updated && S.hoyoVer === IMPORT_VER))) return;
   // Fork 사이트에서 내 저장소 파일로 처음 받는 동기화면, 그 전에 들어 있던 것(원본 주인의 캐릭터가 섞였을 수 있음)을 모두 비우고 시작
   // (forkClean: 이 정리가 생기기 전에 이미 섞여 버린 Fork 사이트도 한 번은 비우도록 하는 표시)
   if (ACCT.OWNER !== 'ts26072-ui' && (S.hoyoRepoOwner !== ACCT.OWNER || !S.forkClean)) { S.roster = {}; S.parties = []; S.forkClean = true; }
@@ -2893,14 +2894,22 @@ function toast(msg) {
 // claude.ai에 로그인해 열면 그 계정 전용 비공개 공간(data/users/<id>/state)에 저장. 로그인하지 않았으면 브라우저 저장만 씀
 let cloud = null, cloudAt = 0, pushing = false, pushAgain = false, pushTimer = null;
 function setSync(text, tone = '') { const el = $('#sync'); el.textContent = text; el.dataset.tone = tone; }
-const stateBlob = () => JSON.stringify({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties, res: S.res });
+// HoYoLAB 자동 동기화 표시(언제 파일을 받았는지·자동 켜짐)도 같이 저장해야 계정에서 불러온 뒤에도 자동 반영이 꺼지지 않음
+const HOYO_KEYS = ['hoyoAt', 'hoyoVer', 'hoyoAuto', 'hoyoRepoOwner', 'forkClean'];
+const stateBlob = () => JSON.stringify(Object.assign({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties, res: S.res }, ...HOYO_KEYS.map(k => S[k] !== undefined ? { [k]: S[k] } : {})));
 function adopt(json, at) {
   let j; try { j = JSON.parse(json); } catch (e) { return false; }
   if (!j || !j.roster || !Array.isArray(j.parties)) return false;
   for (const id of Object.keys(j.roster)) if (!DB[id]) delete j.roster[id];
+  const prev = S;
   S = { sample: false, ar: j.ar ?? 60, wl: j.wl ?? null, roster: j.roster, parties: j.parties, res: j.res || S.res, savedAt: at };
+  // 예전에 저장된 계정 데이터에는 동기화 표시가 없음 → 이 브라우저 것을 이어 씀(자동 켜짐은 어느 쪽이든 켜져 있으면 유지)
+  for (const k of HOYO_KEYS) { const v = j[k] !== undefined ? j[k] : prev[k]; if (v !== undefined) S[k] = v; }
+  if (prev.hoyoAuto || j.hoyoAuto) S.hoyoAuto = true;
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
   cloudAt = at; render();
+  // 계정 데이터가 HoYoLAB 파일보다 옛것이면 바로 다시 반영
+  setTimeout(() => syncHoyo(false), 300);
   return true;
 }
 function queuePush() {
@@ -2987,8 +2996,10 @@ async function initSync() {
 render();
 initSync();
 setTab(tab);
-// 계정 저장소 연결이 끝난 뒤 새 HoYoLAB 데이터가 있으면 반영(한 번 동기화한 뒤부터 자동)
+// 새 HoYoLAB 데이터가 있으면 반영(한 번 동기화한 뒤부터 자동): 열 때, 앱으로 다시 돌아올 때, 켜 둔 동안 30분마다
 setTimeout(() => syncHoyo(false), 2500);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncHoyo(false); });
+setInterval(() => { if (document.visibilityState === 'visible') syncHoyo(false); }, 30 * 60 * 1000);
 </script>
 <script>if ('serviceWorker' in navigator && /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 
