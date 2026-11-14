@@ -11,33 +11,35 @@ const WFIT = (() => {
   const SUPPORT = r => r === 'sup' || r === 'heal' || r === 'shield';
   const keyOf = d => d.scale === 'em' ? 'em' : d.scale + 'P';
   const stat = n => K[n] || (/피해%$/.test(n) ? 'dmg' : null);
-  // 기준 성유물(무기 빼고): 주옵 + 부옵 20회(추천 부옵 순서대로 6·5·4·3·2회)
+  // 기준 성유물(무기 빼고): 부옵 20회(추천 부옵 순서대로 6·5·4·3·2회) + 주옵 후보(추천 시계·성배·왕관 목록).
+  // 무기마다 그 무기에 가장 잘 맞는 주옵 조합을 고름(예: 원충 무기를 끼면 원충 시계 대신 HP 시계를 쓸 수 있음)
   const base = {};
   function artOf(d) {
     if (base[d.id]) return base[d.id];
     const B = typeof BUILDS !== 'undefined' && BUILDS[d.id], key = keyOf(d);
-    const sands = stat(B && B.main.sands[0]) || key;
-    const goblet = stat(B && B.main.goblet[0]) || (PHYS.includes(d.id) ? 'phys' : 'dmg');
-    const cl = B ? B.main.circlet.map(stat).filter(Boolean) : [];
-    const circ = cl.length ? cl : d.crit ? ['cr', 'cd'] : [key];
+    const list = (arr, fb) => { const l = (arr || []).map(stat).filter(Boolean); return l.length ? [...new Set(l)] : fb; };
+    const sands = list(B && B.main.sands, [key]);
+    const goblet = list(B && B.main.goblet, [PHYS.includes(d.id) ? 'phys' : 'dmg']);
+    const circ = list(B && B.main.circlet, d.crit ? ['cr', 'cd'] : [key]);
     const subs = (B ? B.subs.map(stat) : d.crit ? ['cr', 'cd', key, 'er'] : [key, 'er', 'em']).filter(k => k && ROLL[k]).slice(0, 5);
     const s = { atkP: 0, hpP: 0, defP: 0, em: 0, er: 0, cr: 0, cd: 0, dmg: 0, phys: 0 };
-    s[sands] += MAIN[sands]; s[goblet] += MAIN[goblet];
     subs.forEach((k, i) => { s[k] += ROLL[k] * [6, 5, 4, 3, 2][i]; });
-    return (base[d.id] = { s, circ });
+    const combos = [];
+    for (const a of sands) for (const b of goblet) for (const c of circ) combos.push([a, b, c]);
+    return (base[d.id] = { s, combos });
   }
   function index(d, wn) {
     const w = WSTAT[wn], cb = CBASE[d.id]; if (!w || !cb) return null;
     const A = artOf(d);
     let best = 0;
-    // 왕관 후보(예: 치명 확률·치명 피해) 중 더 높은 쪽
-    for (const ck of A.circ) {
+    // 주옵 조합(시계 × 성배 × 왕관 후보) 중 가장 높은 쪽
+    for (const mains of A.combos) {
       const s = { ...A.s, er: A.s.er + 1, cr: A.s.cr + 0.05, cd: A.s.cd + 0.5 };
-      s[ck] += MAIN[ck];
+      for (const m of mains) s[m] += MAIN[m];
       if (K[cb[3]]) s[K[cb[3]]] += cb[4]; else if (/피해/.test(cb[3])) s.dmg += cb[4];
       if (K[w[2]]) s[K[w[2]]] += w[3];
       const ps = (typeof WPASS !== 'undefined' && WPASS[wn]) || {};
-      for (const [pk, pv] of Object.entries(ps)) if (pk in s) s[pk] += pv * (pk === 'dmg' ? 0.4 : 0.75); // 피해% 효과는 일부 공격에만 붙는 경우가 많아 40%
+      for (const [pk, pv] of Object.entries(ps)) if (pk in s) s[pk] += pv * (pk === 'dmg' ? 0.4 : 0.75); else if (pk === 'edmg') s.dmg += pv; // 모든 원소 피해 보너스는 그대로 // 피해% 효과는 일부 공격에만 붙는 경우가 많아 40%
       // 예초의 번개: 원충 100% 넘는 부분의 28%만큼 공격력%(최대 80%)
       if (wn === '예초의 번개') s.atkP += Math.min(0.8, 0.28 * Math.max(0, s.er - 1));
       const atk = (cb[1] + w[1]) * (1 + s.atkP) + 311 + 40, hp = cb[0] * (1 + s.hpP) + 4780, def = cb[2] * (1 + s.defP) + 40;
