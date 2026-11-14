@@ -30,6 +30,8 @@ body {
 }
 [hidden] { display: none !important; }
 .wrap { max-width: 1040px; margin: 0 auto; }
+html.embed body { padding: 0 2px 8px !important; background: transparent; min-height: 0; }
+html.embed header.top, html.embed .filters, html.embed .foot-note, html.embed .legend, html.embed .embed-hide { display: none !important; }
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 h1 { font-family: var(--f-display); font-size: 28px; font-weight: 700; margin: 0; text-wrap: balance; }

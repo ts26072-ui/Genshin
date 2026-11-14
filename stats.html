@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>종결 스탯 도감 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261113l">
+<link rel="stylesheet" href="common.css?v=20261114a">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -63,7 +63,7 @@ dialog::backdrop { background: rgb(10 12 24 / .55); }
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261113l"></script>
+<script src="shell.js?v=20261114a"></script>
 <div class="wrap">
   <header class="top">
     <h1><span class="star">✦</span> 종결 스탯 도감</h1>
@@ -84,13 +84,14 @@ dialog::backdrop { background: rgb(10 12 24 / .55); }
   </div>
   <div class="list" id="list"></div>
   <dialog id="dlg" aria-label="캐릭터 종결 스탯"></dialog>
+  <style>.one .dclose, .one .links a[href^="char.html"] { display: none; } .one .card { cursor: default; }</style>
 
   <p class="foot-note">카드를 누르면 그 캐릭터의 종결 스탯이 열립니다. 캐릭터 이미지 © HoYoverse — 게임 내 공식 아이콘을 <a href="https://enka.network" target="_blank" rel="noopener">enka.network</a>에서 불러옵니다. 목표치는 추천 주옵·부옵(genshin-builds.com v7.1)과 캐릭터 역할로 계산한 근사값이며, 공식 수치가 아닙니다. 치명 딜러는 치확 65/80/88%, 치피 150/200/240%(합격/종결/최상위)를 기준으로 서브 딜러·서포터는 조금 낮게 잡았습니다. 근거: 준종결 65/140 · 종결 80/200으로 정리한 세팅 글, 60~70% / 200%+를 목표로 적는 genshin-builds 빌드, 치확:치피 1:2 원칙. 최상위는 순위 사이트 상위 1% 안팎에서 흔히 말하는 성유물당 치명 수치 30 이상 수준입니다. 원충은 캐릭터별 목표(파티 감정소와 같은 값)에서 −10%가 합격선이고 목표가 종결이며, 넘쳐도 더 좋아지지 않아 최상위 단계가 없습니다. 기준은 Lv.90 완성 캐릭터 기준이며 레벨에 따라 바뀌지 않습니다. '상위 약 N%'는 실제 순위 자료(akasha.cv 등)를 받을 수 없어, 항목마다 합격선을 0·종결을 1로 놓은 평균 위치를 합격선 ≈ 상위 45% · 종결 ≈ 상위 10% · 최상위 ≈ 상위 1%에 맞춘 곡선으로 바꾼 <b>추정치</b>입니다. 공격력·HP·방어력·마스터리는 캐릭터 상세 화면의 최종 수치 기준입니다. 무기·별자리·파티 버프에 따라 실제 필요한 값은 달라집니다.</p>
 </div>
 
-<script src="chars.js?v=20261113l"></script>
-<script src="builds.js?v=20261113l"></script>
-<script src="gear.js?v=20261113l"></script>
+<script src="chars.js?v=20261114a"></script>
+<script src="builds.js?v=20261114a"></script>
+<script src="gear.js?v=20261114a"></script>
 <script>
 const $ = s => document.querySelector(s);
 const own = GP.roster(), MASTER = GP.appraisal();
@@ -163,7 +164,7 @@ function card(id) {
       <div class="sum" style="margin-top:6px">${c ? '<span class="chip own">내 캐릭터</span>' : ''}${v || ''}${rankChip(id)}</div>${c && c.lv < 90 ? `<div class="cmeta" style="margin-top:4px">기준은 Lv.90 완성 캐릭터 기준이에요(레벨마다 달라지지 않음). 지금 Lv.${c.lv}라 공격력·HP 같은 핵심 스탯은 레벨을 올리면 따라 올라요.</div>` : ''}</div>
       <button type="button" class="btn sm dclose" data-close>닫기</button></div>
     <div class="stats">${rows.join('')}</div>
-    <div class="links"><a class="btn sm" href="guide.html#${id}">추천 성유물</a><a class="btn sm" href="rate.html#${id}">성유물 감정</a></div>
+    <div class="links"><a class="btn sm" href="char.html#${id}">캐릭터 정보 한 화면</a><a class="btn sm" href="char.html#${id}/guide">추천 성유물</a><a class="btn sm" href="rate.html#${id}">성유물 감정</a></div>
   </article>`;
 }
 const dlg = $('#dlg');
@@ -191,8 +192,13 @@ $('#mine').addEventListener('change', e => { st.mine = e.target.checked; render(
 document.addEventListener('error', e => { const img = e.target; if (img.tagName === 'IMG' && img.closest('.art')) { const d = GP.DB[img.closest('.ccard').dataset.id]; img.outerHTML = `<span class="ph">${GP.esc(d.name[0])}</span>`; } else if (img.tagName === 'IMG' && img.closest('.pic')) img.remove(); }, true);
 render();
 // 다른 페이지에서 #캐릭터로 들어오면 그 캐릭터 상세 창을 바로 엶
-const hashId = decodeURIComponent(location.hash.slice(1));
-if (BUILDS[hashId]) openCard(hashId);
+const hashId = decodeURIComponent(location.hash.slice(1)).split('/')[0];
+if (window.SHELL && SHELL.EMBED) {
+  $('#list').classList.add('embed-hide');
+  const box = document.createElement('div'); box.className = 'one';
+  box.innerHTML = BUILDS[hashId] ? card(hashId) : '<p class="muted">이 캐릭터는 종결 스탯 자료가 아직 없어요.</p>';
+  $('#list').after(box);
+} else if (BUILDS[hashId]) openCard(hashId);
 </script>
 <script>if ('serviceWorker' in navigator && /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 </body>

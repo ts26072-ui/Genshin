@@ -454,7 +454,7 @@ html.embed body { background: transparent !important; padding: 0 !important; min
 html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 html.embed .vp { margin: 0; }
 </style>
-<script src="shell.js?v=20261113l"></script>
+<script src="shell.js?v=20261114a"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -551,7 +551,7 @@ html.embed .vp { margin: 0; }
 <dialog id="dlg-char">
   <form class="dlg" id="form-char" method="dialog">
     <div class="dlg-head"><h2 id="char-title">캐릭터</h2>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><a class="btn ghost sm" id="char-guide" href="guide.html">추천 성유물</a><a class="btn ghost sm" id="char-stats" href="stats.html">종결 스탯</a><button class="btn ghost sm" type="button" data-close>닫기</button></div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><a class="btn ghost sm" id="char-info" href="char.html">캐릭터 정보</a><a class="btn ghost sm" id="char-guide" href="guide.html">추천 성유물</a><a class="btn ghost sm" id="char-stats" href="stats.html">종결 스탯</a><button class="btn ghost sm" type="button" data-close>닫기</button></div></div>
     <label id="pick-wrap">캐릭터 선택<select id="f-id"></select></label>
     <div id="trav-wrap" class="trav" hidden><ul id="trav-list"></ul><span class="muted" id="trav-note"></span><div id="trav-add"></div></div>
     <div class="preview"><span class="score" id="pv-score">–</span><span class="muted" id="pv-note"></span></div>
@@ -635,11 +635,11 @@ html.embed .vp { margin: 0; }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261113l"></script>
-<script src="weapons.js?v=20261113l"></script>
-<script src="rot.js?v=20261113l"></script>
-<script src="names.js?v=20261113l"></script>
-<script src="account.js?v=20261113l"></script>
+<script src="builds.js?v=20261114a"></script>
+<script src="weapons.js?v=20261114a"></script>
+<script src="rot.js?v=20261114a"></script>
+<script src="names.js?v=20261114a"></script>
+<script src="account.js?v=20261114a"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -2195,7 +2195,7 @@ function viewChar(roster, id, owner) {
   let dlg = $('#dlg-view');
   if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'dlg-view'; document.body.appendChild(dlg); dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); }); }
   const artRow = a => `<li><b>${esc(({ flower: '꽃', plume: '깃털', sands: '시계', goblet: '성배', circlet: '왕관' })[a.slot] || a.slot)}</b> ${esc(a.set || '')} +${a.level ?? '?'} · <b>${esc(a.main ? a.main[0] : '')}</b><br><span class="muted">${(a.subs || []).map(([k, v]) => `${esc(k)} ${v}`).join(' · ')}</span></li>`;
-  dlg.innerHTML = `<div class="dlg"><div class="dlg-head"><h2>${av(id, 'lg')}${esc(d.name)} <span class="muted" style="font-size:14px">${esc(owner)}</span></h2><button class="btn ghost sm" type="button" data-close>닫기</button></div>
+  dlg.innerHTML = `<div class="dlg"><div class="dlg-head"><h2>${av(id, 'lg')}${esc(d.name)} <span class="muted" style="font-size:14px">${esc(owner)}</span></h2><div style="display:flex;gap:6px"><a class="btn ghost sm" href="char.html#${id}">캐릭터 정보</a><button class="btn ghost sm" type="button" data-close>닫기</button></div></div>
     <p class="legend">OVR <b>${x.ovr}</b> / ${d.perf} · 육성 ${Math.round(x.score)}${x.byPos.length > 1 ? ' · ' + x.byPos.map(p => `${POS_KO[p.pos]} ${p.ovr}`).join(' · ') : ''} · ${'★'.repeat(d.r)} ${EL[d.el]} · ${ROLE[d.roles[0]]}</p>
     <div class="vgrid">
       <div><h3>기본</h3><p>Lv.${c.lv}${c.ap ? ' (돌파 전)' : ''} · 운명의 자리 C${c.cons}</p>
@@ -2400,7 +2400,7 @@ function setTab(t) {
   for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-selected', b.dataset.tab === t);
   for (const n of TABS) $('#view-' + n).hidden = n !== t;
   if (location.hash.slice(1) !== t) try { history.replaceState(null, '', '#' + t); } catch (e) {}
-  if (window.SHELL) SHELL.mark(t === 'home' ? 'home' : 'party');
+  if (window.SHELL) SHELL.mark('index.html#' + t);
 }
 window.addEventListener('hashchange', () => { const h = hashTab(); if (h && h !== tab) { setTab(h); window.scrollTo(0, 0); } });
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) setTab(b.dataset.tab); });
@@ -2557,7 +2557,7 @@ function openChar(id) {
   $('#pick-wrap').hidden = !!id;
   $('#btn-del-char').hidden = !id;
   $('#char-guide').hidden = $('#char-stats').hidden = !id;
-  if (id) { $('#char-guide').href = 'guide.html#' + id; $('#char-stats').href = 'stats.html#' + id; }
+  if (id) { $('#char-info').href = 'char.html#' + id; $('#char-guide').href = 'char.html#' + id + '/guide'; $('#char-stats').href = 'char.html#' + id + '/stats'; }
   if (id) { $('#char-title').textContent = DB[id].name; fillChar(S.roster[id]); }
   else {
     const free = Object.values(DB).filter(d => !S.roster[d.id]);
