@@ -1,7 +1,7 @@
 // ───────── 무기 옵션 점수(사용률·추천 순위가 아니라 무기 스탯 기준) ─────────
 // 그 캐릭터의 추천 주옵(시계·성배·왕관)과 추천 부옵 순서로 만든 기준 성유물을 낀 Lv.90 캐릭터에 무기만 바꿔 끼웠을 때의
 // '딜 지수'를 계산하고, 그 무기 종류에서 가장 높은 무기 대비 비율을 점수로 씀.
-// 무기 효과는 '치명타 피해 +24%', '원소 마스터리 +48'처럼 스탯이 오르는 부분만 75% 반영(조건부가 많아서)
+// 무기 효과: 스탯 증가('치명타 피해 +24%' 등)는 75%, 원소 구슬 생성·스킬 초기화는 원충·스킬 딜로, 파티 버프는 '팀 딜'로 바꿔 넣음
 // d = { id, scale: 'atk'|'hp'|'def'|'em', crit: bool, er: 원충 목표(%), roles: [...] }
 const WFIT = (() => {
   const K = { '공격력%': 'atkP', 'HP%': 'hpP', '방어력%': 'defP', '원소 마스터리': 'em', '원소 충전 효율': 'er', '치명타 확률': 'cr', '치명타 피해': 'cd', '물리 피해%': 'phys' };
@@ -39,7 +39,11 @@ const WFIT = (() => {
       if (K[cb[3]]) s[K[cb[3]]] += cb[4]; else if (/피해/.test(cb[3])) s.dmg += cb[4];
       if (K[w[2]]) s[K[w[2]]] += w[3];
       const ps = (typeof WPASS !== 'undefined' && WPASS[wn]) || {};
-      for (const [pk, pv] of Object.entries(ps)) if (pk in s) s[pk] += pv * (pk === 'dmg' ? 0.4 : 0.75); else if (pk === 'edmg') s.dmg += pv; // 모든 원소 피해 보너스는 그대로 // 피해% 효과는 일부 공격에만 붙는 경우가 많아 40%
+      for (const [pk, pv] of Object.entries(ps)) if (pk in s) s[pk] += pv * (pk === 'dmg' ? 0.4 : 0.75); else if (pk === 'edmg') s.dmg += pv; // 모든 원소 피해 보너스는 그대로
+      // 스탯이 아닌 효과: 원소 구슬(페보니우스류) → 본인 원충 약 +20%(치명 없는 캐릭터는 덜 터져 60%),
+      // 스킬 재사용 대기시간 초기화(제례류) → 스킬을 한 번 더 써서 원충 +10%, 스킬 딜 +10%
+      if (ps.energy) s.er += 0.2 * (d.crit ? 1 : 0.6);
+      if (ps.reset) { s.er += 0.1; s.dmg += 0.1; } // 피해% 효과는 일부 공격에만 붙는 경우가 많아 40%
       // 예초의 번개: 원충 100% 넘는 부분의 28%만큼 공격력%(최대 80%)
       if (wn === '예초의 번개') s.atkP += Math.min(0.8, 0.28 * Math.max(0, s.er - 1));
       const atk = (cb[1] + w[1]) * (1 + s.atkP) + 311 + 40, hp = cb[0] * (1 + s.hpP) + 4780, def = cb[2] * (1 + s.defP) + 40;
@@ -53,7 +57,10 @@ const WFIT = (() => {
       const erF = Math.min(s.er, need) / need * (SUPPORT(d.roles[0]) || d.roles[0] === 'sub' ? 0.6 : 0.35) + (SUPPORT(d.roles[0]) || d.roles[0] === 'sub' ? 0.4 : 0.65) + Math.max(0, s.er - need) * 0.05;
       // 물리 딜러는 물리 피해%, 라이덴 쇼군은 원충 100% 넘는 1%마다 번개 피해 +0.4%(고유 특성)
       const dmg = 1 + s.dmg + (PHYS.includes(d.id) ? s.phys : 0) + (d.id === 'raiden' ? 0.4 * Math.max(0, s.er - 1) : 0);
-      best = Math.max(best, key * crit * erF * dmg);
+      // 파티 버프(교체해 들어온 캐릭터·파티 전체): 서포터는 그대로, 서브 딜러 70%, 메인 딜러 40%만큼 '팀 딜'로 더함
+      // 원소 구슬은 다른 파티원 원충도 채워 줘서 팀 딜 +4%
+      const teamF = 1 + ((ps.team || 0) + (ps.energy ? 0.04 : 0)) * (SUPPORT(d.roles[0]) ? 1 : d.roles[0] === 'sub' ? 0.7 : 0.4);
+      best = Math.max(best, key * crit * erF * dmg * teamF);
     }
     return best;
   }
