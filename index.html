@@ -454,7 +454,7 @@ html.embed body { background: transparent !important; padding: 0 !important; min
 html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 html.embed .vp { margin: 0; }
 </style>
-<script src="shell.js?v=20261114a"></script>
+<script src="shell.js?v=20261114b"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -635,11 +635,12 @@ html.embed .vp { margin: 0; }
   </div>
 </dialog>
 
-<script src="builds.js?v=20261114a"></script>
-<script src="weapons.js?v=20261114a"></script>
-<script src="rot.js?v=20261114a"></script>
-<script src="names.js?v=20261114a"></script>
-<script src="account.js?v=20261114a"></script>
+<script src="wfit.js?v=20261114b"></script>
+<script src="builds.js?v=20261114b"></script>
+<script src="weapons.js?v=20261114b"></script>
+<script src="rot.js?v=20261114b"></script>
+<script src="names.js?v=20261114b"></script>
+<script src="account.js?v=20261114b"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -1107,13 +1108,15 @@ const dmgLoss = x => Object.entries(x.parts).filter(([, v]) => v < 0.97).sort((a
 // ───────── 무기 · 성유물 세트 평가 (weapons.js, builds.js 데이터) ─────────
 const recWeapons = id => (WEAPON_REC[id] && WEAPON_REC[id].list) || [];
 const weaponType = d => d.wp || (WEAPON_REC[d.id] && WEAPON_REC[d.id].type) || '';
-// 무기 계수: 추천 1위 1.0 → 추천 목록 마지막 0.65. 추천 목록 밖이면 성급으로 5성 0.6 · 4성 0.48 · 3성 0.3 · 그 아래 0.15.
+// 무기 계수: 옵션(스탯) 기준(wfit.js). 같은 기준 성유물을 낀 Lv.90 캐릭터에 그 무기를 끼운 딜 지수 ÷ 그 무기 종류 최고 딜 지수.
+// 사용률·추천 순위는 안 씀(순위는 표시용으로만). 스탯표에 없는 무기만 예전처럼 추천 순위·성급으로
 // 무기를 고르지 않은 예전 데이터는 등급 선택값(WT)으로 평가
 function weaponValue(c) {
   const w = c.wn && WEAPONS[c.wn];
   if (!w) return { v: WT[c.wt].v, five: c.wt === 'sig' || c.wt === 'five', rank: -1, name: WT[c.wt].n, picked: false };
-  const list = recWeapons(c.id), i = list.indexOf(c.wn);
-  const v = i >= 0 ? 1 - 0.35 * i / Math.max(1, list.length - 1) : [0.15, 0.15, 0.15, 0.3, 0.48, 0.6][w.r];
+  const list = recWeapons(c.id), i = list.indexOf(c.wn), d = DB[c.id];
+  const fit = d && typeof WFIT !== 'undefined' ? WFIT.value(d, c.wn, WEAPONS_BY_TYPE[weaponType(d)] || []) : null;
+  const v = fit ? fit.v : i >= 0 ? 1 - 0.35 * i / Math.max(1, list.length - 1) : [0.15, 0.15, 0.15, 0.3, 0.48, 0.6][w.r];
   return { v, five: w.r === 5, rank: i, name: c.wn, r: w.r, picked: true };
 }
 // 2세트 효과로 적힌 추천('공격력 +18%')과 세트의 2세트 효과('공격력+18%')를 공백 없이 비교
