@@ -91,7 +91,7 @@ const RAW = [
  ['traveler-anemo','바람 원소 여행자','anemo','sword',5,'sup','em',150,0,'EQ'],
  ['traveler-electro','번개 원소 여행자','electro','sword',5,'sup','atk',200,0,'Q'],
  ['traveler-dendro','풀 원소 여행자','dendro','sword',5,'sub','atk',160,1,'Q'],
- ['traveler-cryo','얼음 원소 여행자','cryo','sword',5,'sub','atk',150,1,'EQ'],
+ ['traveler-cryo','얼음 원소 여행자','cryo','sword',5,'sub','atk',150,1,'QE'],
  ['traveler-geo','바위 원소 여행자','geo','sword',5,'sub','atk',160,1,'Q'],
  // 초기 · 기타 캐릭터
  ['amber','엠버','pyro','bow',4,'sub','atk',140,1,'Q'],
@@ -243,7 +243,7 @@ const GP = { EL: { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', de
   ROLE: { main:'메인 딜러', sub:'서브 딜러', sup:'서포터', heal:'힐러', shield:'보호막' },
   WPN: { sword:'한손검', claymore:'양손검', polearm:'장병기', catalyst:'법구', bow:'활' }, DB: {} };
 for (const [id, name, el, wp, r, roles, scale, er, crit, tal, guess] of RAW)
-  GP.DB[id] = { id, name, el, wp, r, roles: roles.split('/'), scale, er, crit: !!crit, guess: !!guess, perf: PERF[id] ?? PERF_DEFAULT };
+  GP.DB[id] = { id, name, el, wp, r, roles: roles.split('/'), scale, er, crit: !!crit, guess: !!guess, perf: PERF[id] ?? PERF_DEFAULT, tal: tal.split('').map(k => 'NEQ'.indexOf(k)) };
 GP.ORDER = Object.keys(GP.EL);
 GP.KEY = 'genshin-party-appraiser-v1';
 // 메인 앱(파티 감정소)에 저장된 내 캐릭터 목록. 없거나 읽을 수 없으면 빈 객체

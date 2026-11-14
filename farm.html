@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>재료 파밍 · 원신 파티 감정소</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
-<link rel="stylesheet" href="common.css?v=20261114i">
+<link rel="stylesheet" href="common.css?v=20261114j">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0e1320">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -41,7 +41,7 @@
 </style>
 </head>
 <body>
-<script src="shell.js?v=20261114i"></script>
+<script src="shell.js?v=20261114j"></script>
 <div class="wrap">
   <header class="top">
     <h1><span class="star">✦</span> 재료 파밍</h1>
@@ -63,8 +63,8 @@
   <p class="foot-note">재료와 수량은 genshin-db(게임 데이터, 2026년 10월)를 기준으로 Lv.90까지의 돌파 6단계와 특성 3개를 목표 레벨까지 올리는 데 드는 양입니다(모라·지식의 왕관 제외). 남은 양은 파티 감정소에 입력한 레벨·돌파 여부·특성 레벨로 계산하며, 이미 가진 재료는 빼지 않습니다. 하위 재료 3개는 합성대에서 상위 재료 1개로 바꿀 수 있습니다. 레진은 비경 20 · 필드 보스 40 · 주간 보스 30(주 3회 할인, 이후 60)입니다. 지역 특산물은 채집 후 48시간 뒤 다시 생깁니다. 아이콘 © HoYoverse (enka.network). 지도는 HoYoLAB 공식 지도로 연결됩니다.</p>
 </div>
 
-<script src="chars.js?v=20261114i"></script>
-<script src="farm.js?v=20261114i"></script>
+<script src="chars.js?v=20261114j"></script>
+<script src="farm.js?v=20261114j"></script>
 <script>
 const $ = s => document.querySelector(s);
 const MAP_URL = 'https://act.hoyolab.com/ys/app/interactive-map/index.html?lang=ko-kr';
@@ -128,7 +128,8 @@ function route(id) {
 }
 
 // 남은 재료: {재료 id: {n, who:Set}}
-function need(ids, fromZero) {
+// core: 그 캐릭터가 실제로 올리는 핵심 특성만 셈(오늘 갈 비경 판단용)
+function need(ids, fromZero, core) {
   const out = {};
   const add = (mid, n, id) => { (out[mid] ||= { n: 0, who: new Set() }).n += n; out[mid].who.add(id); };
   for (const id of ids) {
@@ -137,7 +138,8 @@ function need(ids, fromZero) {
     const asc = c ? ascOfC(c) : 0;
     for (let p = asc; p < 6; p++) for (const [mid, n] of f.a[p] || []) add(mid, n, id);
     const tl = c && Array.isArray(c.t) ? c.t : [1, 1, 1];
-    for (let i = 0; i < 3; i++) for (let lv = Math.max(1, tl[i] || 1) + 1; lv <= st.tal; lv++) for (const [mid, n] of f.t[lv - 2] || []) add(mid, n, id);
+    const ti = core && GP.DB[id] && GP.DB[id].tal && GP.DB[id].tal.length ? GP.DB[id].tal : [0, 1, 2];
+    for (const i of ti) for (let lv = Math.max(1, tl[i] || 1) + 1; lv <= st.tal; lv++) for (const [mid, n] of f.t[lv - 2] || []) add(mid, n, id);
   }
   return out;
 }
@@ -158,14 +160,25 @@ function renderToday() {
   const day = serverDay();
   const ids = Object.keys(own).filter(id => FARM_CHAR[id]);
   const books = new Map();
-  for (const [mid, v] of Object.entries(need(ids, false))) {
+  // 파티에 들어간 횟수(상위 2개 파티 = 나선 비경 전·후반은 가중치를 더 줌)
+  const inParty = {};
+  parties.forEach((p, i) => { for (const id of p.m || []) inParty[id] = (inParty[id] || 0) + (i < 2 ? 2 : 1); });
+  for (const [mid, v] of Object.entries(need(ids, false, true))) {
     const m = FARM_MAT[mid];
     if (kindOf(mid) !== 'book' || !(m[5].includes(day) || day === '일요일')) continue;
     const key = m[4]; (books.get(key) || books.set(key, new Set()).get(key));
     for (const w of v.who) books.get(key).add(w);
   }
+  // 파티 캐릭터를 먼저, 파티에 없는 캐릭터는 뒤로(또는 '파티 밖'으로 따로). 파티 캐릭터가 많은 비경을 앞에
+  const rows = [...books].map(([dom, who]) => {
+    const all = [...who], inP = all.filter(id => inParty[id]).sort((a, b) => inParty[b] - inParty[a]), out = all.filter(id => !inParty[id]);
+    return { dom, inP, out, w: inP.reduce((s, id) => s + inParty[id], 0) };
+  }).sort((a, b) => b.w - a.w || b.out.length - a.out.length);
+  const nm = list => list.map(names).slice(0, 4).map(GP.esc).join(', ') + (list.length > 4 ? ' 외' : '');
   $('#today').innerHTML = `<b>오늘(${day}) 갈 비경</b>` + (books.size
-    ? [...books].map(([dom, who]) => `<span class="chip on" title="${GP.esc([...who].map(names).join(', '))}">${GP.esc(dom.replace('숙달 비경: ', ''))} · ${[...who].map(names).slice(0, 4).map(GP.esc).join(', ')}${who.size > 4 ? ' 외' : ''}</span>`).join('')
+    ? rows.map(r => r.inP.length
+      ? `<span class="chip on" title="${GP.esc([...r.inP, ...r.out].map(names).join(', '))}">${GP.esc(r.dom.replace('숙달 비경: ', ''))} · ${nm(r.inP)}${r.out.length ? ` <span class="muted">(+파티 밖 ${r.out.length}명)</span>` : ''}</span>`
+      : `<span class="chip" title="파티에 넣지 않은 캐릭터라 급하지 않아요: ${GP.esc(r.out.map(names).join(', '))}">${GP.esc(r.dom.replace('숙달 비경: ', ''))} · 파티 밖 ${nm(r.out)}</span>`).join('')
     : `<span class="muted">${Object.keys(own).length ? '오늘 열린 비경 중 내 캐릭터에게 필요한 특성 책이 없습니다.' : '파티 감정소에 캐릭터를 등록하면 오늘 갈 비경을 알려 줍니다.'}</span>`);
 }
 function render() {

@@ -454,7 +454,7 @@ html.embed body { background: transparent !important; padding: 0 !important; min
 html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 html.embed .vp { margin: 0; }
 </style>
-<script src="shell.js?v=20261114i"></script>
+<script src="shell.js?v=20261114j"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -635,12 +635,12 @@ html.embed .vp { margin: 0; }
   </div>
 </dialog>
 
-<script src="wfit.js?v=20261114i"></script>
-<script src="builds.js?v=20261114i"></script>
-<script src="weapons.js?v=20261114i"></script>
-<script src="rot.js?v=20261114i"></script>
-<script src="names.js?v=20261114i"></script>
-<script src="account.js?v=20261114i"></script>
+<script src="wfit.js?v=20261114j"></script>
+<script src="builds.js?v=20261114j"></script>
+<script src="weapons.js?v=20261114j"></script>
+<script src="rot.js?v=20261114j"></script>
+<script src="names.js?v=20261114j"></script>
+<script src="account.js?v=20261114j"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -747,7 +747,7 @@ const RAW = [
  ['traveler-anemo','바람 원소 여행자','anemo','sword',5,'sup','em',150,0,'EQ'],
  ['traveler-electro','번개 원소 여행자','electro','sword',5,'sup','atk',200,0,'Q'],
  ['traveler-dendro','풀 원소 여행자','dendro','sword',5,'sub','atk',160,1,'Q'],
- ['traveler-cryo','얼음 원소 여행자','cryo','sword',5,'sub','atk',150,1,'EQ'],
+ ['traveler-cryo','얼음 원소 여행자','cryo','sword',5,'sub','atk',150,1,'QE'],
  ['traveler-geo','바위 원소 여행자','geo','sword',5,'sub','atk',160,1,'Q'],
  // 초기 · 기타 캐릭터
  ['amber','엠버','pyro','bow',4,'sub','atk',140,1,'Q'],
@@ -1028,8 +1028,8 @@ const talTargetRole = d => d.roles[0] === 'main' ? 9 : d.roles[0] === 'sub' ? 8 
 const lvTarget = () => lvCapOf(ar());
 const talTarget = d => Math.min(talTargetRole(d), talCapAt(lvTarget()));
 // 캐릭터별 특성 우선순위(genshin-builds.com 각 캐릭터 '특성 우선순위', 2026년 11월 열람 · N 평타 E 원소전투 스킬 Q 원소폭발).
-// 라이덴은 출처 첫 빌드가 만개 전용이라 일반 딜(원소폭발) 기준으로 보정. 자료가 없는 캐릭터(발레리·로엔·바르카)는 예전 핵심 특성
-const TAL_PRI = {"traveler-cryo":"EQN","mitya":"NQE","vesna":"EQN","vodyanitsa":"EQN","alyosha":"QEN","odette":"EQN","sandrone":"NQE","nicole":"EQN","prune":"QEN","linnea":"EQN","illuga":"QEN","zibai":"EQN","columbina":"EQN","durin":"QEN","jahoda":"QEN","flins":"QEN","nefer":"EQN","aino":"QEN","lauma":"QEN","ineffa":"EQN","dahlia":"QEN","skirk":"EQN","escoffier":"EQN","ifa":"EQN","iansan":"QEN","varesa":"NQE","traveler-pyro":"EQN","citlali":"EQN","mavuika":"QEN","chasca":"EQN","ororon":"QEN","xilonen":"EQN","kinich":"EQN","kachina":"EQN","mualani":"EQN","emilie":"EQN","clorinde":"EQN","sigewinne":"EQN","sethos":"QNE","arlecchino":"NEQ","chiori":"EQN","gaming":"EQN","xianyun":"QEN","chevreuse":"EQN","navia":"EQN","furina":"QEN","charlotte":"QEN","wriothesley":"NEQ","neuvillette":"NQE","freminet":"ENQ","lynette":"QEN","lyney":"NEQ","traveler-hydro":"EQN","kirara":"EQN","baizhu":"QEN","kaveh":"QNE","mika":"EQN","dehya":"QEN","alhaitham":"ENQ","yaoyao":"QEN","wanderer":"NEQ","faruzan":"QEN","layla":"EQN","nahida":"EQN","nilou":"EQN","candace":"QEN","cyno":"QEN","yelan":"QEN","dori":"QEN","collei":"QEN","tighnari":"NQE","traveler-dendro":"QEN","shenhe":"EQN","gorou":"EQN","thoma":"EQN","aloy":"QEN","sayu":"QEN","yoimiya":"NEQ","traveler-electro":"EQN","eula":"NQE","yanfei":"NQE","rosaria":"QEN","xiao":"NQE","ganyu":"NEQ","albedo":"EQN","xinyan":"NQE","zhongli":"EQN","bennett":"QEN","diona":"QEN","tartaglia":"EQN","amber":"NEQ","barbara":"EQN","beidou":"QEN","chongyun":"QEN","diluc":"NEQ","fischl":"EQN","jean":"QEN","kaeya":"QNE","keqing":"NQE","klee":"NQE","lisa":"QEN","mona":"QNE","ningguang":"QNE","xiangling":"QEN","noelle":"NQE","razor":"NEQ","qiqi":"QEN","traveler-geo":"EQN","traveler-anemo":"EQN","sucrose":"EQN","venti":"QEN","xingqiu":"QEN","heizou":"ENQ","shinobu":"EQN","ayato":"EQN","yae":"EQN","yunjin":"QEN","itto":"NQE","kokomi":"EQN","sara":"EQN","raiden":"QEN","ayaka":"QNE","kazuha":"QEN","hutao":"NEQ","mizuki":"EQN","lanyan":"EQN"};
+// 라이덴은 출처 첫 빌드가 만개 전용이라 일반 딜(원소폭발) 기준으로 보정. 얼음 행자는 원소폭발이 핵심 딜이라 Q > E로 보정. 자료가 없는 캐릭터(발레리·로엔·바르카)는 예전 핵심 특성
+const TAL_PRI = {"traveler-cryo":"QEN","mitya":"NQE","vesna":"EQN","vodyanitsa":"EQN","alyosha":"QEN","odette":"EQN","sandrone":"NQE","nicole":"EQN","prune":"QEN","linnea":"EQN","illuga":"QEN","zibai":"EQN","columbina":"EQN","durin":"QEN","jahoda":"QEN","flins":"QEN","nefer":"EQN","aino":"QEN","lauma":"QEN","ineffa":"EQN","dahlia":"QEN","skirk":"EQN","escoffier":"EQN","ifa":"EQN","iansan":"QEN","varesa":"NQE","traveler-pyro":"EQN","citlali":"EQN","mavuika":"QEN","chasca":"EQN","ororon":"QEN","xilonen":"EQN","kinich":"EQN","kachina":"EQN","mualani":"EQN","emilie":"EQN","clorinde":"EQN","sigewinne":"EQN","sethos":"QNE","arlecchino":"NEQ","chiori":"EQN","gaming":"EQN","xianyun":"QEN","chevreuse":"EQN","navia":"EQN","furina":"QEN","charlotte":"QEN","wriothesley":"NEQ","neuvillette":"NQE","freminet":"ENQ","lynette":"QEN","lyney":"NEQ","traveler-hydro":"EQN","kirara":"EQN","baizhu":"QEN","kaveh":"QNE","mika":"EQN","dehya":"QEN","alhaitham":"ENQ","yaoyao":"QEN","wanderer":"NEQ","faruzan":"QEN","layla":"EQN","nahida":"EQN","nilou":"EQN","candace":"QEN","cyno":"QEN","yelan":"QEN","dori":"QEN","collei":"QEN","tighnari":"NQE","traveler-dendro":"QEN","shenhe":"EQN","gorou":"EQN","thoma":"EQN","aloy":"QEN","sayu":"QEN","yoimiya":"NEQ","traveler-electro":"EQN","eula":"NQE","yanfei":"NQE","rosaria":"QEN","xiao":"NQE","ganyu":"NEQ","albedo":"EQN","xinyan":"NQE","zhongli":"EQN","bennett":"QEN","diona":"QEN","tartaglia":"EQN","amber":"NEQ","barbara":"EQN","beidou":"QEN","chongyun":"QEN","diluc":"NEQ","fischl":"EQN","jean":"QEN","kaeya":"QNE","keqing":"NQE","klee":"NQE","lisa":"QEN","mona":"QNE","ningguang":"QNE","xiangling":"QEN","noelle":"NQE","razor":"NEQ","qiqi":"QEN","traveler-geo":"EQN","traveler-anemo":"EQN","sucrose":"EQN","venti":"QEN","xingqiu":"QEN","heizou":"ENQ","shinobu":"EQN","ayato":"EQN","yae":"EQN","yunjin":"QEN","itto":"NQE","kokomi":"EQN","sara":"EQN","raiden":"QEN","ayaka":"QNE","kazuha":"QEN","hutao":"NEQ","mizuki":"EQN","lanyan":"EQN"};
 // 키울 특성과 목표: 1순위 = 역할 목표(메인 9 · 서브 8 · 서포터 6), 2순위 = 그보다 2 낮게(최소 4) 절반 비중,
 // 3순위는 키울 필요가 없어 1레벨이어도 점수·지적에 넣지 않음(평타가 아닌 2순위도 핵심 특성에 없으면 낮은 비중)
 function talPlan(d) {
