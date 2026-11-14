@@ -129,6 +129,27 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .frm:hover { color: var(--ink); background: var(--line); }
 .admin { margin-top: 18px; }
 .fview { margin-top: 18px; }
+.cmp-sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.cmp-sum > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); min-width: 0; }
+.cmp-sum b { font-size: 18px; } .cmp-sum span { font-size: 12px; }
+.cmp-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+.cmp-tools input { flex: 1 1 140px; min-width: 0; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; }
+.cmp-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+table.cmp { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.cmp th, table.cmp td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+table.cmp th { font-size: 12px; color: var(--muted); font-weight: 600; background: var(--surface); }
+table.cmp .num { text-align: center; white-space: nowrap; }
+table.cmp .cn { white-space: nowrap; font-weight: 600; }
+table.cmp .cinfo { font-size: 12px; min-width: 120px; }
+table.cmp tbody tr { cursor: pointer; } table.cmp tbody tr:hover { background: var(--gold-soft); }
+.cgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cside { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.cside h3 { margin: 0 0 4px; display: flex; justify-content: space-between; gap: 6px; }
+.cside dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 8px 0; font-size: 13px; } .cside dt { color: var(--muted); }
+.cside .muted { font-size: 12px; }
+#dlg-cmp .dlg-head .btn { white-space: nowrap; }
+@media (max-width: 640px) { .cmp-sum { gap: 6px; } .cmp-sum > div { padding: 8px; } .cmp-sum b { font-size: 16px; } .cmp-sum span { font-size: 11px; } .cgrid { grid-template-columns: 1fr; }
+  /* 폰: 자세한 칸은 숨기고 줄을 누르면 나란히 보기 */ table.cmp .cinfo, table.cmp th:nth-child(3), table.cmp th:nth-child(6) { display: none; } table.cmp { font-size: 14px; } }
 .card.ro { cursor: default; }
 .boss select { font: inherit; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-width: 100%; }
 .bteams { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 10px; }
@@ -454,7 +475,7 @@ html.embed body { background: transparent !important; padding: 0 !important; min
 html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 html.embed .vp { margin: 0; }
 </style>
-<script src="shell.js?v=20261114j"></script>
+<script src="shell.js?v=20261114k"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -635,12 +656,12 @@ html.embed .vp { margin: 0; }
   </div>
 </dialog>
 
-<script src="wfit.js?v=20261114j"></script>
-<script src="builds.js?v=20261114j"></script>
-<script src="weapons.js?v=20261114j"></script>
-<script src="rot.js?v=20261114j"></script>
-<script src="names.js?v=20261114j"></script>
-<script src="account.js?v=20261114j"></script>
+<script src="wfit.js?v=20261114k"></script>
+<script src="builds.js?v=20261114k"></script>
+<script src="weapons.js?v=20261114k"></script>
+<script src="rot.js?v=20261114k"></script>
+<script src="names.js?v=20261114k"></script>
+<script src="account.js?v=20261114k"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -2135,7 +2156,7 @@ function render() {
 // 친구가 Fork해서 만든 사이트의 공개 동기화 파일(https://아이디.github.io/Genshin/account/hoyolab.json)을 읽어
 // 내 캐릭터와 같은 감정 마스터로 점수를 매김(보기 전용, 친구 기기에 저장된 것은 건드리지 않음)
 // 관리자 보기: 원본 주인 사이트에서만, 이 저장소를 Fork한 사람 전부를 GitHub 공개 목록에서 불러옴(공개된 파일만 보임)
-const FR = { cur: null, data: {}, err: {}, forks: null, forkErr: '' };
+const FR = { cur: null, data: {}, err: {}, forks: null, forkErr: '', mode: 'cmp', q: '', only: 'both' };
 const ghOk = v => /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/.test(v);
 const IS_ADMIN = ACCT.OWNER === 'ts26072-ui';
 async function loadFriend(gid) {
@@ -2169,9 +2190,71 @@ async function loadForks() {
   } catch (e) { FR.forks = null; FR.forkErr = e.message; }
   renderFriends();
 }
+// 나와 친구 캐릭터 비교: 둘 다 가진 캐릭터 먼저, OVR 차이·레벨·운명의 자리·특성·무기·치명
+function cmpTable(fr, owner) {
+  const ids = [...new Set([...Object.keys(S.roster), ...Object.keys(fr.roster)])].filter(id => DB[id]);
+  const keepAr = S.ar;
+  const me = {}, them = {};
+  for (const id of ids) {
+    if (S.roster[id]) me[id] = appraise(S.roster[id]);
+    if (fr.roster[id]) { S.ar = fr.h.ar || keepAr; try { them[id] = appraise(fr.roster[id]); } finally { S.ar = keepAr; } }
+  }
+  const q = FR.q.trim().toLowerCase();
+  let rows = ids.filter(id => FR.only === 'all' || (FR.only === 'both' ? me[id] && them[id] : FR.only === 'me' ? me[id] && !them[id] : !me[id] && them[id]))
+    .filter(id => !q || DB[id].name.toLowerCase().includes(q) || id.includes(q));
+  rows.sort((a, b) => (+!!(me[b] && them[b]) - +!!(me[a] && them[a])) || Math.max(me[b]?.ovr || 0, them[b]?.ovr || 0) - Math.max(me[a]?.ovr || 0, them[a]?.ovr || 0));
+  const both = ids.filter(id => me[id] && them[id]);
+  const win = both.filter(id => me[id].ovr > them[id].ovr).length, lose = both.filter(id => me[id].ovr < them[id].ovr).length;
+  const avg = o => { const v = Object.values(o); return v.length ? Math.round(v.reduce((a, x) => a + x.ovr, 0) / v.length) : 0; };
+  const cell = (c, x) => c ? `<td class="num"><b style="color:${scoreColor(x.score)}">${x.ovr}</b></td><td class="cinfo">Lv.${c.lv} · C${c.cons} · 특성 ${(c.t || []).join('/')}<br><span class="muted">${esc(c.wn || '무기 미입력')}${c.wn ? ` R${c.wr}` : ''} · 치명 ${c.cr}/${c.cd}</span></td>`
+    : `<td class="num muted">—</td><td class="cinfo muted">없음</td>`;
+  const seg = (k, t, n) => `<button type="button" class="btn sm${FR.only === k ? ' primary' : ' ghost'}" data-fonly="${k}">${t} ${n}</button>`;
+  const cnt = k => ids.filter(id => k === 'all' || (k === 'both' ? me[id] && them[id] : k === 'me' ? me[id] && !them[id] : !me[id] && them[id])).length;
+  return `<div class="cmp-sum">
+      <div><span class="muted">나</span><b>${Object.keys(me).length}명</b><span class="muted">평균 OVR ${avg(me)}</span></div>
+      <div><span class="muted">둘 다 가진 캐릭터</span><b>${both.length}명</b><span class="muted">내가 높음 ${win} · 친구가 높음 ${lose}</span></div>
+      <div><span class="muted">${esc(owner)}</span><b>${Object.keys(them).length}명</b><span class="muted">평균 OVR ${avg(them)}</span></div></div>
+    <div class="cmp-tools">${seg('both', '둘 다', cnt('both'))}${seg('me', '나만', cnt('me'))}${seg('them', '친구만', cnt('them'))}${seg('all', '전체', cnt('all'))}
+      <input id="fr-q" type="search" placeholder="캐릭터 이름" value="${esc(FR.q)}" autocomplete="off"></div>
+    <div class="cmp-wrap"><table class="cmp"><thead><tr><th>캐릭터</th><th class="num">나</th><th></th><th class="num">차이</th><th class="num">친구</th><th></th></tr></thead><tbody>
+    ${rows.map(id => {
+      const diff = me[id] && them[id] ? me[id].ovr - them[id].ovr : null;
+      return `<tr data-fcmp="${id}" tabindex="0"><td class="cn">${av(id)}${esc(DB[id].name)}</td>${cell(S.roster[id], me[id])}
+        <td class="num">${diff == null ? '' : `<b style="color:${diff > 0 ? 'var(--good)' : diff < 0 ? 'var(--bad)' : 'var(--muted)'}">${diff > 0 ? '+' : ''}${diff}</b>`}</td>${cell(fr.roster[id], them[id])}</tr>`;
+    }).join('') || '<tr><td colspan="6" class="muted">해당하는 캐릭터가 없어요.</td></tr>'}</tbody></table></div>
+    <p class="legend">줄을 누르면 두 사람의 같은 캐릭터를 나란히 볼 수 있어요. 차이 = 내 OVR − 친구 OVR(초록이면 내가 높음).</p>`;
+}
+// 같은 캐릭터를 나와 친구 나란히
+function cmpChar(id) {
+  const fr = FR.data[FR.cur]; if (!fr) return;
+  const owner = fr.h.nickname || FR.cur;
+  const side = (c, who, ar) => {
+    if (!c) return `<div class="cside"><h3>${esc(who)}</h3><p class="muted">이 캐릭터가 없어요.</p></div>`;
+    const keep = S.ar; S.ar = ar || keep;
+    try {
+      const x = appraise(c), d = x.d, plan = talPlan(d);
+      return `<div class="cside"><h3>${esc(who)} <span class="score-sm" style="color:${scoreColor(x.score)}">OVR ${x.ovr}</span></h3>
+        <p class="muted">육성 ${Math.round(x.score)} · 레벨 ${Math.round(x.a.parts.lv * 100)} · 특성 ${Math.round(x.a.parts.tal * 100)} · 무기 ${Math.round(x.a.parts.wep * 100)} · 성유물 ${Math.round(x.a.parts.art * 100)}</p>
+        <dl><dt>레벨</dt><dd>Lv.${c.lv}${c.ap ? ' (돌파 전)' : ''} · C${c.cons}</dd>
+        <dt>특성</dt><dd>${[0, 1, 2].map(i => `${TAL[i]} <b>${c.t[i]}</b>${plan.some(p => p.i === i) ? '' : ' <span class="muted">·</span>'}`).join(' / ')}</dd>
+        <dt>무기</dt><dd>${esc(c.wn || '미입력')} · Lv.${c.wl} · R${c.wr}</dd>
+        <dt>세트</dt><dd>${esc(setInfo(c).label)}</dd>
+        <dt>스탯</dt><dd>치명 ${c.cr}% / ${c.cd}% · 원충 ${c.er}%<br>${({ atk: '공격력', hp: 'HP', def: '방어력', em: '원소 마스터리' })[d.scale]} ${c.key ?? '?'}</dd></dl>
+        <ul class="issues">${(charIssues(c).filter(i => i[0] !== 'lo').slice(0, 3).map(([s2, t]) => `<li class="sev-${s2}">${esc(t)}</li>`).join('')) || '<li class="sev-ok">기준 육성 완료</li>'}</ul></div>`;
+    } finally { S.ar = keep; }
+  };
+  let dlg = $('#dlg-cmp');
+  if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'dlg-cmp'; document.body.appendChild(dlg); dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); }); }
+  dlg.innerHTML = `<div class="dlg"><div class="dlg-head"><h2>${av(id, 'lg')}${esc(DB[id].name)} <span class="muted" style="font-size:14px">나 vs ${esc(owner)}</span></h2><div style="display:flex;gap:6px"><a class="btn ghost sm" href="char.html#${id}">캐릭터 정보</a><button class="btn ghost sm" type="button" data-close>닫기</button></div></div>
+    <div class="cgrid">${side(S.roster[id], '나', S.ar)}${side(fr.roster[id], owner, fr.h.ar)}</div></div>`;
+  dlg.showModal();
+}
+let frAutoLoaded = false;
 function renderFriends() {
   const v = $('#view-friends'); if (!v) return;
   const list = S.friends || [];
+  // 추가해 둔 친구 정보를 처음 한 번 모두 불러옴(전에는 눌러야만 보였음)
+  if (!frAutoLoaded && list.length) { frAutoLoaded = true; for (const g of list) if (!(g in FR.data)) loadFriend(g); }
   const row = (gid, mine) => {
     const x = FR.data[gid], er = FR.err[gid];
     return `<button type="button" class="frow${FR.cur === gid ? ' on' : ''}" data-fr="${esc(gid)}">
@@ -2188,7 +2271,11 @@ function renderFriends() {
       <p class="legend">이 저장소를 Fork해서 쓰는 사람 전부예요(GitHub 공개 목록). 각자 저장소에 공개된 동기화 파일만 보여요. Fork 없이 이 사이트(원본)만 쓰는 사람의 기록은 그 사람 기기에만 있어서 볼 수 없어요. 원본 주인 사이트에서만 보이는 칸이에요.</p>
       ${FR.forkErr ? `<p class="muted">${esc(FR.forkErr)}</p>` : ''}
       ${Array.isArray(FR.forks) ? `<div class="flist">${FR.forks.length ? FR.forks.map(g => row(g, false)).join('') : '<p class="muted">아직 Fork한 사람이 없어요.</p>'}</div>` : ''}</section>` : ''}
-    ${cur ? `<section class="fview"><div class="bar"><h2>${esc(cur.h.nickname || FR.cur)}의 캐릭터 <span class="muted" style="font-size:14px">${cur.n}명 · AR ${cur.h.ar ?? '?'}</span></h2><div class="actions"><a class="btn ghost sm" href="https://${esc(FR.cur)}.github.io/Genshin/" target="_blank" rel="noopener">친구 사이트</a><button class="btn ghost sm" type="button" data-act="fr-close">닫기</button></div></div>${rosterGrid(cur.roster, false)}</section>` : ''}`;
+    ${cur ? `<section class="fview"><div class="bar"><h2>${esc(cur.h.nickname || FR.cur)}의 캐릭터 <span class="muted" style="font-size:14px">${cur.n}명 · AR ${cur.h.ar ?? '?'}</span></h2><div class="actions">
+      <button class="btn sm${FR.mode === 'cmp' ? ' primary' : ' ghost'}" type="button" data-fmode="cmp">나와 비교</button><button class="btn sm${FR.mode === 'grid' ? ' primary' : ' ghost'}" type="button" data-fmode="grid">친구 캐릭터</button>
+      <a class="btn ghost sm" href="https://${esc(FR.cur)}.github.io/Genshin/" target="_blank" rel="noopener">친구 사이트</a><button class="btn ghost sm" type="button" data-act="fr-close">닫기</button></div></div>
+      ${FR.mode === 'cmp' ? cmpTable(cur, cur.h.nickname || FR.cur) : rosterGrid(cur.roster, false)}</section>` : ''}`;
+  const qi = $('#fr-q'); if (qi && FR.qFocus) { qi.focus(); qi.setSelectionRange(qi.value.length, qi.value.length); }
 }
 const POS_KO = { main: '메인', sub: '서브', sup: '서포터' };
 // 보기 전용 상세 창: 특성(우선순위)·운명의 자리·무기·세트·성유물·스탯·부족한 점
@@ -2226,9 +2313,15 @@ document.addEventListener('click', e => {
   if (fr) { FR.cur = fr.dataset.fr; if (!FR.data[FR.cur]) loadFriend(FR.cur); else renderFriends(); setTimeout(() => $('.fview') && $('.fview').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); return; }
   const a = e.target.closest('[data-act]');
   if (a && a.dataset.act === 'view-char' && FR.cur && FR.data[FR.cur]) { const keep = S.ar; S.ar = FR.data[FR.cur].h.ar || S.ar; try { viewChar(FR.data[FR.cur].roster, a.dataset.id, FR.data[FR.cur].h.nickname || FR.cur); } finally { S.ar = keep; } return; }
+  const fm = e.target.closest('[data-fmode]'); if (fm) { FR.mode = fm.dataset.fmode; renderFriends(); return; }
+  const fo = e.target.closest('[data-fonly]'); if (fo) { FR.only = fo.dataset.fonly; renderFriends(); return; }
+  const fc = e.target.closest('[data-fcmp]'); if (fc) { cmpChar(fc.dataset.fcmp); return; }
   if (a && a.dataset.act === 'fr-forks') loadForks();
   if (a && a.dataset.act === 'fr-close') { FR.cur = null; renderFriends(); }
 });
+
+document.addEventListener('input', e => { if (e.target.id !== 'fr-q') return; FR.q = e.target.value; FR.qFocus = true; renderFriends(); FR.qFocus = false; });
+document.addEventListener('keydown', e => { const r = e.target.closest && e.target.closest('[data-fcmp]'); if (r && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); cmpChar(r.dataset.fcmp); } });
 
 // ───────── 계정 진행도 입력 ─────────
 $('#a-wl').innerHTML = `<option value="auto">자동</option>` + [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<option value="${n}">${n}</option>`).join('');
@@ -2867,8 +2960,8 @@ document.addEventListener('click', e => {
   }
 });
 document.addEventListener('change', e => { if (e.target.id === 'boss-sel') { S.boss = e.target.value; save(); render(); } });
-$('#btn-clear').addEventListener('click', () => { S = { sample: false, ar: S.ar, wl: S.wl, roster: {}, parties: [] }; save(); render(); setTab('roster'); toast('예시 데이터를 비웠습니다'); });
-$('#btn-backup').addEventListener('click', () => { $('#bk-text').value = JSON.stringify({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties, res: S.res }); $('#dlg-backup').showModal(); });
+$('#btn-clear').addEventListener('click', () => { S = { sample: false, ar: S.ar, wl: S.wl, roster: {}, parties: [], friends: S.friends }; save(); render(); setTab('roster'); toast('예시 데이터를 비웠습니다'); });
+$('#btn-backup').addEventListener('click', () => { $('#bk-text').value = JSON.stringify({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties, res: S.res, friends: S.friends || [] }); $('#dlg-backup').showModal(); });
 $('#bk-copy').addEventListener('click', () => {
   const t = $('#bk-text');
   navigator.clipboard.writeText(t.value).then(() => toast('복사됨'), () => { t.select(); toast('텍스트를 선택했습니다. Ctrl+C로 복사하세요'); });
@@ -2878,7 +2971,7 @@ $('#bk-load').addEventListener('click', () => {
     const j = JSON.parse($('#bk-text').value);
     if (!j.roster || !Array.isArray(j.parties)) throw 0;
     for (const id of Object.keys(j.roster)) if (!DB[id]) delete j.roster[id];
-    S = { sample: false, ar: j.ar ?? S.ar, wl: j.wl ?? null, roster: j.roster, parties: j.parties };
+    S = { sample: false, ar: j.ar ?? S.ar, wl: j.wl ?? null, roster: j.roster, parties: j.parties, friends: [...new Set([...(j.friends || []), ...(S.friends || [])])] };
     save(); render(); $('#dlg-backup').close(); toast('불러왔습니다');
   } catch (e) { toast('형식이 맞지 않습니다. 백업에서 복사한 내용을 그대로 붙여넣으세요'); }
 });
@@ -2895,7 +2988,7 @@ function toast(msg) {
 let cloud = null, cloudAt = 0, pushing = false, pushAgain = false, pushTimer = null;
 function setSync(text, tone = '') { const el = $('#sync'); el.textContent = text; el.dataset.tone = tone; }
 // HoYoLAB 자동 동기화 표시(언제 파일을 받았는지·자동 켜짐)도 같이 저장해야 계정에서 불러온 뒤에도 자동 반영이 꺼지지 않음
-const HOYO_KEYS = ['hoyoAt', 'hoyoVer', 'hoyoAuto', 'hoyoRepoOwner', 'forkClean'];
+const HOYO_KEYS = ['hoyoAt', 'hoyoVer', 'hoyoAuto', 'hoyoRepoOwner', 'forkClean', 'friends'];
 const stateBlob = () => JSON.stringify(Object.assign({ ar: S.ar, wl: S.wl, roster: S.roster, parties: S.parties, res: S.res }, ...HOYO_KEYS.map(k => S[k] !== undefined ? { [k]: S[k] } : {})));
 function adopt(json, at) {
   let j; try { j = JSON.parse(json); } catch (e) { return false; }
@@ -2906,6 +2999,9 @@ function adopt(json, at) {
   // 예전에 저장된 계정 데이터에는 동기화 표시가 없음 → 이 브라우저 것을 이어 씀(자동 켜짐은 어느 쪽이든 켜져 있으면 유지)
   for (const k of HOYO_KEYS) { const v = j[k] !== undefined ? j[k] : prev[k]; if (v !== undefined) S[k] = v; }
   if (prev.hoyoAuto || j.hoyoAuto) S.hoyoAuto = true;
+  // 친구 목록은 이 브라우저 것과 계정 것을 합침(어느 쪽에서 추가했든 남음)
+  const fr = [...new Set([...(Array.isArray(j.friends) ? j.friends : []), ...(Array.isArray(prev.friends) ? prev.friends : [])])];
+  if (fr.length) S.friends = fr;
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
   cloudAt = at; render();
   // 계정 데이터가 HoYoLAB 파일보다 옛것이면 바로 다시 반영
