@@ -129,6 +129,18 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .frm:hover { color: var(--ink); background: var(--line); }
 .admin { margin-top: 18px; }
 .fview { margin-top: 18px; }
+.ntabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.nlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.nlist a { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: baseline; padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); text-decoration: none; min-width: 0; }
+.nlist a:hover { border-color: var(--gold); }
+.nlist img { grid-row: span 3; width: 72px; height: 44px; object-fit: cover; border-radius: 8px; align-self: center; }
+.nlist a:has(img) { grid-template-columns: 72px auto 1fr; }
+.nlist b { font-size: 14px; overflow-wrap: anywhere; }
+.nlist .nd { grid-column: 2 / -1; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.nlist a:not(:has(img)) .nd { grid-column: 1 / -1; }
+.ntag { font-size: 11.5px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--good); white-space: nowrap; }
+.ntag.warn { color: var(--warn); }
+@media (max-width: 640px) { .nlist img { width: 56px; height: 36px; } .nlist a:has(img) { grid-template-columns: 56px auto 1fr; } }
 .cmp-sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
 .cmp-sum > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); min-width: 0; }
 .cmp-sum b { font-size: 18px; } .cmp-sum span { font-size: 12px; }
@@ -475,7 +487,7 @@ html.embed body { background: transparent !important; padding: 0 !important; min
 html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 html.embed .vp { margin: 0; }
 </style>
-<script src="shell.js?v=20261114k"></script>
+<script src="shell.js?v=20261120a"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -656,12 +668,12 @@ html.embed .vp { margin: 0; }
   </div>
 </dialog>
 
-<script src="wfit.js?v=20261114k"></script>
-<script src="builds.js?v=20261114k"></script>
-<script src="weapons.js?v=20261114k"></script>
-<script src="rot.js?v=20261114k"></script>
-<script src="names.js?v=20261114k"></script>
-<script src="account.js?v=20261114k"></script>
+<script src="wfit.js?v=20261120a"></script>
+<script src="builds.js?v=20261120a"></script>
+<script src="weapons.js?v=20261120a"></script>
+<script src="rot.js?v=20261120a"></script>
+<script src="names.js?v=20261120a"></script>
+<script src="account.js?v=20261120a"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -2111,6 +2123,36 @@ const FEATURES = [
   { href: 'fork.html', n: '친구도 내 계정으로', g: '친', c: 'var(--anemo)', d: '저장소를 Fork해 친구 각자 자기 계정을 동기화하는 법' },
   { href: 'combo.html', n: '캔슬 연습', g: '캔', c: 'var(--electro)', d: '네페르·마비카·스커크 강공캔·평캔 (모바일 버튼 지원)' },
 ];
+// ───────── 최신 이슈 ─────────
+// news/issues.json: 주간 업데이트 때 정리하는 이번 주 이슈(출처 링크) · news/news.json: HoYoLAB 공식 공지·이벤트·소식(6시간마다 자동)
+// Fork·아티팩트에서도 원본 사이트의 파일을 읽음(GitHub Pages는 다른 사이트에서 읽기 허용)
+const NEWS_BASE = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'news/' : 'https://ts26072-ui.github.io/Genshin/news/';
+const NEWS = { issues: null, news: null, tab: 'issue', err: false };
+async function loadNews() {
+  const get = f => fetch(NEWS_BASE + f + '?t=' + Math.floor(Date.now() / 600000), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+  const [i, n] = await Promise.all([get('issues.json'), get('news.json')]);
+  NEWS.issues = i; NEWS.news = n; NEWS.err = !i && !n;
+  const v = $('#home-news'); if (v) v.innerHTML = newsHtml();
+}
+const NEWS_TABS = [['issue', '이번 주 이슈'], ['notice', '공지'], ['event', '이벤트'], ['info', '소식']];
+function newsHtml() {
+  if (!NEWS.issues && !NEWS.news) return `<p class="muted">${NEWS.err ? '소식을 불러오지 못했어요. 잠시 뒤 다시 열어 주세요.' : '불러오는 중…'}</p>`;
+  const tabs = `<div class="ntabs" role="tablist">${NEWS_TABS.map(([k, t]) => `<button type="button" role="tab" aria-selected="${NEWS.tab === k}" class="btn sm${NEWS.tab === k ? ' primary' : ' ghost'}" data-ntab="${k}">${t}</button>`).join('')}</div>`;
+  const day = ts => new Date(ts * 1000).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' });
+  let body;
+  if (NEWS.tab === 'issue') {
+    const it = (NEWS.issues && NEWS.issues.items) || [];
+    body = it.length ? `<ul class="nlist">${it.map(x => `<li><a href="${esc(x.src)}" target="_blank" rel="noopener"><span class="ntag${x.sure ? '' : ' warn'}">${esc(x.tag)}</span><b>${esc(x.t)}</b>${x.sure ? '' : ' <span class="muted">(예상·유출)</span>'}<span class="nd">${esc(x.d)}</span></a></li>`).join('')}</ul>
+      <p class="legend">${esc(NEWS.issues.week || '')} 정리 · ${esc(NEWS.issues.updated || '')} · 매주 업데이트 때 새로 정리해요. 눌러서 출처를 볼 수 있어요.</p>` : '<p class="muted">이번 주 정리가 아직 없어요.</p>';
+  } else {
+    const it = ((NEWS.news && NEWS.news[NEWS.tab]) || []).slice(0, 8);
+    body = it.length ? `<ul class="nlist">${it.map(x => `<li><a href="https://www.hoyolab.com/article/${encodeURIComponent(x.id)}" target="_blank" rel="noopener">${x.img ? `<img src="${esc(x.img + (x.img.includes('hoyolab.com') && !x.img.includes('?') ? '?x-oss-process=image/resize,s_160/quality,q_80' : ''))}" alt="" loading="lazy" decoding="async">` : ''}<span class="ntag">${day(x.at)}</span><b>${esc(x.t)}</b>${x.d ? `<span class="nd">${esc(x.d)}</span>` : ''}</a></li>`).join('')}</ul>
+      <p class="legend">HoYoLAB 원신 공식 게시판 · 6시간마다 자동으로 받아요${NEWS.news.updated ? ` · 마지막 ${new Date(NEWS.news.updated).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' })}` : ''}</p>` : '<p class="muted">글이 없어요.</p>';
+  }
+  return tabs + body;
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-ntab]'); if (!b) return; NEWS.tab = b.dataset.ntab; const v = $('#home-news'); if (v) v.innerHTML = newsHtml(); });
+
 function renderHome(ranked) {
   const n = Object.keys(S.roster).length, today = new Date().toISOString().slice(0, 10);
   const top = ranked[0], live = BANNERS.find(b => b.from <= today && (!b.to || today <= b.to));
@@ -2134,6 +2176,7 @@ function renderHome(ranked) {
       <div class="todo">${todo.map((a, i) => `<div class="gitem"><span class="no">${i + 1}</span><div><div class="what">${esc(a.what)}</div><div class="why">${esc(a.why)}</div></div><div class="nums"><span class="cost ${a.cost >= 400 ? 'hi' : a.cost >= 200 ? 'md' : 'lo'}">약 ${a.cost} 레진</span></div></div>`).join('')}</div></section>` : ''}
     ${live ? `<section><h2 class="lh">지금 픽업 · ${esc(live.v)}<button class="more" type="button" data-act="tab" data-tab="ai">일정 전체 →</button></h2>
       <div class="bn-who">${[...live.five, ...live.four].filter(id => DB[id]).map(id => `<span class="mchip${live.five.includes(id) ? ' r5' : ''}${S.roster[id] ? ' own' : ''}">${av(id, 'sm')}${esc(DB[id].name)}${S.roster[id] ? ` · ${S.roster[id].cons}돌` : ''}</span>`).join('')}<span class="muted" style="font-size:12.5px">~ ${md(live.to)}</span></div></section>` : ''}
+    <section><h2 class="lh">최신 이슈</h2><div id="home-news">${newsHtml()}</div></section>
     <section><h2 class="lh">메뉴</h2>
       <div class="tiles">${FEATURES.map(f => {
         const inner = `<span class="gl" style="--c:${f.c}">${f.g}</span><span class="tn">${f.n}${cnt[f.tab] ? `<small>${cnt[f.tab]}</small>` : ''}</span><span class="td">${f.d}</span>`;
@@ -3094,8 +3137,9 @@ initSync();
 setTab(tab);
 // 새 HoYoLAB 데이터가 있으면 반영(한 번 동기화한 뒤부터 자동): 열 때, 앱으로 다시 돌아올 때, 켜 둔 동안 30분마다
 setTimeout(() => syncHoyo(false), 2500);
+loadNews();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncHoyo(false); });
-setInterval(() => { if (document.visibilityState === 'visible') syncHoyo(false); }, 30 * 60 * 1000);
+setInterval(() => { if (document.visibilityState === 'visible') { syncHoyo(false); loadNews(); } }, 30 * 60 * 1000);
 </script>
 <script>if ('serviceWorker' in navigator && /github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
 
