@@ -324,6 +324,23 @@ table.cmp tbody tr { cursor: pointer; } table.cmp tbody tr:hover { background: v
 .res { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: end; margin-bottom: 14px; }
 .res label:not(.check) input { width: 110px; }
 .res label.check { padding-bottom: 8px; }
+/* 원석 가계부 */
+.ledger { padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; margin: -4px 0 20px; }
+.ledger h3 { margin: 0 0 2px; font-size: 15px; }
+.lg-chart { position: relative; margin: 10px 0 6px; touch-action: pan-y; }
+.lg-chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.lg-tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12px; line-height: 1.4; padding: 4px 8px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); z-index: 2; }
+.lg-proj { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; font-size: 13px; }
+.lg-proj li { display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+.lg-proj b.mono { font-size: 15px; }
+.lg-st { font-size: 12px; padding: 0 7px; border-radius: 999px; border: 1px solid currentColor; }
+.lg-st.ok { color: var(--good); } .lg-st.warn { color: var(--warn); } .lg-st.bad { color: var(--bad); }
+.lg-log summary { cursor: pointer; font-size: 13px; font-weight: 600; margin-top: 10px; }
+.lg-log table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }
+.lg-log th, .lg-log td { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: right; }
+.lg-log th:first-child, .lg-log td:first-child { text-align: left; }
+.lg-log button { font: inherit; font-size: 12px; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+.lg-log button:hover { color: var(--bad); background: var(--sunk); }
 .qchips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .qchip { font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
 .qchip:hover { border-color: var(--gold); }
@@ -487,7 +504,7 @@ html.embed body { background: transparent !important; padding: 0 !important; min
 html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 html.embed .vp { margin: 0; }
 </style>
-<script src="shell.js?v=20261121a"></script>
+<script src="shell.js?v=20261121b"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -541,6 +558,7 @@ html.embed .vp { margin: 0; }
       <label class="check" for="r-welkin"><input id="r-welkin" type="checkbox"> 공월 축복</label>
       <span class="muted" id="r-sum"></span>
     </div>
+    <section class="panel ledger" id="ledger" aria-label="원석 가계부"></section>
     <div id="ai-off" class="notice" hidden><p>AI 상담은 claude.ai에서 연 앱에서만 쓸 수 있습니다. <a href="https://claude.ai/artifact/XtnB8FRdbqba4gtFcr5WLr" target="_blank" rel="noopener">claude.ai에서 열기</a> (Google 동기화와는 별개라, 그쪽에는 캐릭터를 따로 입력하거나 백업으로 옮겨야 합니다)</p></div>
     <div id="ai-box" hidden>
       <div class="qchips" id="ai-q"></div>
@@ -668,12 +686,12 @@ html.embed .vp { margin: 0; }
   </div>
 </dialog>
 
-<script src="wfit.js?v=20261121a"></script>
-<script src="builds.js?v=20261121a"></script>
-<script src="weapons.js?v=20261121a"></script>
-<script src="rot.js?v=20261121a"></script>
-<script src="names.js?v=20261121a"></script>
-<script src="account.js?v=20261121a"></script>
+<script src="wfit.js?v=20261121b"></script>
+<script src="builds.js?v=20261121b"></script>
+<script src="weapons.js?v=20261121b"></script>
+<script src="rot.js?v=20261121b"></script>
+<script src="names.js?v=20261121b"></script>
+<script src="account.js?v=20261121b"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -2110,7 +2128,7 @@ const FEATURES = [
   { tab: 'roster', n: '내 캐릭터', g: '캐', c: 'var(--hydro)', d: '레벨·특성·무기·성유물(주옵·부옵) 입력과 육성 점수' },
   { tab: 'growth', n: '성장 우선순위', g: '성', c: 'var(--dendro)', d: '레진을 어디에 먼저 쓸지 효과 순으로' },
   { tab: 'meta', n: '메타 · 엔진', g: '메', c: 'var(--electro)', d: '실측 딜량 상위 파티와 코어 조합' },
-  { tab: 'ai', n: 'AI 상담 · 픽업', g: 'AI', c: 'var(--anemo)', d: '픽업 일정과 뽑기·육성 질문' },
+  { tab: 'ai', n: 'AI 상담 · 픽업', g: 'AI', c: 'var(--anemo)', d: '픽업 일정, 원석 가계부(픽업까지 몇 뽑), 뽑기·육성 질문' },
   { href: 'tier.html', n: '티어표', g: '티', c: 'var(--geo)', d: '7.2 역할별 · 운명의 자리(C0~C6)별 등급과 순위 변동' },
   { href: 'dex.html', n: '캐릭터 도감 · 비교', g: '도', c: 'var(--gold)', d: '특성·운명의 자리 설명, 돌파·레벨 바꿔 가며 선수 카드 비교' },
   { href: 'dex.html#wcmp', n: '무기 비교', g: '무', c: 'var(--electro)', d: '캐릭터마다 아무 무기나 넣어 스탯·추천 순위·효과를 나란히' },
@@ -2412,9 +2430,106 @@ function renderRes() {
   $('#r-primo').value = r.primo || ''; $('#r-fate').value = r.fate || ''; $('#r-pity').value = r.pity || '';
   $('#r-guar').checked = !!r.guar; $('#r-welkin').checked = !!r.welkin;
   $('#r-sum').textContent = `지금 ${pullsOf(r)}뽑`;
+  renderLedger();
 }
 for (const [id, k] of [['r-primo', 'primo'], ['r-fate', 'fate'], ['r-pity', 'pity']])
-  $('#' + id).addEventListener('change', e => { resOf()[k] = clamp(Math.round(Number(e.target.value) || 0), 0, k === 'pity' ? 89 : 1e6); saveSettings(); renderRes(); });
+  $('#' + id).addEventListener('change', e => { resOf()[k] = clamp(Math.round(Number(e.target.value) || 0), 0, k === 'pity' ? 89 : 1e6); if (k !== 'pity') logToday(); saveSettings(); renderRes(); });
+
+// ───────── 원석 가계부: 원석·인연을 날짜별로 기록해 다음 픽업까지 몇 뽑 모일지 ─────────
+// 원석·인연 칸을 바꾸면 그날 기록이 자동으로 남음(하루 한 줄, 같은 날은 덮어씀). S.res.log로 계정 데이터와 함께 동기화
+const dayStr = (t = new Date()) => `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+const dayNum = s => Math.round(new Date(s + 'T00:00:00').getTime() / 864e5);
+const dayOf = n => dayStr(new Date(n * 864e5 + 12 * 36e5));
+const pv = x => (x.p || 0) / 160 + (x.f || 0);   // 원석 160 = 1뽑 (소수점까지)
+// 기본 수입: 무과금 버전(42일)당 약 67뽑 = 하루 1.6뽑, 공월 축복은 하루 원석 90 = 0.56뽑
+const BASE_RATE = 1.6, WELKIN_RATE = 90 / 160;
+function logToday() {
+  const r = resOf(), d = dayStr();
+  r.log = (r.log || []).filter(x => x.d !== d).concat({ d, p: r.primo || 0, f: r.fate || 0 }).sort((a, b) => a.d < b.d ? -1 : 1).slice(-400);
+}
+// 하루 수입: 기록이 7일 넘게 쌓이면 기록 사이 증가분만 더해(뽑느라 줄어든 날은 빼고) 날짜로 나눔, 아니면 기본 추정
+function incomeRate() {
+  const r = resOf(), log = r.log || [], base = BASE_RATE + (r.welkin ? WELKIN_RATE : 0);
+  const span = log.length > 1 ? dayNum(log[log.length - 1].d) - dayNum(log[0].d) : 0;
+  if (span < 7) return { v: base, src: 'base', span };
+  let up = 0; for (let i = 1; i < log.length; i++) up += Math.max(0, pv(log[i]) - pv(log[i - 1]));
+  return { v: up / span, src: 'log', span };
+}
+// 앞으로 열릴 기원(시작일 기준)마다 예상 뽑 수와 천장까지 남은 수
+function ledgerPlan() {
+  const r = resOf(), t0 = dayNum(dayStr()), now = (r.primo || 0) / 160 + (r.fate || 0), rate = incomeRate();
+  const need5 = Math.max(0, 90 - (r.pity || 0)), needG = r.guar ? need5 : need5 + 90;
+  const ups = BANNERS.filter(b => dayNum(b.from) > t0).slice(0, 4).map(b => { const x = dayNum(b.from); return { b, x, days: x - t0, y: now + rate.v * (x - t0) }; });
+  return { t0, now, rate, need5, needG, ups };
+}
+const bnWho = b => [...b.five.filter(id => DB[id]).map(id => DB[id].name), ...(b.names || []).map(n => n.replace(/\s*\(.*\)/, ''))].join('·') || '미정';
+function ledgerVerdict(P, n) {
+  if (n >= P.needG) return ['ok', '충분', `픽업 확정 천장(${Math.round(P.needG)}뽑)까지 모임`];
+  if (n >= P.need5) return ['warn', '반만', `5성 천장(${P.need5}뽑)은 넘지만 확정까지 ${Math.ceil(P.needG - n)}뽑 모자람`];
+  return ['bad', '부족', `5성 천장(${P.need5}뽑)까지 ${Math.ceil(P.need5 - n)}뽑 모자람`];
+}
+function ledgerBrief() {
+  const P = ledgerPlan();
+  return `원석 가계부: 기록 ${(resOf().log || []).length}일 · 하루 약 ${P.rate.v.toFixed(2)}뽑(${P.rate.src === 'log' ? '내 기록 기준' : '기본 추정'})`
+    + (P.ups.length ? ' · ' + P.ups.map(u => `${u.b.v}(${u.b.from}) 시작 때 약 ${Math.floor(u.y)}뽑`).join(', ') : '');
+}
+function renderLedger() {
+  const el = $('#ledger'); if (!el) return;
+  const r = resOf(), log = r.log || [], P = ledgerPlan();
+  const head = `<h3>원석 가계부</h3><p class="legend" style="margin:0">위 원석·인연 칸을 바꾸면 그날 기록이 저장돼요(하루 한 줄). 기록이 쌓이면 내 수입 속도로 다음 픽업 때 몇 뽑이 모일지 계산해요. 뽑지 않고 모은다고 가정한 값이에요.</p>`;
+  // ── 그래프: 기록(실선) + 오늘부터 예상(점선), 세로선은 기원 시작일, 가로 점선은 천장 ──
+  const hist = log.map(x => ({ x: dayNum(x.d), y: pv(x), kind: 'log', d: x.d }));
+  const nowPt = { x: P.t0, y: P.now, kind: 'now', d: dayStr() };
+  const proj = P.ups.map(u => ({ x: u.x, y: u.y, kind: 'proj', d: u.b.from, u }));
+  const all = [...hist, nowPt, ...proj];
+  const xmin = Math.min(P.t0 - 7, ...hist.map(p => p.x)), xmax = Math.max(P.t0 + 21, ...proj.map(p => p.x));
+  const ytop = Math.max(20, P.needG, ...all.map(p => p.y)) * 1.08, step = ytop > 400 ? 100 : ytop > 160 ? 50 : 20, ymax = Math.ceil(ytop / step) * step;
+  // 폰에서는 좁은 그래프로 그려 글자가 너무 작아지지 않게
+  const W = innerWidth < 600 ? 400 : 640, H = 230, L = 40, R = 14, T = 26, B = 26;
+  const sx = x => L + (x - xmin) / Math.max(1, xmax - xmin) * (W - L - R), sy = y => H - B - y / ymax * (H - T - B);
+  const md2 = d => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`;
+  let g = '';
+  for (let v = 0; v <= ymax; v += step) g += `<line x1="${L}" x2="${W - R}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L - 6}" y="${sy(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`;
+  const thr = [[P.needG, r.guar ? '5성 천장(확정)' : '픽업 확정 천장']];
+  if (!r.guar && P.need5 > 0) thr.push([P.need5, '5성 천장']);
+  for (const [v, t] of thr) if (v > 0) g += `<line x1="${L}" x2="${W - R}" y1="${sy(v)}" y2="${sy(v)}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 4"/><text x="${W - R}" y="${sy(v) - 5}" text-anchor="end" font-size="11" fill="var(--muted)">${t} ${Math.round(v)}뽑</text>`;
+  for (const p of proj) g += `<line x1="${sx(p.x)}" x2="${sx(p.x)}" y1="${T - 8}" y2="${H - B}" stroke="var(--line)" stroke-width="1"/><text x="${sx(p.x)}" y="${T - 12}" text-anchor="middle" font-size="11" fill="var(--muted)">${esc(p.u.b.v)}</text>`;
+  g += `<line x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="var(--muted)" stroke-width="1"/>`;
+  const xl = [[xmin, md2(dayOf(xmin))], [P.t0, '오늘'], [xmax, md2(dayOf(xmax))]];
+  xl.forEach(([x, t], i) => g += `<text x="${sx(x)}" y="${H - 8}" text-anchor="${i === 0 ? 'start' : i === 2 ? 'end' : 'middle'}" font-size="11" fill="var(--muted)">${t}</text>`);
+  const line = pts => pts.map((p, i) => `${i ? 'L' : 'M'}${sx(p.x).toFixed(1)},${sy(p.y).toFixed(1)}`).join('');
+  const histLine = hist.filter(p => p.x < P.t0).concat(nowPt);
+  if (histLine.length > 1) g += `<path d="${line(histLine)}" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  if (proj.length) g += `<path d="${line([nowPt, ...proj])}" fill="none" stroke="var(--gold)" stroke-width="2" stroke-dasharray="5 5" stroke-linecap="round"/>`;
+  for (const p of hist.filter(p => p.x < P.t0)) g += `<circle cx="${sx(p.x)}" cy="${sy(p.y)}" r="4" fill="var(--gold)" stroke="var(--surface)" stroke-width="2"/>`;
+  g += `<circle cx="${sx(nowPt.x)}" cy="${sy(nowPt.y)}" r="5" fill="var(--gold)" stroke="var(--surface)" stroke-width="2"/>`;
+  for (const p of proj) g += `<circle cx="${sx(p.x)}" cy="${sy(p.y)}" r="4" fill="var(--surface)" stroke="var(--gold)" stroke-width="2"/>`;
+  g += `<circle id="lg-hl" r="7" fill="none" stroke="var(--ink)" stroke-width="2" visibility="hidden"/><rect id="lg-hit" x="${L}" y="${T - 8}" width="${W - L - R}" height="${H - B - T + 8}" fill="transparent"/>`;
+  // ── 예상 목록과 기록 표(그래프의 표 보기) ──
+  const rows = P.ups.map(u => { const [cls, tag, why] = ledgerVerdict(P, u.y);
+    return `<li><b>${esc(u.b.v)}</b><span class="muted">${md2(u.b.from)} · ${u.days}일 뒤 · ${esc(bnWho(u.b))}</span><b class="mono">약 ${Math.floor(u.y)}뽑</b><span class="lg-st ${cls}">${tag}</span><span class="muted" style="font-size:12px">${why}</span></li>`; }).join('');
+  const rate = P.rate.src === 'log' ? `내 기록 ${P.rate.span}일 기준 하루 약 ${P.rate.v.toFixed(2)}뽑(뽑느라 줄어든 날은 빼고 계산)`
+    : `기본 추정 하루 ${P.rate.v.toFixed(2)}뽑(무과금 버전당 약 67뽑${r.welkin ? ' + 공월 축복' : ''}) · 기록이 7일 넘게 쌓이면 내 기록으로 바꿔 계산해요`;
+  const table = log.length ? `<details class="lg-log"><summary>기록 ${log.length}일 보기</summary><table><thead><tr><th>날짜</th><th>원석</th><th>인연</th><th>뽑</th><th></th></tr></thead><tbody>${log.slice().reverse().map(x => `<tr><td>${x.d}</td><td>${x.p.toLocaleString()}</td><td>${x.f}</td><td>${Math.floor(pv(x))}</td><td><button type="button" data-lgdel="${x.d}" aria-label="${x.d} 기록 지우기">지우기</button></td></tr>`).join('')}</tbody></table></details>` : '';
+  el.innerHTML = head + `<div class="lg-chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="뽑 수 기록과 픽업까지 예상">${g}</svg><div class="lg-tip" hidden></div></div>`
+    + `<p class="legend" style="margin:0 0 4px">지금 <b>${Math.floor(P.now)}뽑</b> · ${rate} · 스택 ${r.pity || 0}${r.guar ? ' · 다음 5성 확정' : ''}</p>`
+    + (rows ? `<ul class="lg-proj">${rows}</ul>` : '<p class="muted">앞으로 열릴 기원 일정이 아직 없어요.</p>') + table;
+  // 마우스·손가락 위치에서 가장 가까운 점(기록·오늘·예상)을 보여 줌
+  const svg = el.querySelector('svg'), tip = el.querySelector('.lg-tip'), hl = el.querySelector('#lg-hl'), hit = el.querySelector('#lg-hit');
+  const move = e => {
+    const b = svg.getBoundingClientRect(), vx = (e.clientX - b.left) / b.width * W;
+    const p = all.reduce((a, q) => Math.abs(sx(q.x) - vx) < Math.abs(sx(a.x) - vx) ? q : a);
+    hl.setAttribute('cx', sx(p.x)); hl.setAttribute('cy', sy(p.y)); hl.setAttribute('visibility', 'visible');
+    tip.hidden = false; tip.style.left = (sx(p.x) / W * 100) + '%'; tip.style.top = (sy(p.y) / H * 100) + '%';
+    tip.textContent = p.kind === 'proj' ? `${p.u.b.v} 시작 ${md2(p.d)} · 예상 ${Math.floor(p.y)}뽑` : `${p.kind === 'now' ? '오늘' : md2(p.d)} · ${Math.floor(p.y)}뽑`;
+  };
+  hit.addEventListener('pointermove', move); hit.addEventListener('pointerdown', move);
+  hit.addEventListener('pointerleave', () => { tip.hidden = true; hl.setAttribute('visibility', 'hidden'); });
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-lgdel]'); if (!b) return;
+  const r = resOf(); r.log = (r.log || []).filter(x => x.d !== b.dataset.lgdel); saveSettings(); renderLedger();
+});
 for (const [id, k] of [['r-guar', 'guar'], ['r-welkin', 'welkin']])
   $('#' + id).addEventListener('change', e => { resOf()[k] = e.target.checked; saveSettings(); renderRes(); });
 
@@ -2439,6 +2554,7 @@ function accountBrief() {
   return `오늘: ${new Date().toISOString().slice(0, 10)}
 모험 등급 ${ar()}, 세계 레벨 ${wl()}${S.sample ? ' (주의: 아직 예시 데이터)' : ''}
 재화: 원석 ${r.primo || 0}, 뒤얽힌 인연 ${r.fate || 0} → ${pullsOf(r)}뽑 / 캐릭터 스택 ${r.pity || 0} / ${r.guar ? '다음 5성 픽업 확정' : '반천장(50:50) 상태'} / 공월 축복 ${r.welkin ? '사용' : '미사용'}
+${ledgerBrief()}
 
 [보유 캐릭터]
 ${chars || '없음'}
