@@ -487,7 +487,7 @@ html.embed body { background: transparent !important; padding: 0 !important; min
 html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 html.embed .vp { margin: 0; }
 </style>
-<script src="shell.js?v=20261120a"></script>
+<script src="shell.js?v=20261121a"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -668,12 +668,12 @@ html.embed .vp { margin: 0; }
   </div>
 </dialog>
 
-<script src="wfit.js?v=20261120a"></script>
-<script src="builds.js?v=20261120a"></script>
-<script src="weapons.js?v=20261120a"></script>
-<script src="rot.js?v=20261120a"></script>
-<script src="names.js?v=20261120a"></script>
-<script src="account.js?v=20261120a"></script>
+<script src="wfit.js?v=20261121a"></script>
+<script src="builds.js?v=20261121a"></script>
+<script src="weapons.js?v=20261121a"></script>
+<script src="rot.js?v=20261121a"></script>
+<script src="names.js?v=20261121a"></script>
+<script src="account.js?v=20261121a"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -1907,24 +1907,24 @@ function rosterGrid(roster, editable) {
 }
 
 // ───────── 메타 파티 실측 딜량 ─────────
-// genshin.im 'Measured Team DPS' (원신 7.2, 2026-11-11 갱신판): 허수아비 대상 3~6사이클 실측, 돌파·무기 조건은 미표기.
+// genshin.im 'Measured Team DPS' (원신 7.2, 2026-11-20 갱신판): 허수아비 대상 3~6사이클 실측, 돌파·무기 조건은 미표기.
 // [팀 DPS, 출처 표기, 멤버(첫째가 메인)] — est: 출처에서 '추정치'로 표시 / vesna·mizuki·얼음 여행자는 출처에 멤버가 없어 다른 자료의 대표 조합을 붙임
 // wanderer는 10-22 갱신판부터 멤버가 빠져 직전 genshin.im 표의 조합을, mitya는 출처에 멤버가 없어 나무위키 운용 문단의 대표 교대 조합을 붙임
 const META = [
   [251000, '', ['sandrone','yae','alyosha','odette']],
-  [223000, 'team:GamsGo', ['vesna','vodyanitsa','odette','faruzan']],
+  [251000, 'team:GamsGo', ['vesna','vodyanitsa','odette','faruzan']],
   [234000, '', ['wriothesley','odette','yae','mitya']],
   [207000, '', ['zibai','illuga','columbina','linnea']],
   [203000, 'team:나무위키', ['mitya','yae','odette','valery']],
   [191000, '', ['nefer','lauma','columbina','sucrose']],
-  [187000, 'team:AllThings', ['mizuki','sucrose','odette','traveler-cryo']],
+  [205000, 'team:AllThings', ['mizuki','sucrose','odette','traveler-cryo']],
   [187000, '', ['skirk','furina','escoffier','vodyanitsa']],
   [182000, '', ['flins','ineffa','columbina','sucrose']],
   [185000, 'est', ['cyno','odette','alyosha','yae']],
   [180000, '', ['mavuika','iansan','bennett','citlali']],
   [180000, 'est', ['arlecchino','fischl','mona','bennett']],
   [175000, 'est', ['mualani','mona','mavuika','sucrose']],
-  [174000, 'team:AllThings', ['traveler-cryo','qiqi','yae','odette']],
+  [194000, 'team:AllThings', ['traveler-cryo','qiqi','yae','odette']],
   [164000, '', ['columbina','ineffa','lauma','aino']],
   [164000, '', ['roen','escoffier','mona','vodyanitsa']],
   [164000, '', ['varesa','iansan','durin','chevreuse']],
@@ -2068,7 +2068,7 @@ function renderMeta() {
         <span class="mono mval">${kfmt(r.dps)}</span></div>
       <div class="mfoot">${r.missing.length ? `<span class="muted">보유 ${4 - r.missing.length}/4 · 부족: ${esc(r.missing.map(id => DB[id].name).join(', '))}</span>` : `<span>내 계정 추정 <b class="mono">~${kfmt(r.est)}/초</b> <span class="muted">(내 육성 배율 ×${(r.est / r.dps).toFixed(2)})</span></span>`}</div>
     </div>`).join('')}</div>
-    <p class="foot-note">출처: <a href="https://genshin.im/measured-dps" target="_blank" rel="noopener">genshin.im Measured Team DPS (7.2, 2026-11-11 갱신)</a>. 방랑자 파티 멤버는 갱신판에서 빠져 직전 genshin.im 표의 조합을 그대로 두었고, 미탸 파티 멤버는 나무위키 미탸 문서 운용 문단의 대표 교대 조합(야에 미코·오데트·발레리)이며, 베스나 파티 멤버는 <a href="https://www.gamsgo.com/ko/blog/%EC%9B%90%EC%8B%A0-%ED%8B%B0%EC%96%B4%ED%91%9C" target="_blank" rel="noopener">GamsGo 7.2 가이드</a>, 미즈키·얼음 여행자 파티 멤버는 <a href="https://allthings.how/genshin-impact-dps-tier-list/" target="_blank" rel="noopener">AllThings.How 7.0 딜량 순위</a>의 조합입니다. 출처에 멤버가 없는 아야카·응광·코코미·리넷·헤이조·프레미네·불 여행자는 제외했습니다.</p>`;
+    <p class="foot-note">출처: <a href="https://genshin.im/measured-dps" target="_blank" rel="noopener">genshin.im Measured Team DPS (7.2, 2026-11-20 갱신)</a>. 방랑자 파티 멤버는 갱신판에서 빠져 직전 genshin.im 표의 조합을 그대로 두었고, 미탸 파티 멤버는 나무위키 미탸 문서 운용 문단의 대표 교대 조합(야에 미코·오데트·발레리)이며, 베스나 파티 멤버는 <a href="https://www.gamsgo.com/ko/blog/%EC%9B%90%EC%8B%A0-%ED%8B%B0%EC%96%B4%ED%91%9C" target="_blank" rel="noopener">GamsGo 7.2 가이드</a>, 미즈키·얼음 여행자 파티 멤버는 <a href="https://allthings.how/genshin-impact-dps-tier-list/" target="_blank" rel="noopener">AllThings.How 7.0 딜량 순위</a>의 조합입니다. 출처에 멤버가 없는 아야카·응광·코코미·리넷·헤이조·프레미네·불 여행자는 제외했습니다.</p>`;
   $('#meta-filter').value = metaFilter;
   $('#meta-filter').addEventListener('change', e => { metaFilter = e.target.value; try { localStorage.setItem(KEY + ':meta', metaFilter); } catch (er) {} renderMeta(); });
 }
@@ -2383,14 +2383,14 @@ $('#a-wl').addEventListener('change', () => { const v = $('#a-wl').value; S.wl =
 
 // ───────── 픽업 일정 · AI 상담 ─────────
 // 픽업 일정(매주 업데이트에서 갱신). st: live 진행 중 | official 공식 발표 | leak 유출·추정(확정 아님)
-const BANNERS_AT = '2026-11-13';
+const BANNERS_AT = '2026-11-21';
 const BANNERS = [
-  { v: '7.2 전반', from: '2026-11-04', to: '2026-11-24', st: 'live', five: ['mitya', 'furina'], four: ['valery'], weapons: ['별빛 계시', '고요히 샘솟는 빛'], note: '나머지 4성 2명과 4성 무기는 기사마다 엇갈려 확인 못 함' },
-  { v: '7.2 후반', from: '2026-11-24', to: '2026-12-15', st: 'official', five: ['zibai', 'linnea'], four: [], weapons: ['신월의 달빛', '서리 맺힌 금빛 가지'],
-    chron: { n: '나타 집록 기원', five: ['varesa', 'chasca', 'xilonen', 'mualani', 'kinich'], weapons: ['빛나는 마음', '붉은 깃 별독수리', '바위산을 맴도는 노래', '서핑 타임', '산왕의 엄니'] },
-    note: '자백·린네아 복각과 나타 집록 기원은 7.2 방송 발표 기준(game8, 팬덤 위키, genshin-build.com). 집록 기원은 정확한 시작 시각이 아직 안 나와 날짜가 바뀔 수 있음. 4성과 무기 기원 구성은 아직 미발표라 무기는 각자 전용 무기로 적음' },
-  { v: '7.3 전반', from: '2026-12-16', to: '2027-01-05', st: 'leak', five: [], four: [], names: ['아나스타샤(얼음 신, 5성 얼음 활)', '다니카(5성 번개)'], note: '신캐 2명은 유출끼리 대체로 일치. 다니카 무기는 양손검·장병기로 엇갈리고, 이름이 다른 유출(사리사·데니사)도 있음. 시작일은 42일 주기 추정' },
-  { v: '7.3 후반', from: '2027-01-05', to: '2027-01-26', st: 'leak', five: ['nicole', 'barca'], four: [], note: '11월 기사 기준 니콜·바르카 복각. 10월 예측은 산드로네·로엔이었고 오데트 복각설도 있어 엇갈림' },
+  { v: '7.2 전반', from: '2026-11-04', to: '2026-11-24', st: 'live', five: ['mitya', 'furina'], four: ['valery', 'rosaria', 'charlotte'], weapons: ['별빛 계시', '고요히 샘솟는 빛'], note: '11월 24일 15:59 종료. 4성(발레리·로자리아·샤를로트)은 나무위키 현재 기원 표 기준' },
+  { v: '7.2 후반', from: '2026-11-24', to: '2026-12-15', st: 'official', five: ['zibai', 'linnea'], four: ['illuga', 'aino', 'ningguang'], weapons: ['신월의 달빛', '서리 맺힌 금빛 가지'],
+    chron: { n: '「불꽃에 새긴 이름」 묶음 기원(나타)', five: ['varesa', 'chasca', 'xilonen', 'mualani', 'kinich'], weapons: ['빛나는 마음', '붉은 깃 별독수리', '바위산을 맴도는 노래', '서핑 타임', '산왕의 엄니'] },
+    note: 'HoYoLAB 공식 「7.2 버전 이벤트 기원 알림 제2회」(11월 19일) 기준. 세 기원 모두 11월 24일 19:00~12월 15일 15:59. 무기 기원 4성은 휴대용 체인톱·거리 측정기·제례검·페보니우스 장창·소심, 묶음 기원 4성 캐릭터는 이파·얀사·올로룬·카치나' },
+  { v: '7.3 전반', from: '2026-12-16', to: '2027-01-05', st: 'leak', five: [], four: [], names: ['아나스타샤(얼음 신, 얼음 활)', '다니카(번개, 양손검 유출)'], note: '두 캐릭터는 11월 7일 공식 캐릭터 공개(드립 마케팅)로 플레이어블 확정. 성급·무기·몇 번째 기원인지는 아직 유출뿐(다니카 5성 양손검이 우세). 시작일 12월 16일·특별 방송 12월 4일쯤은 42일 주기 추정' },
+  { v: '7.3 후반', from: '2027-01-05', to: '2027-01-26', st: 'leak', five: ['nicole', 'barca'], four: [], note: '니콜·바르카 복각 유출(sportskeeda 등)과 산드로네·로엔 복각 유출(gamesandchill 등)이 11월에도 엇갈림. 오데트 복각설도 있음' },
   { v: '7.4', from: '2027-01-27', to: null, st: 'leak', five: ['zhongli', 'xianyun'], four: [], names: ['리월 신규 5성(불 원소)'], note: '해등절 버전 예측: 전반 리월 불 원소 신캐 + 종려 복각, 후반 한운 복각. 리월 집록 기원(소·감우·호두·신학·종려) 예측도 있음. 모두 유출·예측' },
 ];
 const BN_ST = { live: '진행 중', official: '공식', leak: '유출 · 추정' };
