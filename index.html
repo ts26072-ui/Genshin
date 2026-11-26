@@ -504,7 +504,7 @@ html.embed body { background: transparent !important; padding: 0 !important; min
 html.embed .wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 html.embed .vp { margin: 0; }
 </style>
-<script src="shell.js?v=20261121b"></script>
+<script src="shell.js?v=20261126"></script>
 <div class="wrap">
   <header class="top">
     <div>
@@ -686,12 +686,12 @@ html.embed .vp { margin: 0; }
   </div>
 </dialog>
 
-<script src="wfit.js?v=20261121b"></script>
-<script src="builds.js?v=20261121b"></script>
-<script src="weapons.js?v=20261121b"></script>
-<script src="rot.js?v=20261121b"></script>
-<script src="names.js?v=20261121b"></script>
-<script src="account.js?v=20261121b"></script>
+<script src="wfit.js?v=20261126"></script>
+<script src="builds.js?v=20261126"></script>
+<script src="weapons.js?v=20261126"></script>
+<script src="rot.js?v=20261126"></script>
+<script src="names.js?v=20261126"></script>
+<script src="account.js?v=20261126"></script>
 <script>
 // ───────── 데이터 ─────────
 const EL = { pyro:'불', hydro:'물', anemo:'바람', electro:'번개', dendro:'풀', cryo:'얼음', geo:'바위' };
@@ -2401,15 +2401,14 @@ $('#a-wl').addEventListener('change', () => { const v = $('#a-wl').value; S.wl =
 
 // ───────── 픽업 일정 · AI 상담 ─────────
 // 픽업 일정(매주 업데이트에서 갱신). st: live 진행 중 | official 공식 발표 | leak 유출·추정(확정 아님)
-const BANNERS_AT = '2026-11-21';
+const BANNERS_AT = '2026-11-26';
 const BANNERS = [
-  { v: '7.2 전반', from: '2026-11-04', to: '2026-11-24', st: 'live', five: ['mitya', 'furina'], four: ['valery', 'rosaria', 'charlotte'], weapons: ['별빛 계시', '고요히 샘솟는 빛'], note: '11월 24일 15:59 종료. 4성(발레리·로자리아·샤를로트)은 나무위키 현재 기원 표 기준' },
-  { v: '7.2 후반', from: '2026-11-24', to: '2026-12-15', st: 'official', five: ['zibai', 'linnea'], four: ['illuga', 'aino', 'ningguang'], weapons: ['신월의 달빛', '서리 맺힌 금빛 가지'],
+  { v: '7.2 후반', from: '2026-11-24', to: '2026-12-15', st: 'live', five: ['zibai', 'linnea'], four: ['illuga', 'aino', 'ningguang'], weapons: ['신월의 달빛', '서리 맺힌 금빛 가지'],
     chron: { n: '「불꽃에 새긴 이름」 묶음 기원(나타)', five: ['varesa', 'chasca', 'xilonen', 'mualani', 'kinich'], weapons: ['빛나는 마음', '붉은 깃 별독수리', '바위산을 맴도는 노래', '서핑 타임', '산왕의 엄니'] },
     note: 'HoYoLAB 공식 「7.2 버전 이벤트 기원 알림 제2회」(11월 19일) 기준. 세 기원 모두 11월 24일 19:00~12월 15일 15:59. 무기 기원 4성은 휴대용 체인톱·거리 측정기·제례검·페보니우스 장창·소심, 묶음 기원 4성 캐릭터는 이파·얀사·올로룬·카치나' },
-  { v: '7.3 전반', from: '2026-12-16', to: '2027-01-05', st: 'leak', five: [], four: [], names: ['아나스타샤(얼음 신, 얼음 활)', '다니카(번개, 양손검 유출)'], note: '두 캐릭터는 11월 7일 공식 캐릭터 공개(드립 마케팅)로 플레이어블 확정. 성급·무기·몇 번째 기원인지는 아직 유출뿐(다니카 5성 양손검이 우세). 시작일 12월 16일·특별 방송 12월 4일쯤은 42일 주기 추정' },
-  { v: '7.3 후반', from: '2027-01-05', to: '2027-01-26', st: 'leak', five: ['nicole', 'barca'], four: [], note: '니콜·바르카 복각 유출(sportskeeda 등)과 산드로네·로엔 복각 유출(gamesandchill 등)이 11월에도 엇갈림. 오데트 복각설도 있음' },
-  { v: '7.4', from: '2027-01-27', to: null, st: 'leak', five: ['zhongli', 'xianyun'], four: [], names: ['리월 신규 5성(불 원소)'], note: '해등절 버전 예측: 전반 리월 불 원소 신캐 + 종려 복각, 후반 한운 복각. 리월 집록 기원(소·감우·호두·신학·종려) 예측도 있음. 모두 유출·예측' },
+  { v: '7.3 전반', from: '2026-12-16', to: '2027-01-05', st: 'leak', five: [], four: [], names: ['아나스타샤(얼음 신, 얼음 활)', '다니카(번개, 양손검 유출)'], note: '두 캐릭터는 11월 6~7일 공식 캐릭터 공개(드립 마케팅)로 플레이어블 확정. 성급·무기·몇 번째 기원인지는 아직 유출뿐(아나스타샤 5성 얼음 이중 원소폭발, 다니카 5성 번개 양손검 보호막 서포터가 우세). 시작일 12월 16일·특별 방송 12월 4일쯤은 42일 주기 추정' },
+  { v: '7.3 후반', from: '2027-01-05', to: '2027-01-26', st: 'leak', five: ['nicole', 'barca'], four: [], note: '니콜·바르카 복각 유출(sportskeeda, 최신 Nanoka 유출)과 산드로네·로엔 복각 유출(gamesandchill·GamsGo 등)이 11월 말에도 엇갈림. 오데트 복각설도 있음' },
+  { v: '7.4', from: '2027-01-27', to: null, st: 'leak', five: ['zhongli', 'xianyun'], four: [], names: ['리월 신규 5성(불 원소 서포터)', '신규 4성(풀 원소)'], note: '해등절 버전 예측(1월 27일~3월 9일쯤): 전반 리월 불 원소 5성 서포터(활·창 유출 엇갈림) + 종려 복각, 후반 한운 복각, 신규 4성 풀 원소. 리월 집록 기원(소·감우·호두·신학·종려) 예측도 있음. 모두 유출·예측' },
 ];
 const BN_ST = { live: '진행 중', official: '공식', leak: '유출 · 추정' };
 const md = d => d ? `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}` : '';
